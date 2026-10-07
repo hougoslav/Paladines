@@ -96,6 +96,11 @@
     return D.categories.find((c) => c.id === id);
   }
 
+  // Un lieu a une catégorie principale (cat) et peut servir à d'autres besoins (autresCats)
+  function dansCat(l, id) {
+    return l.cat === id || (l.autresCats || []).indexOf(id) !== -1;
+  }
+
   function lieu(id) {
     return D.lieux.find((l) => l.id === id);
   }
@@ -251,6 +256,69 @@
     );
   }
 
+  /* ---------- Position des lieux ----------
+   * 1. data/coordonnees.js (généré par outils/geocoder.mjs) ;
+   * 2. sinon, l'appli cherche l'adresse dans la Base Adresse Nationale (service public, gratuit)
+   *    et garde le résultat sur le téléphone. Seules les adresses des lieux sont envoyées,
+   *    jamais la position de la personne.
+   */
+  const GEOCODEURS = [
+    "https://data.geopf.fr/geocodage/search?limit=1&q=",
+    "https://api-adresse.data.gouv.fr/search/?limit=1&q="
+  ];
+
+  function appliquerCoordonnees() {
+    const connues = window.PALADINES_COORDS || {};
+    const cache = stock.lire("geo", {});
+    D.lieux.forEach((l) => {
+      if (l.adresseMasquee || typeof l.lat === "number") return;
+      const enCache = cache[l.id] && cache[l.id].adresse === adresseGeo(l) ? cache[l.id].c : null;
+      const c = connues[l.id] || enCache;
+      if (c) {
+        l.lat = c[0];
+        l.lng = c[1];
+      }
+    });
+  }
+
+  function adresseGeo(l) {
+    return l.adresseGeo || l.adresse;
+  }
+
+  function geocoder(adresse, i) {
+    if (i >= GEOCODEURS.length) return Promise.resolve(null);
+    return fetch(GEOCODEURS[i] + encodeURIComponent(adresse), { referrerPolicy: "no-referrer" })
+      .then((rep) => (rep.ok ? rep.json() : Promise.reject(rep.status)))
+      .then((json) => {
+        const f = json.features && json.features[0];
+        if (!f || f.properties.score < 0.45 || String(f.properties.postcode || "").indexOf("59") !== 0) return null;
+        return [Math.round(f.geometry.coordinates[1] * 1e5) / 1e5, Math.round(f.geometry.coordinates[0] * 1e5) / 1e5];
+      })
+      .catch(() => geocoder(adresse, i + 1));
+  }
+
+  function geocoderManquants() {
+    if (!window.fetch || navigator.onLine === false) return;
+    const manquants = D.lieux.filter((l) => !l.adresseMasquee && adresseGeo(l) && typeof l.lat !== "number");
+    if (!manquants.length) return;
+    const cache = stock.lire("geo", {});
+    let trouves = 0;
+    // Une adresse après l'autre : le service limite le nombre d'appels par seconde
+    manquants.reduce((suite, l) => suite.then(() => geocoder(adresseGeo(l), 0).then((c) => {
+      if (!c) return;
+      l.lat = c[0];
+      l.lng = c[1];
+      cache[l.id] = { adresse: adresseGeo(l), c: c };
+      trouves++;
+    })), Promise.resolve()).then(() => {
+      if (!trouves) return;
+      stock.ecrire("geo", cache);
+      const v = vueCourante().vue;
+      if (["accueil", "cat", "proche", "favoris", "lieu"].indexOf(v) !== -1) rafraichir();
+      majMarqueurs();
+    });
+  }
+
   /* ---------- Listes de lieux ---------- */
   function rangStatut(s) {
     return s.ouvert === true ? 0 : s.ouvert === null ? 1 : 2;
@@ -351,7 +419,7 @@
       : "";
 
     const tuiles = D.categories.map((c) => {
-      const lieux = D.lieux.filter((l) => l.cat === c.id);
+      const lieux = D.lieux.filter((l) => dansCat(l, c.id));
       const n = lieux.filter((l) => statut(l, maintenant).ouvert === true).length;
       const nb = n === 0 ? t("ouverts0") : n === 1 ? t("ouverts1") : t("ouvertsN", { n: n });
       return (
@@ -413,7 +481,7 @@
       rappel +
       htmlPosition() +
       htmlFiltres(false) +
-      '<div id="resultats">' + htmlListe(preparer(D.lieux.filter((l) => l.cat === id)), false) + "</div>"
+      '<div id="resultats">' + htmlListe(preparer(D.lieux.filter((l) => dansCat(l, id))), false) + "</div>"
     );
   }
 
@@ -690,8 +758,15 @@
     if (!etat.coucheLieux) return;
     const maintenant = new Date();
     etat.coucheLieux.clearLayers();
+    const msg = document.querySelector("#vue-carte .carte-msg");
+    if (!D.lieux.some(aCoord)) {
+      msg.textContent = t("carteSansPositions");
+      msg.hidden = false;
+    } else if (msg.textContent === t("carteSansPositions")) {
+      msg.hidden = true;
+    }
     D.lieux
-      .filter((l) => aCoord(l) && (etat.carteCat === "toutes" || l.cat === etat.carteCat))
+      .filter((l) => aCoord(l) && (etat.carteCat === "toutes" || dansCat(l, etat.carteCat)))
       .forEach((l) => {
         const s = statut(l, maintenant);
         if (etat.carteOuvert && s.ouvert !== true) return;
@@ -922,7 +997,7 @@
     const zone = document.getElementById("resultats");
     if (!zone) return;
     const h = vueCourante();
-    if (h.vue === "cat") zone.innerHTML = htmlListe(preparer(D.lieux.filter((l) => l.cat === h.param)), false);
+    if (h.vue === "cat") zone.innerHTML = htmlListe(preparer(D.lieux.filter((l) => dansCat(l, h.param))), false);
     else if (h.vue === "proche") zone.innerHTML = htmlListe(preparer(D.lieux, true), true);
   }
 
@@ -1060,6 +1135,7 @@
   /* ---------- Démarrage ---------- */
   function demarrer() {
     lirePositionQR();
+    appliquerCoordonnees();
     appliquerReglages();
     route();
 
@@ -1096,6 +1172,8 @@
     window.addEventListener("online", majHorsLigne);
     window.addEventListener("offline", majHorsLigne);
     majHorsLigne();
+    window.addEventListener("online", geocoderManquants);
+    geocoderManquants();
 
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();

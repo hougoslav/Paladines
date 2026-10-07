@@ -4,7 +4,7 @@
  * - Fonds de carte : gardés au fur et à mesure (300 au plus).
  * Changer VERSION à chaque mise en ligne force la mise à jour du cache.
  */
-const VERSION = "paladines-v1";
+const VERSION = "paladines-v2";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 
@@ -17,6 +17,7 @@ const FICHIERS = [
   "js/app.js",
   "js/i18n.js",
   "data/lieux.js",
+  "data/coordonnees.js",
   "vendor/leaflet/leaflet.js",
   "vendor/leaflet/leaflet.css",
   "vendor/qrcode/qrcode.js",
