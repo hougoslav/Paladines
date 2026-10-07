@@ -1,0 +1,6 @@
+Polices hébergées avec le site (aucun appel à un service externe) :
+
+- Atkinson Hyperlegible, Braille Institute of America — SIL Open Font License 1.1
+- Bricolage Grotesque, Mathieu Triay — SIL Open Font License 1.1
+
+Sous-ensemble « latin » récupéré depuis Google Fonts. Licence : https://openfontlicense.org

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paladines — Affiche QR</title>
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* Page outil pour l'équipe : formulaire à gauche, aperçu de l'affiche à droite (empilés sur téléphone). */
+  .outil {
+    max-width: 68rem;
+    margin-inline: auto;
+    padding-inline: var(--gouttiere);
+    padding-block: 20px 48px;
+    display: grid;
+    gap: 24px;
+  }
+  @media (min-width: 56rem) {
+    .outil { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); align-items: start; }
+  }
+  .outil-titre { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; }
+  .outil-titre p { color: var(--encre-douce); max-width: 60ch; }
+  .formulaire { display: flex; flex-direction: column; gap: 16px; padding: 18px; background: var(--surface); border: 1px solid var(--trait); border-radius: var(--r); }
+  .champ { display: flex; flex-direction: column; gap: 6px; }
+  .champ label, .champ legend { font-weight: 700; }
+  .champ small { color: var(--encre-douce); font-size: 0.8125rem; }
+  .champ input[type="text"], .champ input[type="url"], .champ input[type="number"] {
+    min-height: 48px; padding: 0 12px; border: 1px solid var(--trait); border-radius: 10px;
+    background: var(--papier); color: var(--encre); font: inherit; width: 100%;
+  }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  fieldset.champ { border: 0; padding: 0; margin: 0; }
+  .radio { display: flex; align-items: center; gap: 10px; min-height: 40px; font-weight: 400 !important; }
+  .radio input { width: 20px; height: 20px; accent-color: var(--encre); }
+  .lien-final { word-break: break-all; font-size: 0.875rem; padding: 10px 12px; background: var(--papier); border-radius: 10px; border: 1px solid var(--trait); }
+  .apercu-boite { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .apercu-boite > p { color: var(--encre-douce); font-size: 0.875rem; }
+  .entete-outil { position: static; }
+  .entete-outil a.retour-app { color: var(--sur-nuit); font-weight: 700; min-height: 44px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+
+  /* ----- L'affiche elle-même (toujours claire : elle est imprimée) ----- */
+  .affiche {
+    --a-nuit: #14233a; --a-lampe: #f4b63f; --a-papier: #ffffff; --a-gris: #4b5768; --a-rouge: #b42318;
+    width: 100%; max-width: 560px; aspect-ratio: 210 / 297; margin-inline: auto;
+    background: var(--a-papier); color: var(--a-nuit);
+    border: 1px solid var(--trait); box-shadow: 0 10px 30px rgb(10 18 32 / .15);
+    display: flex; flex-direction: column; overflow: hidden;
+    font-size: clamp(9px, 2.1vw, 14px);
+  }
+  .aff-haut { background: var(--a-nuit); color: #fff; padding: 5% 7% 6%; display: flex; flex-direction: column; gap: .8em; }
+  .aff-marque { display: flex; align-items: center; gap: .5em; font-family: var(--f-titre); font-weight: 800; font-size: 1.3em; }
+  .aff-marque svg { width: 1.8em; height: 1.8em; }
+  .aff-titre { font-family: var(--f-titre); font-weight: 800; font-size: 2.3em; line-height: 1.05; text-wrap: balance; }
+  .aff-titre em { font-style: normal; color: var(--a-lampe); }
+  .aff-milieu { flex: 1; display: grid; grid-template-columns: 46% 1fr; gap: 6%; align-items: center; padding: 6% 7% 4%; }
+  .aff-qr svg { display: block; width: 100%; height: auto; }
+  .aff-consigne { display: flex; flex-direction: column; gap: .8em; }
+  .aff-consigne strong { font-family: var(--f-titre); font-size: 1.45em; line-height: 1.1; }
+  .aff-consigne p { color: var(--a-gris); line-height: 1.35; }
+  .aff-langues { display: flex; flex-direction: column; gap: .3em; font-size: .95em; color: var(--a-gris); }
+  .aff-telephone { margin: 0 7%; padding: .9em 1.1em; border: 2px solid var(--a-nuit); border-radius: .8em; display: flex; flex-wrap: wrap; gap: .3em 1.2em; align-items: baseline; }
+  .aff-telephone b { font-family: var(--f-titre); font-size: 1.6em; color: var(--a-rouge); font-variant-numeric: tabular-nums; }
+  .aff-telephone span { white-space: nowrap; }
+  .aff-telephone .aff-tel-titre { flex-basis: 100%; font-weight: 700; }
+  .aff-languettes { margin-top: 4%; display: grid; grid-template-columns: repeat(8, 1fr); border-top: 2px dashed var(--a-gris); height: 22%; }
+  .aff-languettes div { border-inline-end: 1px dashed var(--a-gris); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .aff-languettes div:last-child { border-inline-end: 0; }
+  .aff-languettes p { writing-mode: vertical-rl; transform: rotate(180deg); font-size: .85em; line-height: 1.25; text-align: center; white-space: nowrap; }
+  .aff-languettes b { font-family: var(--f-titre); font-size: 1.15em; }
+
+  /* Format autocollant (carré de 10 cm) */
+  .affiche.autocollant { aspect-ratio: 1 / 1; max-width: 380px; font-size: clamp(9px, 2.6vw, 14px); }
+  .autocollant .aff-haut { padding: 6% 8%; }
+  .autocollant .aff-titre { font-size: 1.6em; }
+  .autocollant .aff-milieu { grid-template-columns: 48% 1fr; padding: 6% 8%; }
+  .autocollant .aff-langues, .autocollant .aff-languettes, .autocollant .aff-consigne p { display: none; }
+  .autocollant .aff-telephone { margin: 0 8% 7%; font-size: .9em; }
+
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { background: #fff; }
+    .entete, .formulaire, .outil-titre, .apercu-boite > p, .apercu-boite > .actions-impr { display: none !important; }
+    .outil { padding: 0; display: block; max-width: none; }
+    .affiche { max-width: none; width: 210mm; height: 297mm; border: 0; box-shadow: none; font-size: 15px; aspect-ratio: auto; }
+    .affiche.autocollant { width: 100mm; height: 100mm; font-size: 8px; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<header class="entete entete-outil">
+  <a class="retour-app" href="index.html#apropos"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg>Paladines</a>
+  <span class="marque-nom">Créer une affiche</span>
+</header>
+
+<main class="outil">
+  <div class="outil-titre">
+    <h1>Affiche avec QR code</h1>
+    <p>Chaque affiche peut connaître l'endroit où elle est collée. Quand une femme la scanne, l'appli trie les lieux depuis cet endroit, même si elle refuse de partager sa position. Les numéros 115 et 3919 sont imprimés en clair pour celles qui n'ont pas de smartphone.</p>
+  </div>
+
+  <form class="formulaire" id="form-affiche">
+    <div class="champ">
+      <label for="url-base">Adresse de l'appli en ligne</label>
+      <input type="url" id="url-base" required placeholder="https://exemple.github.io/Paladines/">
+      <small>L'adresse publique du site, une fois mis en ligne.</small>
+    </div>
+    <div class="champ">
+      <label for="nom">Où l'affiche sera collée</label>
+      <input type="text" id="nom" maxlength="60" placeholder="Ex. : Gare du Nord, toilettes du hall 2" value="Gare du Nord">
+      <small>Affiché dans l'appli : « Du plus proche au plus loin de : … ».</small>
+    </div>
+    <div class="champ">
+      <span class="label" style="font-weight:700">Position de l'affiche</span>
+      <div class="duo">
+        <input type="number" id="lat" step="0.0001" min="-90" max="90" placeholder="Latitude" aria-label="Latitude" value="48.8809">
+        <input type="number" id="lng" step="0.0001" min="-180" max="180" placeholder="Longitude" aria-label="Longitude" value="2.3553">
+      </div>
+      <button type="button" class="btn btn--doux btn--mini" id="ma-position">Utiliser ma position actuelle</button>
+      <small id="pos-msg">Laisser vide pour un QR code sans position.</small>
+    </div>
+    <fieldset class="champ">
+      <legend>Format</legend>
+      <label class="radio"><input type="radio" name="format" id="format-a4" value="a4" checked> Affiche A4 avec languettes</label>
+      <label class="radio"><input type="radio" name="format" id="format-carre" value="autocollant"> Autocollant 10 × 10 cm (portes de toilettes, cabines)</label>
+    </fieldset>
+    <div class="champ">
+      <span style="font-weight:700">Lien contenu dans le QR code</span>
+      <p class="lien-final" id="lien-final"></p>
+    </div>
+  </form>
+
+  <div class="apercu-boite">
+    <div class="affiche" id="affiche">
+      <div class="aff-haut">
+        <div class="aff-marque">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#f4b63f" d="M16 2.5 4.5 7v8.2c0 6.9 4.8 11.8 11.5 14.3 6.7-2.5 11.5-7.4 11.5-14.3V7Z"/><path fill="#14233a" d="M16 9.5c.9 3.2 2.3 4.6 5.5 5.5-3.2.9-4.6 2.3-5.5 5.5-.9-3.2-2.3-4.6-5.5-5.5 3.2-.9 4.6-2.3 5.5-5.5Z"/></svg>
+          Paladines
+        </div>
+        <p class="aff-titre">Besoin d'un endroit pour <em>dormir</em>, manger, vous laver ou vous soigner&nbsp;?</p>
+      </div>
+      <div class="aff-milieu">
+        <div class="aff-qr" id="qr"></div>
+        <div class="aff-consigne">
+          <strong>Scannez avec l'appareil photo de votre téléphone.</strong>
+          <p>Les lieux ouverts près d'ici. Gratuit, anonyme, sans inscription.</p>
+          <div class="aff-langues">
+            <span lang="en">Shelter, food, showers, health care: scan the code.</span>
+            <span lang="ar" dir="rtl">مأوى، طعام، استحمام، علاج: امسحي الرمز.</span>
+          </div>
+        </div>
+      </div>
+      <div class="aff-telephone">
+        <span class="aff-tel-titre">Sans téléphone ou sans internet, appelez gratuitement&nbsp;:</span>
+        <span><b>115</b> dormir ce soir</span>
+        <span><b>3919</b> violences</span>
+        <span><b>17</b> danger</span>
+      </div>
+      <div class="aff-languettes" aria-label="Languettes à détacher">
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+        <div><p><b>115</b> dormir<br><b>3919</b> violences</p></div>
+      </div>
+    </div>
+    <p>Aperçu. L'affiche s'imprime en A4 (ou en carré de 10 cm), sans marges, depuis le menu Imprimer du navigateur.</p>
+    <div class="actions-impr"><button type="button" class="btn" id="imprimer">Imprimer l'affiche</button></div>
+  </div>
+</main>
+
+<script src="vendor/qrcode/qrcode.js"></script>
+<script>
+(function () {
+  "use strict";
+  var champs = ["url-base", "nom", "lat", "lng"].map(function (id) { return document.getElementById(id); });
+  var base = champs[0], nom = champs[1], lat = champs[2], lng = champs[3];
+
+  // Adresse par défaut : le dossier de cette page, si elle est en ligne
+  if (/^https?:$/.test(location.protocol)) base.value = location.href.replace(/[^/]*([?#].*)?$/, "");
+  else base.value = "https://exemple.github.io/Paladines/";
+
+  function lienFinal() {
+    var url;
+    try { url = new URL(base.value.trim() || "https://exemple.github.io/Paladines/"); }
+    catch (e) { url = new URL("https://exemple.github.io/Paladines/"); }
+    var la = parseFloat(lat.value), lo = parseFloat(lng.value);
+    if (isFinite(la) && isFinite(lo)) url.searchParams.set("pres", la.toFixed(4) + "," + lo.toFixed(4));
+    if (nom.value.trim()) url.searchParams.set("nom", nom.value.trim());
+    return url.toString();
+  }
+
+  function dessiner() {
+    var lien = lienFinal();
+    document.getElementById("lien-final").textContent = lien;
+    var qr = qrcode(0, "M");
+    qr.addData(lien);
+    qr.make();
+    document.getElementById("qr").innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true, alt: "QR code vers " + lien });
+    var format = document.querySelector('input[name="format"]:checked').value;
+    document.getElementById("affiche").classList.toggle("autocollant", format === "autocollant");
+  }
+
+  document.getElementById("form-affiche").addEventListener("input", dessiner);
+  document.getElementById("form-affiche").addEventListener("submit", function (e) { e.preventDefault(); });
+  document.getElementById("imprimer").addEventListener("click", function () { window.print(); });
+  document.getElementById("ma-position").addEventListener("click", function () {
+    var msg = document.getElementById("pos-msg");
+    if (!navigator.geolocation) { msg.textContent = "Ce navigateur ne donne pas la position. Saisissez-la à la main."; return; }
+    msg.textContent = "Recherche de la position…";
+    navigator.geolocation.getCurrentPosition(function (p) {
+      lat.value = p.coords.latitude.toFixed(4);
+      lng.value = p.coords.longitude.toFixed(4);
+      msg.textContent = "Position ajoutée.";
+      dessiner();
+    }, function () {
+      msg.textContent = "Position refusée ou indisponible. Saisissez-la à la main (clic droit sur une carte en ligne, par exemple).";
+    }, { enableHighAccuracy: true, timeout: 10000 });
+  });
+  dessiner();
+})();
+</script>
+</body>
+</html>
