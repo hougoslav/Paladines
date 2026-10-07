@@ -100,6 +100,19 @@
     return D.lieux.find((l) => l.id === id);
   }
 
+  // Un lieu n'apparaît sur la carte et n'a de distance que si ses coordonnées sont connues et publiques
+  function aCoord(l) {
+    return !l.adresseMasquee && typeof l.lat === "number" && typeof l.lng === "number";
+  }
+
+  function hote(url) {
+    try {
+      return new URL(url).hostname.replace(/^www\./, "");
+    } catch (e) {
+      return url;
+    }
+  }
+
   function telLien(num) {
     return "tel:" + String(num).replace(/[^\d+]/g, "");
   }
@@ -247,7 +260,7 @@
     const maintenant = new Date();
     const ref = etat.position;
     return liste
-      .map((l) => ({ l: l, s: statut(l, maintenant), d: ref && !l.adresseMasquee ? distanceM(ref, l) : null }))
+      .map((l) => ({ l: l, s: statut(l, maintenant), d: ref && aCoord(l) ? distanceM(ref, l) : null }))
       .filter((x) => {
         if ((forcerOuvert || etat.filtres.has("ouvert")) && x.s.ouvert !== true) return false;
         for (const f of etat.filtres) {
@@ -430,7 +443,10 @@
 
     let horaires;
     if (l.horaires === "24/7") horaires = "<p>" + esc(t("h24")) + "</p>";
-    else if (!l.horaires) horaires = "<p>" + esc(t("horairesInconnus")) + "</p>";
+    else if (!l.horaires) {
+      horaires = "<p>" + esc(t("horairesInconnus")) + "</p>" +
+        (l.horairesTexte ? '<p class="aide">' + esc(t("horairesSource")) + " : " + esc(l.horairesTexte) + "</p>" : "");
+    }
     else {
       horaires = '<table class="horaires"><tbody>' + SEMAINE.map((j) =>
         "<tr" + (j === aujourdhui ? ' class="auj"' : "") + '><th scope="row">' + esc(t("jours")[j]) +
@@ -440,8 +456,10 @@
     }
 
     const actions = [];
-    if (!l.adresseMasquee) {
-      actions.push('<a class="action" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/dir/?api=1&amp;destination=' + l.lat + "," + l.lng + '&amp;travelmode=walking">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
+    if (!l.adresseMasquee && (l.adresse || aCoord(l))) {
+      // L'adresse écrite est plus fiable que des coordonnées approchées pour guider jusqu'à la porte
+      const destination = l.adresse ? encodeURIComponent(l.adresse) : l.lat + "," + l.lng;
+      actions.push('<a class="action" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/dir/?api=1&amp;destination=' + destination + '&amp;travelmode=walking">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
     }
     if (l.tel) actions.push('<a class="action" href="' + telLien(l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>");
     actions.push('<button type="button" class="action" data-action="partager" data-id="' + l.id + '">' + icone("i-partager") + "<span>" + esc(t("partager")) + "</span></button>");
@@ -466,7 +484,7 @@
         ? '<p class="adresse-masquee">' + icone("i-bouclier") + esc(t("adresseMasquee")) + "</p>"
         : '<p class="adresse-txt">' + esc(l.adresse) + "</p>" +
           '<button type="button" class="btn btn--doux btn--mini" data-action="copier" data-texte="' + esc(l.adresse) + '">' + icone("i-copier") + esc(t("copier")) + "</button>") +
-      (etat.position && !l.adresseMasquee ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
+      (etat.position && aCoord(l) ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
       (l.tel ? '<p class="tel-txt">' + icone("i-tel") + '<a href="' + telLien(l.tel) + '">' + esc(l.tel) + "</a></p>" : "") +
       "</div>" +
       '<div class="actions">' + actions.join("") + "</div>" +
@@ -475,7 +493,12 @@
       '<section class="section"><h2>' + esc(t("conditions")) + "</h2><p>" + esc(l.conditions) + "</p></section>" +
       (criteres.length ? '<section class="section"><h2>' + esc(t("bonASavoir")) + '</h2><ul class="criteres">' + criteres.map((c) => "<li>" + icone("i-check") + esc(t("f_" + c)) + "</li>").join("") + "</ul></section>" : "") +
       (langues.length ? '<section class="section"><h2>' + esc(t("languesParlees")) + "</h2><p>" + esc(langues.join(", ")) + "</p></section>" : "") +
-      '<p class="verifie">' + icone("i-check") + esc(t("verifie", { date: formatDate(l.verifie) })) + "</p>" +
+      '<div class="verifie"><p>' + icone("i-info") + esc(t("verifie", { date: formatDate(l.verifie) })) + "</p>" +
+      "<p>" + esc(t("appelerAvant")) + "</p>" +
+      (l.sources && l.sources.length
+        ? '<p class="sources">' + esc(t("sources")) + " : " + l.sources.map((u) => '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(hote(u)) + "</a>").join(", ") + "</p>"
+        : "") +
+      "</div>" +
       '<details class="signaler"><summary>' + icone("i-drapeau") + esc(t("signaler")) + "</summary>" +
       '<form id="form-signaler" data-id="' + l.id + '"><fieldset><legend>' + esc(t("signalerQuoi")) + "</legend>" +
       raisons.map((r, i) => '<label><input type="radio" name="raison" id="raison-' + r + '" value="' + r + '"' + (i === 0 ? " required" : "") + "> " + esc(t("sig_" + r)) + "</label>").join("") +
@@ -591,7 +614,7 @@
       htmlRetour() +
       '<article class="apropos" lang="fr" dir="ltr">' +
       "<h1>À propos de ce prototype</h1>" +
-      "<p>Paladines est une première version, faite pour en discuter en groupe. Les lieux sont <strong>fictifs</strong>. Les numéros d'urgence sont <strong>réels</strong>.</p>" +
+      "<p>Paladines est une première version, faite pour en discuter en groupe. Elle est centrée sur <strong>Lille</strong>. Les lieux sont de <strong>vrais lieux</strong>, relevés sur internet en octobre 2026 : ils doivent encore être confirmés par téléphone avec chaque structure avant un vrai lancement. Les numéros d'urgence sont nationaux.</p>" +
       "<h2>Le principe</h2>" +
       "<p>Une femme à la rue scanne un QR code (affiche, autocollant dans des toilettes, carte remise par une maraude). Elle arrive sur cette page, sans rien installer, et trouve tout de suite les lieux ouverts près d'elle pour dormir, manger, se laver, se soigner ou être aidée.</p>" +
       "<h2>Idées ajoutées</h2>" +
@@ -668,7 +691,7 @@
     const maintenant = new Date();
     etat.coucheLieux.clearLayers();
     D.lieux
-      .filter((l) => !l.adresseMasquee && (etat.carteCat === "toutes" || l.cat === etat.carteCat))
+      .filter((l) => aCoord(l) && (etat.carteCat === "toutes" || l.cat === etat.carteCat))
       .forEach((l) => {
         const s = statut(l, maintenant);
         if (etat.carteOuvert && s.ouvert !== true) return;

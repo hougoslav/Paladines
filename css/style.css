@@ -996,10 +996,24 @@ svg {
 }
 .verifie {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--r);
+  background: var(--surface);
+  border: 1px solid var(--trait);
   font-size: 0.875rem;
   color: var(--encre-douce);
+}
+.verifie p:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--encre);
+  font-weight: 700;
+}
+.sources a {
+  overflow-wrap: anywhere;
 }
 .signaler summary {
   display: inline-flex;
