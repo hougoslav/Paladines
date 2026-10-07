@@ -931,8 +931,14 @@
     html.lang = etat.langue;
     html.dir = etat.langue === "ar" ? "rtl" : "ltr";
     html.style.fontSize = [100, 115, 132][etat.taille] + "%";
-    if (etat.theme === "auto") html.removeAttribute("data-theme");
-    else html.setAttribute("data-theme", etat.theme);
+    // « Auto » suit le téléphone ; on ne retire que l'attribut posé par l'appli elle-même
+    if (etat.theme !== "auto") {
+      html.setAttribute("data-theme", etat.theme);
+      html.dataset.themeAppli = "1";
+    } else if (html.dataset.themeAppli) {
+      html.removeAttribute("data-theme");
+      delete html.dataset.themeAppli;
+    }
     document.querySelectorAll("[data-t]").forEach((el) => {
       el.textContent = t(el.dataset.t);
     });
