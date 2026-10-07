@@ -519,7 +519,7 @@
       horaires = '<table class="horaires"><tbody>' + SEMAINE.map((j) =>
         "<tr" + (j === aujourdhui ? ' class="auj"' : "") + '><th scope="row">' + esc(t("jours")[j]) +
         (j === aujourdhui ? " <small>" + esc(t("aujourdhui")) + "</small>" : "") +
-        "</th><td>" + esc(texteHorairesJour(l, j)) + "</td></tr>"
+        "</th><td>" + (plages(l, j).length ? plages(l, j).map((x) => esc(formatHeure(x[0]) + " – " + formatHeure(x[1]))).join("<br>") : esc(t("ferme"))) + "</td></tr>"
       ).join("") + "</tbody></table>";
     }
 
@@ -550,6 +550,8 @@
       '<div class="adresse">' +
       (l.adresseMasquee
         ? '<p class="adresse-masquee">' + icone("i-bouclier") + esc(t("adresseMasquee")) + "</p>"
+        : !l.adresse
+        ? '<p class="adresse-masquee">' + icone("i-tel") + esc(t("sansAdresse")) + "</p>"
         : '<p class="adresse-txt">' + esc(l.adresse) + "</p>" +
           '<button type="button" class="btn btn--doux btn--mini" data-action="copier" data-texte="' + esc(l.adresse) + '">' + icone("i-copier") + esc(t("copier")) + "</button>") +
       (etat.position && aCoord(l) ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
@@ -689,7 +691,7 @@
       '<ol class="idees">' + IDEES.map((x) => "<li><strong>" + esc(x[0]) + "</strong><span>" + esc(x[1]) + "</span></li>").join("") + "</ol>" +
       "<h2>Outils</h2>" +
       '<p><a class="btn" href="affiche.html">' + icone("i-qr") + "Créer une affiche avec QR code</a></p>" +
-      "<p>Les questions à trancher, les sources de données possibles et la feuille de route sont dans <code>docs/IDEES.md</code>.</p>" +
+      "<p>Les questions à trancher, les sources de données possibles et la feuille de route sont dans <code>docs/IDEES.md</code>. La liste des lieux de Lille, leurs sources et ce qui reste à vérifier par téléphone sont dans <code>docs/LIEUX-LILLE.md</code>.</p>" +
       "</article>"
     );
   }
@@ -726,7 +728,8 @@
     let erreurs = 0;
     fond.on("tileerror", () => {
       erreurs++;
-      if (erreurs >= 2) {
+      // Le message « positions en cours de chargement » est plus utile : on le laisse
+      if (erreurs >= 2 && D.lieux.some(aCoord)) {
         msg.textContent = t("fondIndispo");
         msg.hidden = false;
       }
@@ -826,7 +829,7 @@
   function texteLieu(l) {
     const s = statut(l, new Date());
     const parties = [l.nom, s.texte];
-    if (!l.adresseMasquee) parties.push(l.adresse);
+    if (!l.adresseMasquee && l.adresse) parties.push(l.adresse);
     if (l.horaires && l.horaires !== "24/7") parties.push(t("horaires") + " " + t("aujourdhui") + " : " + texteHorairesJour(l, JOURS[new Date().getDay()]));
     parties.push(t("surPlace") + " : " + l.services.join(", "));
     parties.push(l.conditions);
@@ -859,7 +862,7 @@
   }
 
   function partager(l) {
-    const texte = l.nom + "\n" + (l.adresseMasquee ? "" : l.adresse + "\n") + (l.tel ? l.tel + "\n" : "");
+    const texte = l.nom + "\n" + (l.adresseMasquee || !l.adresse ? "" : l.adresse + "\n") + (l.tel ? l.tel + "\n" : "");
     const url = location.href.split("#")[0] + "#lieu-" + l.id;
     if (navigator.share) {
       navigator.share({ title: l.nom, text: texte, url: url }).catch(() => { /* annulé */ });

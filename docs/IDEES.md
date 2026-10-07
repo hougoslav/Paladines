@@ -77,6 +77,18 @@ ouverts maintenant, près d'elle**, pour dormir, manger, se laver, se soigner ou
     endroits où une femme est seule et peut scanner sans être vue.
 22. **Entraide** : envoyer un lieu à une amie par SMS.
 
+## Ce que la recherche sur Lille a montré
+
+- Il n'y a **pas de halte de nuit en accès direct réservée aux femmes** à Lille : les places
+  pour femmes passent par le 115.
+- **Aucun point public de distribution de protections périodiques** pour les femmes à la rue
+  n'a été trouvé. C'est un manque concret sur lequel le projet pourrait agir (partenariat avec
+  une association, une pharmacie, la Ville).
+- Les **bains-douches municipaux ont fermé** : les douches sont dans les accueils de jour.
+- **Peu de repas le soir et le week-end.**
+- Beaucoup d'**horaires se contredisent** d'une source à l'autre : l'appli ne montre « ouvert »
+  que sur les heures communes à toutes les sources. Appeler chaque lieu est indispensable.
+
 ## Où coller les QR codes ?
 
 - Toilettes pour femmes des gares, centres commerciaux, bibliothèques, hôpitaux
@@ -108,11 +120,20 @@ pouvoir la remplacer.
 
 ## Sources de données possibles
 
-Les lieux du prototype sont **fictifs**. Pour de vraies données :
+Le prototype contient **46 vrais lieux de Lille**, relevés sur internet en octobre 2026 et
+contre-vérifiés, mais **pas encore confirmés par téléphone**. La liste, les sources et ce qui
+reste à vérifier sont dans [`LIEUX-LILLE.md`](LIEUX-LILLE.md).
 
-- **Soliguide** (association Solinum) recense des milliers de services solidaires en France et
-  propose une API à ses partenaires. C'est probablement la meilleure piste : à contacter.
-- **Données ouvertes des villes** (ex. Paris Data : toilettes publiques, fontaines à boire).
+Pour les tenir à jour :
+
+- **L'annuaire Solidarités de la Ville de Lille** ([solidarites.lille.fr](https://solidarites.lille.fr/))
+  est la source la plus complète et la plus à jour pour Lille. Un partenariat avec le CCAS
+  serait idéal.
+- **Soliguide** (association Solinum) couvre la métropole de Lille et propose une API à ses
+  partenaires : à contacter.
+- **Les guides de la CMAO** (115, Samu social, SIAO de la métropole) et le guide « Info sans
+  abris » de la Métropole.
+- **Données ouvertes** de la Ville et de la Métropole (toilettes publiques, points d'eau).
 - **Partenariats locaux** : SIAO / 115, CCAS, associations féministes, Restos du cœur,
   Samu social, CIDFF, Planning familial.
 - Vérifier les **licences** de chaque source avant de réutiliser les données.
@@ -125,8 +146,8 @@ nuit dehors.
 
 1. **Tutoiement ou vouvoiement ?** Le prototype vouvoie, par respect. Certaines associations
    tutoient pour être plus proches.
-2. **Quelle ville** pour commencer ? (Le prototype est centré sur Paris, réglable dans
-   `data/lieux.js`.)
+2. **Lille est choisie.** Par quel quartier commencer les affiches ? (Gare Lille Flandres,
+   Wazemmes, Fives, Moulins… où sont les accueils de jour.)
 3. **Qui met à jour les données**, à quelle fréquence, et comment ?
 4. **Quelles langues** en priorité, selon les publics rencontrés ?
 5. **Nom de l'appli** : « Paladines » est-il assez discret sur un écran d'accueil ?

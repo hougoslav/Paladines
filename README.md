@@ -1,12 +1,14 @@
 # Paladines
 
-Prototype d'application web pour les femmes à la rue : en scannant un QR code, elles arrivent
-sur une page qui montre **les lieux ouverts près d'elles** pour dormir, manger, se laver,
+Prototype d'application web pour les femmes à la rue, **à Lille** : en scannant un QR code,
+elles arrivent sur une page qui montre **les lieux ouverts près d'elles** pour dormir, manger, se laver,
 se soigner, se poser, trouver de l'écoute en cas de violences, des vêtements, une bagagerie,
 une aide pour les papiers ou de quoi recharger son téléphone.
 
-> ⚠️ **Prototype** : tous les lieux sont **fictifs** (noms, adresses, téléphones en
-> 01 99 00 xx xx, réservés à la fiction). Seuls les **numéros d'urgence nationaux** sont réels.
+> ⚠️ **Prototype** : les 46 lieux sont de **vrais lieux de Lille**, relevés sur internet le
+> 7 octobre 2026 (sources sur chaque fiche). Ils n'ont **pas encore été confirmés par téléphone** :
+> c'est à faire avant tout lancement. La liste complète, à appeler, est dans
+> [`docs/LIEUX-LILLE.md`](docs/LIEUX-LILLE.md).
 
 Les idées, les choix et les questions à trancher en groupe sont dans
 [`docs/IDEES.md`](docs/IDEES.md).
@@ -23,7 +25,7 @@ l'adresse indiquée.
 npx serve .            # ou : python3 -m http.server 8000
 ```
 
-Pour tester un QR code d'affiche : `http://localhost:3000/?pres=48.8809,2.3553&nom=Gare%20du%20Nord`
+Pour tester un QR code d'affiche : `http://localhost:3000/?pres=50.6366,3.0707&nom=Gare%20Lille%20Flandres`
 
 ## Ce qu'il y a dedans
 
@@ -33,13 +35,16 @@ affiche.html           générateur d'affiches et d'autocollants avec QR code
 css/style.css          toute la mise en forme (thème clair et sombre)
 js/app.js              la logique : vues, horaires, distances, carte, réglages
 js/i18n.js             les textes en français, anglais et arabe
-data/lieux.js          les lieux, les catégories, l'alerte, les numéros d'urgence
+data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
+data/coordonnees.js    positions GPS des lieux (générées par outils/geocoder.mjs)
+outils/geocoder.mjs    calcule les positions GPS à partir des adresses
 sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
 vendor/                Leaflet (carte) et qrcode-generator, copiés ici pour marcher hors ligne
 fonts/                 polices Atkinson Hyperlegible et Bricolage Grotesque (licence OFL)
 icons/                 icônes de l'appli
 docs/IDEES.md          idées, feuille de route, questions pour le groupe
+docs/LIEUX-LILLE.md    les lieux de Lille, leurs sources, ce qui reste à vérifier
 ```
 
 Pas de framework, pas d'étape de compilation : du HTML, du CSS et du JavaScript simples,
@@ -51,26 +56,45 @@ Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
 
 ```js
 {
-  id: "p01", cat: "dormir",
-  nom: "Halte de nuit Les Veilleuses",
-  adresse: "14 rue de l'Exemple, 75010 Paris",
-  lat: 48.8762, lng: 2.3589,
-  tel: "01 99 00 10 01",
-  horaires: { lun: [["19:00", "08:00"]], mar: [["19:00", "08:00"]] },  // ou "24/7", ou null
-  services: ["Lits pour la nuit", "Douches"],
-  conditions: "Réservé aux femmes, avec ou sans enfants.",
-  criteres: { femmes: true, enfants: true, animaux: false, gratuit: true,
-              sansRdv: true, pmr: false, inconditionnel: true },
-  langues: ["fr", "en", "ar"],
-  adresseMasquee: false,   // true : jamais sur la carte (centres pour victimes de violences)
-  verifie: "2026-09-28"    // date de la dernière vérification
+  id: "l02", cat: "dormir",
+  autresCats: ["hygiene", "bagagerie"],      // le lieu apparaît aussi dans ces besoins
+  nom: "Halte de nuit abej SOLIDARITÉ",
+  adresse: "22 parvis Saint-Michel, 59000 Lille",
+  lat: null, lng: null,                      // positions dans data/coordonnees.js
+  tel: "03 66 19 09 30",
+  horaires: { lun: [["21:00", "08:00"]], mar: [["21:00", "08:00"]] },  // ou "24/7", ou null
+  horairesTexte: "Tous les soirs de 21h à 8h, 7 jours sur 7",          // texte de la source
+  services: ["Un abri pour la nuit, dans une salle de repos."],
+  conditions: "Pour les personnes sans abri. Les animaux sont acceptés.",
+  criteres: { animaux: true, sansRdv: true },
+  langues: [],
+  adresseMasquee: false,   // true : jamais sur la carte (lieux protégés)
+  verifie: "2026-10-07",   // date du relevé
+  sources: ["https://abej-solidarite.fr/structure/halte-de-nuit/"]
 }
 ```
 
-- Une plage qui finit avant de commencer (`["19:00", "08:00"]`) passe minuit.
+- Une plage qui finit avant de commencer (`["21:00", "08:00"]`) passe minuit.
+- `horaires: null` : l'appli affiche « appeler avant » et le texte de la source.
+- `adresseGeo` (facultatif) : adresse simplifiée pour le calcul de la position, quand
+  l'adresse affichée contient des précisions (« cour de la mairie de quartier… »).
 - Catégories possibles : `dormir`, `manger`, `hygiene`, `sante`, `accueil`, `ecoute`,
   `vetements`, `bagagerie`, `droits`, `recharge`.
 - Pour changer de ville : modifier `ville` (centre de la carte) en haut du fichier.
+
+## Positions GPS des lieux
+
+La carte et le tri par distance ont besoin de la position de chaque lieu. Depuis le dossier
+du projet, sur un ordinateur avec internet (Node 18 ou plus) :
+
+```bash
+node outils/geocoder.mjs
+```
+
+Le script cherche chaque adresse dans la **Base Adresse Nationale** (service public gratuit)
+et écrit `data/coordonnees.js`. À relancer après chaque changement d'adresse.
+Tant que ce fichier est vide, l'appli fait ce calcul elle-même au premier chargement et
+le garde sur le téléphone.
 - Pour le bandeau d'alerte : `alerte.actif` à `true` ou `false`.
 
 ## Ajouter une langue
@@ -105,6 +129,8 @@ les nouveaux fichiers.
   intensif : pour un vrai lancement, passer par un fournisseur de tuiles (gratuit ou payant).
 - « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
 - « Signaler une erreur » n'envoie encore rien : il faudra un petit serveur ou un formulaire.
+- Le calcul des positions dans l'appli envoie **les adresses des lieux** (jamais la position
+  de la personne) au service de géocodage de l'IGN. Lancer `outils/geocoder.mjs` l'évite.
 - Les traductions anglaise et arabe sont un premier jet, à faire relire.
 
 ## Crédits et licences
