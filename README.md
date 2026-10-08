@@ -126,6 +126,20 @@ C'est cette adresse qu'il faut mettre dans `affiche.html` pour générer les QR 
 À chaque mise à jour, changer `VERSION` dans `sw.js` pour que les téléphones récupèrent
 les nouveaux fichiers.
 
+### Recommandé : Cloudflare Pages (adresse du type paladines.pages.dev)
+
+Gratuit, sans mise en pause du site, trafic non limité en pratique, 500 mises en ligne par mois.
+
+1. Créer un compte gratuit sur <https://dash.cloudflare.com>.
+2. Menu de gauche **Workers & Pages** → **Create** → onglet **Pages** (ou le lien
+   « Looking to deploy Pages? ») → **Connect to Git** → **GitHub** → autoriser Cloudflare,
+   puis choisir le dépôt **Paladines** → **Begin setup**.
+3. **Project name** : `paladines` (ce nom donne l'adresse, il est difficile à changer après).
+   **Production branch** : la branche qui contient l'appli. **Framework preset** : *None*.
+   **Build command** : vide. **Build output directory** : `/`. Puis **Save and Deploy**.
+4. Le site est à **https://paladines.pages.dev**. Le fichier `_headers` règle le cache et
+   la confidentialité.
+
 ### Ou avec Netlify (adresse du type paladines.netlify.app)
 
 1. Créer un compte gratuit sur <https://app.netlify.com> avec **Sign up with GitHub**.
