@@ -68,7 +68,8 @@ Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
   conditions: "Pour les personnes sans abri. Les animaux sont acceptés.",
   criteres: { animaux: true, sansRdv: true },
   langues: [],
-  adresseMasquee: false,   // true : jamais sur la carte (lieux protégés)
+  adresseMasquee: false,   // true : adresse jamais montrée (lieux protégés)
+  // acces: "l26",         // pour une adresse protégée : le lieu public où demander à y aller
   verifie: "2026-10-07",   // date du relevé
   sources: ["https://abej-solidarite.fr/structure/halte-de-nuit/"]
 }
@@ -79,28 +80,32 @@ Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
 - `adresseGeo` (facultatif) : adresse simplifiée pour le calcul de la position, quand
   l'adresse affichée contient des précisions (« cour de la mairie de quartier… »).
 - Catégories possibles : `dormir`, `manger`, `hygiene`, `sante`, `accueil`, `ecoute`,
-  `vetements`, `bagagerie`, `droits`, `recharge`.
+  `vetements`, `bagagerie`, `droits`, `recharge`, `wifi`.
 - Pour changer de ville : modifier `ville` (centre de la carte) en haut du fichier.
 
 ## Positions GPS des lieux
 
-La carte et le tri par distance ont besoin de la position de chaque lieu.
+La carte et le tri par distance ont besoin de la position de chaque lieu. Tout est automatique :
 
-- **Déjà dans `data/coordonnees.js`** : 17 lieux et les 15 repères de « Je suis près de… »
-  (gares, métro, Grand Place, cathédrale). Ces positions ont été trouvées par recherche web,
-  chacune confirmée par deux recherches indépendantes (écart de moins de 200 m).
-- **Les autres lieux** sont placés **automatiquement par l'appli** quand elle est en ligne :
-  elle cherche leur adresse dans la **Base Adresse Nationale** (service public gratuit) et
-  garde le résultat sur le téléphone.
-- **Pour tout fixer une fois pour toutes** (recommandé avant un lancement), depuis le dossier
-  du projet, sur un ordinateur avec internet (Node 18 ou plus) :
+- **GitHub calcule les positions tout seul** à chaque modification de `data/lieux.js`
+  (`.github/workflows/positions.yml`). Il lance `outils/geocoder.mjs`, qui cherche chaque
+  adresse dans la **Base Adresse Nationale** (service public gratuit) et enregistre
+  `data/coordonnees.js`. Le site en ligne se met ensuite à jour.
+- Une position n'est gardée que si elle tombe **dans la bonne rue, au bon numéro et dans la
+  bonne ville**. Sinon le lieu est placé au milieu de la bonne rue, et le journal de l'action
+  GitHub (onglet *Actions*) liste les **adresses à vérifier**.
+- **Position fixée à la main** : pour un lieu que la Base Adresse ne connaît pas (un bâtiment
+  d'hôpital, une place), mettre `lat` et `lng` dans `data/lieux.js`. Le calcul ne la touche plus.
+- On peut aussi lancer le calcul soi-même (Node 18 ou plus) : `node outils/geocoder.mjs`.
 
-  ```bash
-  node outils/geocoder.mjs
-  ```
+Ce que montre la carte :
 
-  Le script complète et corrige `data/coordonnees.js` avec les positions officielles.
-  À relancer après chaque changement d'adresse.
+- **Chaque lieu avec une adresse** a son repère. Plusieurs lieux à la même adresse sont écartés
+  en cercle pour rester visibles.
+- **Adresses protégées** (`adresseMasquee: true`, hébergements pour femmes) : jamais à leur vraie
+  adresse. Avec `acces: "l26"`, un repère en pointillés est posé au lieu public où l'on peut
+  demander à y aller (ici l'accueil de jour Eole), avec une explication.
+- **Services sans adresse** (115, équipe mobile Diogène) : bouton « Par téléphone » sur la carte.
 
 ## Ajouter une langue
 
@@ -175,8 +180,9 @@ Plus tard, pour la mettre dans les stores :
   intensif : pour un vrai lancement, passer par un fournisseur de tuiles (gratuit ou payant).
 - « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
 - « Signaler une erreur » n'envoie encore rien : il faudra un petit serveur ou un formulaire.
-- Le calcul des positions dans l'appli envoie **les adresses des lieux** (jamais la position
-  de la personne) au service de géocodage de l'IGN. Lancer `outils/geocoder.mjs` l'évite.
+- Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
+  sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la
+  position de la personne).
 - Les traductions anglaise et arabe sont un premier jet, à faire relire.
 
 ## Crédits et licences
