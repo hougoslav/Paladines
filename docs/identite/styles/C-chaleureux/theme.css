@@ -1,0 +1,768 @@
+/* Paladines — thème « Doux et chaleureux »
+ * Se charge APRÈS style.css. Ne touche ni au HTML ni au JS.
+ * Fond crème, terre cuite pour la seule action principale, brun profond pour l'encre,
+ * cartes moelleuses aux coins très arrondis, titres en Fraunces (serif douce, OFL).
+ * Contrastes vérifiés : texte >= 4,5:1 en clair comme en sombre.
+ */
+
+@font-face {
+  font-family: "Fraunces Paladines";
+  src: url("fraunces-soft.woff2") format("woff2-variations"), url("fraunces-soft.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------- Couleurs : clair ---------- */
+:root {
+  --papier: #f7f0e6;          /* crème */
+  --surface: #fffbf6;         /* carte */
+  --surface-2: #f2e7da;       /* sable : survol, encarts */
+  --trait: #e8dccd;
+  --bord-carte: rgb(80 45 25 / 0.07);
+  --encre: #2b1d16;           /* brun profond */
+  --encre-douce: #6b574a;
+  --lampe: #b14e2b;           /* terre cuite : l'action principale */
+  --lampe-encre: #ffffff;
+  --accent-doux: #f7ddd0;     /* corail très clair */
+  --accent-fonce: #8f3b1d;
+  --accent-titre: #b14e2b;
+  --lien: #9a3d1c;
+  --focus: #2b1d16;
+  --nuit: #2b1d16;
+  --nuit-2: #4a3328;
+  --sur-nuit: #f7f0e6;
+  --sur-nuit-doux: #d9c8b8;
+  --quitter: #2b1d16;
+  --quitter-encre: #fff8f0;
+  --logo-etoile: #fffbf6;
+  --ok: #2c6a45;
+  --ok-fond: #e2efe2;
+  --bientot: #8a4a06;
+  --bientot-fond: #fbe9d2;
+  --ferme: #6b5d54;
+  --ferme-fond: #efe5da;
+  --urgent: #a8243a;
+  --urgent-fond: #fbe5e5;
+  --pastille-mix: 15%;
+  --pastille-ic: #000;
+  --pastille-ic-mix: 18%;
+
+  --ombre-1: 0 1px 2px rgb(80 45 25 / 0.06), 0 4px 14px rgb(80 45 25 / 0.06);
+  --ombre-2: 0 2px 4px rgb(80 45 25 / 0.07), 0 10px 28px rgb(80 45 25 / 0.1);
+  --ombre-cta: 0 2px 4px rgb(140 55 25 / 0.2), 0 12px 28px -6px rgb(160 65 30 / 0.45);
+
+  --f-titre: "Fraunces Paladines", "Atkinson Hyperlegible", Georgia, system-ui, sans-serif;
+  --r: 20px;
+  --r-carte: 24px;
+}
+
+/* ---------- Couleurs : sombre (espresso, pas noir pur) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --papier: #1b1411;
+    --surface: #261c17;
+    --surface-2: #31251f;
+    --trait: #3e3029;
+    --bord-carte: rgb(255 235 215 / 0.05);
+    --encre: #f6ece2;
+    --encre-douce: #c9b6a7;
+    --lampe: #ef8b67;
+    --lampe-encre: #2a120a;
+    --accent-doux: #4a2a1e;
+    --accent-fonce: #ffb495;
+    --accent-titre: #f39a78;
+    --lien: #ffb08f;
+    --focus: #ffb08f;
+    --nuit: #120d0b;
+    --nuit-2: #2e221c;
+    --sur-nuit: #f6ece2;
+    --sur-nuit-doux: #b9a698;
+    --quitter: #f6ece2;
+    --quitter-encre: #2b1d16;
+    --logo-etoile: #1b1411;
+    --ok: #7fd3a0;
+    --ok-fond: #173323;
+    --bientot: #f2bf6b;
+    --bientot-fond: #3a2816;
+    --ferme: #b9aba0;
+    --ferme-fond: #30261f;
+    --urgent: #ff9a9f;
+    --urgent-fond: #3d1a1d;
+    --pastille-mix: 26%;
+    --pastille-ic: #fff;
+    --pastille-ic-mix: 55%;
+    --ombre-1: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 14px rgb(0 0 0 / 0.18);
+    --ombre-2: 0 2px 4px rgb(0 0 0 / 0.35), 0 10px 28px rgb(0 0 0 / 0.3);
+    --ombre-cta: 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 30px -8px rgb(239 139 103 / 0.35);
+  }
+}
+:root[data-theme="dark"] {
+  --papier: #1b1411;
+  --surface: #261c17;
+  --surface-2: #31251f;
+  --trait: #3e3029;
+  --bord-carte: rgb(255 235 215 / 0.05);
+  --encre: #f6ece2;
+  --encre-douce: #c9b6a7;
+  --lampe: #ef8b67;
+  --lampe-encre: #2a120a;
+  --accent-doux: #4a2a1e;
+  --accent-fonce: #ffb495;
+  --accent-titre: #f39a78;
+  --lien: #ffb08f;
+  --focus: #ffb08f;
+  --nuit: #120d0b;
+  --nuit-2: #2e221c;
+  --sur-nuit: #f6ece2;
+  --sur-nuit-doux: #b9a698;
+  --quitter: #f6ece2;
+  --quitter-encre: #2b1d16;
+  --logo-etoile: #1b1411;
+  --ok: #7fd3a0;
+  --ok-fond: #173323;
+  --bientot: #f2bf6b;
+  --bientot-fond: #3a2816;
+  --ferme: #b9aba0;
+  --ferme-fond: #30261f;
+  --urgent: #ff9a9f;
+  --urgent-fond: #3d1a1d;
+  --pastille-mix: 26%;
+  --pastille-ic: #fff;
+  --pastille-ic-mix: 55%;
+  --ombre-1: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 14px rgb(0 0 0 / 0.18);
+  --ombre-2: 0 2px 4px rgb(0 0 0 / 0.35), 0 10px 28px rgb(0 0 0 / 0.3);
+  --ombre-cta: 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 30px -8px rgb(239 139 103 / 0.35);
+}
+
+/* ---------- Typographie ---------- */
+h1,
+h2,
+h3,
+.hero-titre,
+.marque-nom,
+.tuile-nom,
+.cta-txt strong,
+.urg-num,
+.urg-rapide-num {
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+}
+h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+}
+h2 {
+  font-weight: 600;
+}
+/* Le titre reçoit le focus à chaque changement de vue (lecteurs d'écran) : pas de cadre visible
+   sur un élément qui n'est pas cliquable. Les boutons et liens gardent leur contour. */
+h1[tabindex="-1"]:focus,
+h1[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+.sauter {
+  border-radius: 999px;
+}
+a {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1.5px;
+}
+
+/* ---------- En-tête : crème, pas de bandeau sombre ---------- */
+.entete {
+  background: var(--papier);
+  color: var(--encre);
+  box-shadow: 0 1px 0 var(--trait);
+}
+.entete :focus-visible {
+  outline-color: var(--focus);
+}
+.marque {
+  gap: 10px;
+}
+.marque-logo {
+  flex: none;
+  width: 30px;
+  height: 30px;
+}
+.logo-bouclier {
+  fill: var(--lampe);
+}
+.logo-lueur {
+  fill: var(--logo-etoile);
+}
+.marque-nom {
+  font-weight: 600;
+  font-size: 1.3125rem;
+  letter-spacing: -0.01em;
+}
+.entete-actions {
+  gap: 2px;
+}
+.btn-entete {
+  min-width: 44px;
+  min-height: 48px;
+  border-radius: 999px;
+  color: var(--encre);
+}
+.btn-entete:hover {
+  background: var(--surface-2);
+}
+.btn-quitter {
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--quitter);
+  color: var(--quitter-encre);
+}
+.btn-quitter:hover {
+  filter: none;
+  background: var(--nuit-2);
+  color: var(--sur-nuit);
+}
+.menu-langue {
+  border: 1px solid var(--bord-carte);
+  border-radius: var(--r);
+  box-shadow: var(--ombre-2);
+  padding: 8px;
+}
+.menu-langue button {
+  border-radius: 14px;
+}
+.menu-langue button:hover,
+.menu-langue button[aria-checked="true"] {
+  background: var(--surface-2);
+}
+
+/* ---------- Accueil ---------- */
+.vue {
+  gap: 24px;
+}
+.hero {
+  margin: 0;
+  padding: 8px 0 0;
+  background: transparent;
+  color: var(--encre);
+  border-radius: 0;
+  gap: 18px;
+}
+.proto {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface-2);
+  color: var(--encre-douce);
+  line-height: 1.4;
+}
+.hero-titre {
+  text-wrap: wrap;
+  font-size: 2.375rem;
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+}
+.hero-titre span {
+  color: var(--accent-titre);
+  display: block;
+}
+.cta-proche {
+  position: relative;
+  gap: 16px;
+  padding: 20px 18px 20px 20px;
+  border-radius: 28px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 55%),
+    var(--lampe);
+  color: var(--lampe-encre);
+  box-shadow: var(--ombre-cta);
+  animation: lueur-terre 1.2s ease-out both;
+}
+.cta-proche:focus-visible {
+  outline-color: var(--focus);
+}
+.cta-ic {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: rgb(255 255 255 / 0.18);
+  font-size: 1.4rem;
+}
+:root[data-theme="dark"] .cta-ic {
+  background: rgb(42 18 10 / 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cta-ic {
+    background: rgb(42 18 10 / 0.12);
+  }
+}
+.cta-txt {
+  gap: 2px;
+}
+.cta-txt strong {
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.cta-txt small {
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+@keyframes lueur-terre {
+  from {
+    box-shadow: 0 0 0 rgb(0 0 0 / 0);
+    transform: translateY(4px);
+  }
+}
+
+.alerte {
+  padding: 14px 16px;
+  border-radius: var(--r);
+  gap: 12px;
+}
+
+/* Titres de blocs : en Fraunces, sans capitales criées */
+.titre-bloc {
+  font-family: var(--f-titre);
+  font-size: 1.375rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: -0.005em;
+  color: var(--encre);
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+}
+.titre-bloc--urg {
+  color: var(--encre);
+}
+.titre-bloc--urg .ic {
+  color: var(--urgent);
+}
+
+/* Tuiles : cartes moelleuses */
+.grille-cat {
+  gap: 12px;
+}
+.tuile {
+  gap: 4px;
+  padding: 16px;
+  min-height: 158px;
+  border: 1px solid var(--bord-carte);
+  border-radius: var(--r-carte);
+  box-shadow: var(--ombre-1);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.tuile:hover {
+  border-color: var(--bord-carte);
+  box-shadow: var(--ombre-2);
+  transform: translateY(-1px);
+}
+.tuile .pastille {
+  margin-bottom: 10px;
+}
+.tuile-nom {
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: -0.005em;
+}
+.tuile-desc {
+  font-size: 0.875rem;
+}
+.tuile-nb {
+  padding-top: 10px;
+}
+
+/* Pastilles : carrés très arrondis, teinte douce de la couleur de catégorie */
+.pastille {
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+}
+.pastille--grande {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  font-size: 1.6rem;
+}
+@supports (background: color-mix(in srgb, red 10%, white)) {
+  .pastille,
+  .tete .pastille {
+    background: color-mix(in srgb, var(--c, var(--lampe)) var(--pastille-mix), var(--surface));
+    color: color-mix(in srgb, var(--c, var(--lampe)), var(--pastille-ic) var(--pastille-ic-mix));
+  }
+}
+.tete--proche .pastille {
+  background: var(--accent-doux);
+  color: var(--accent-fonce);
+}
+.tete--urg .pastille {
+  background: var(--urgent-fond);
+  color: var(--urgent);
+}
+.tete--infos .pastille,
+.tete--favoris .pastille {
+  background: var(--surface-2);
+  color: var(--encre);
+}
+
+/* Urgences rapides */
+.urg-rapides {
+  gap: 10px;
+}
+.urg-rapide {
+  gap: 4px;
+  padding: 14px 12px;
+  border-radius: var(--r);
+}
+.urg-rapide-num {
+  font-weight: 600;
+  font-size: 2rem;
+}
+.lien-fleche {
+  color: var(--lien);
+}
+
+/* Liens du bas : regroupés dans une carte */
+.liens-bas {
+  border-top: 0;
+  padding: 0 16px;
+  background: var(--surface);
+  border-radius: var(--r-carte);
+  border: 1px solid var(--bord-carte);
+  box-shadow: var(--ombre-1);
+}
+.liens-bas a {
+  gap: 12px;
+  min-height: 56px;
+}
+.liens-bas a:last-child {
+  border-bottom: 0;
+}
+.liens-bas .ic {
+  color: var(--lampe);
+}
+
+/* ---------- En-têtes de vues ---------- */
+.retour {
+  gap: 2px;
+  min-height: 44px;
+  padding: 0 16px 0 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--bord-carte);
+  box-shadow: var(--ombre-1);
+  margin-bottom: -4px;
+}
+.tete {
+  gap: 16px;
+}
+.rappel {
+  padding: 14px 16px;
+  border-radius: var(--r);
+  gap: 12px;
+}
+
+/* Filtres */
+.puce {
+  border-color: var(--trait);
+  background: var(--surface);
+}
+.puce[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--papier);
+}
+
+/* ---------- Listes de lieux : une carte par lieu ---------- */
+.liste {
+  display: grid;
+  gap: 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.liste li + li {
+  border-top: 0;
+}
+.ligne-lieu {
+  background: var(--surface);
+  border: 1px solid var(--bord-carte);
+  border-radius: var(--r-carte);
+  box-shadow: var(--ombre-1);
+  overflow: hidden;
+}
+.lieu {
+  gap: 14px;
+  padding: 16px;
+}
+.lieu:hover {
+  background: var(--surface-2);
+}
+.lieu-corps {
+  gap: 6px;
+}
+.statut {
+  padding: 3px 10px;
+}
+/* Le bouton « Appeler » passe en pied de carte : le nom, le statut et la distance
+   gardent toute la largeur au lieu de se replier sur 3 lignes. */
+.ligne-lieu {
+  flex-wrap: wrap;
+}
+.ligne-lieu .lieu {
+  flex: 1 1 100%;
+}
+.appel-rapide {
+  flex: 1 1 100%;
+  width: auto;
+  min-height: 48px;
+  flex-direction: row;
+  gap: 8px;
+  border-inline-start: 0;
+  border-top: 1px solid var(--bord-carte);
+  font-size: 0.9375rem;
+}
+.appel-rapide .ic {
+  font-size: 1.2rem;
+}
+.lieu .pastille {
+  width: 44px;
+  height: 44px;
+}
+
+/* ---------- Boutons ---------- */
+.btn {
+  min-height: 48px;
+  padding: 0 20px;
+}
+.btn--doux {
+  background: var(--surface);
+  border-color: var(--trait);
+  box-shadow: var(--ombre-1);
+}
+.btn--mini {
+  min-height: 44px;
+}
+
+/* ---------- Fiche d'un lieu ---------- */
+.fiche-lieu {
+  gap: 22px;
+}
+.badge-fictif {
+  border: 0;
+  background: var(--surface-2);
+  padding: 4px 12px;
+}
+.fiche-lieu .tete h1 {
+  font-size: 1.75rem;
+}
+.adresse-masquee,
+.verifie {
+  border: 0;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  padding: 14px 16px;
+}
+.actions {
+  gap: 6px;
+}
+.action {
+  min-height: 76px;
+  border: 1px solid var(--bord-carte);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--ombre-1);
+}
+.action .ic {
+  color: var(--lampe);
+  font-size: 1.35rem;
+}
+.action[aria-pressed="true"] {
+  border-color: var(--lampe);
+  background: var(--accent-doux);
+}
+.action[aria-pressed="true"] .ic {
+  color: var(--accent-fonce);
+}
+.section {
+  gap: 10px;
+}
+.section h2 {
+  font-size: 1.3125rem;
+  font-weight: 600;
+}
+.horaires {
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  border: 1px solid var(--bord-carte);
+  border-radius: var(--r);
+  box-shadow: var(--ombre-1);
+  overflow: hidden;
+}
+.horaires th,
+.horaires td {
+  padding: 11px 16px;
+}
+.horaires tr:first-child th,
+.horaires tr:first-child td {
+  border-top: 0;
+}
+.horaires tr.auj th,
+.horaires tr.auj td {
+  background: var(--accent-doux);
+}
+.horaires tr.auj small {
+  color: var(--accent-fonce);
+}
+.puces-txt li::marker {
+  color: var(--lampe);
+}
+.criteres li {
+  padding: 8px 14px;
+  border-color: var(--trait);
+}
+.signaler form {
+  border: 1px solid var(--bord-carte);
+  border-radius: var(--r-carte);
+  box-shadow: var(--ombre-1);
+}
+.signaler input {
+  accent-color: var(--lampe);
+}
+
+/* ---------- Urgences, infos, réglages ---------- */
+.liste-urg,
+.fiches {
+  border: 1px solid var(--bord-carte);
+  border-radius: var(--r-carte);
+  box-shadow: var(--ombre-1);
+}
+.urg {
+  padding: 16px;
+}
+.urg-num {
+  font-weight: 600;
+}
+.fiche summary {
+  padding: 10px 16px;
+}
+.vide {
+  border-radius: var(--r-carte);
+}
+.installer-bandeau {
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--bord-carte);
+  border-radius: var(--r-carte);
+  box-shadow: var(--ombre-1);
+}
+.installer-bandeau strong {
+  font-family: var(--f-titre);
+  font-weight: 600;
+  font-size: 1.1875rem;
+  font-variation-settings: "SOFT" 100, "WONK" 0;
+}
+.installer-bandeau strong .ic {
+  color: var(--lampe);
+}
+.choix-repere select {
+  border-radius: 16px;
+  padding: 0 16px;
+}
+.qr-telephone .qr {
+  border-radius: 16px;
+}
+
+/* ---------- Carte ---------- */
+/* Sans fond de carte (hors ligne), une trame de points discrète plutôt qu'un aplat vide */
+.carte {
+  background-color: var(--papier);
+  background-image: radial-gradient(circle, var(--trait) 1.2px, transparent 1.6px);
+  background-size: 22px 22px;
+}
+.barre-carte {
+  padding: 12px var(--gouttiere);
+}
+.barre-carte .puce {
+  border-color: var(--bord-carte);
+  box-shadow: var(--ombre-1);
+}
+.btn-localiser,
+.btn-placer,
+.btn-tel-carte {
+  border-color: var(--bord-carte);
+  box-shadow: var(--ombre-2);
+}
+.btn-localiser {
+  color: var(--lampe);
+}
+.carte-msg,
+.carte-tel {
+  border-color: var(--bord-carte);
+  border-radius: var(--r);
+  box-shadow: var(--ombre-2);
+  padding: 12px 16px;
+}
+.marqueur {
+  border-color: var(--surface);
+  box-shadow: 0 2px 8px rgb(60 30 15 / 0.3);
+}
+.leaflet-popup-content-wrapper {
+  border-radius: var(--r);
+  box-shadow: var(--ombre-2);
+}
+.leaflet-bar {
+  border: 0 !important;
+  border-radius: 16px !important;
+  box-shadow: var(--ombre-2) !important;
+  overflow: hidden;
+}
+.leaflet-bar a {
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  border-bottom-color: var(--trait) !important;
+}
+/* leaflet.css impose un fond blanc translucide (illisible en mode sombre) */
+.leaflet-container .leaflet-control-attribution {
+  background: var(--surface);
+  color: var(--encre-douce);
+  border-radius: 10px 0 0 0;
+  padding: 2px 8px;
+}
+
+/* ---------- Onglets du bas ---------- */
+.onglets {
+  border-top: 0;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -1px 0 var(--bord-carte), 0 -8px 24px rgb(80 45 25 / 0.08);
+}
+.onglets .ic {
+  padding: 4px;
+}
+.onglets a[aria-current="page"] {
+  color: var(--encre);
+}
+.onglets a[aria-current="page"] .ic {
+  background: var(--accent-doux);
+  color: var(--accent-fonce);
+  padding-inline: 18px;
+}
+.onglets .onglet-urg {
+  color: var(--urgent);
+}
+
+@media (min-width: 40rem) {
+  .hero {
+    border-radius: 0;
+  }
+  .hero-titre {
+    font-size: 2.75rem;
+  }
+}

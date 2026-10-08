@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Paladines">
+  <title>Paladines — signe pour fond bleu nuit</title>
+  <circle cx="32" cy="32" r="30" fill="#24395c"/>
+  <path fill="#d3dbe6" d="M32 5 40 25.5 55.5 33.5 40 41.5 32 55.5 24 41.5 8.5 33.5 24 25.5Z"/>
+  <path fill="#e0a12f" d="M32 33.5 24 25.5 32 5 40 25.5Z"/>
+  <path fill="#f4b63f" d="M32 33.5 24 25.5 32 5Z"/>
+  <path fill="#e0a12f" d="M32 33.5 32 5 40 25.5Z"/>
+  <path fill="#ffffff" d="M32 33.5 40 25.5 55.5 33.5Z"/>
+  <path fill="#d3dbe6" d="M32 33.5 55.5 33.5 40 41.5Z"/>
+  <path fill="#ffffff" d="M32 33.5 40 41.5 32 55.5Z"/>
+  <path fill="#d3dbe6" d="M32 33.5 32 55.5 24 41.5Z"/>
+  <path fill="#ffffff" d="M32 33.5 24 41.5 8.5 33.5Z"/>
+  <path fill="#d3dbe6" d="M32 33.5 8.5 33.5 24 25.5Z"/>
+</svg>

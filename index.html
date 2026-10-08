@@ -16,6 +16,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="css/style.css">
+<script>
+  // Essai d'un style proposé (docs/identite/) : ajouter ?essai=A (à E) à l'adresse. À retirer une fois le style choisi.
+  (function () {
+    var styles = { A: "A-nuit-raffinee", B: "B-service-public", C: "C-chaleureux", D: "D-editorial", E: "E-apaisant" };
+    var m = /[?&]essai=([A-E])(?:&|$)/.exec(location.search);
+    if (!m) return;
+    var lien = document.createElement("link");
+    lien.rel = "stylesheet";
+    lien.href = "docs/identite/styles/" + styles[m[1]] + "/theme.css";
+    document.head.appendChild(lien);
+  })();
+</script>
 </head>
 <body>
 

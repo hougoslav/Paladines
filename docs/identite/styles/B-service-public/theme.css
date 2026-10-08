@@ -1,0 +1,784 @@
+/* Paladines — thème « Service public »
+ * Clair, sobre, très lisible : fond blanc, un seul bleu franc, filets fins d'1 px,
+ * rayons courts, pas d'ombre (sauf sur la carte, pour détacher les boutons du fond).
+ * Se charge APRÈS style.css : redéfinit les variables (clair et sombre) et quelques composants.
+ * Titres : Hanken Grotesk (OFL), texte courant : Atkinson Hyperlegible (inchangé).
+ */
+
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("hanken-grotesk-latin-wght-normal.woff2") format("woff2-variations"),
+    url("hanken-grotesk-latin-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("hanken-grotesk-latin-ext-wght-normal.woff2") format("woff2-variations"),
+    url("hanken-grotesk-latin-ext-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ---------- Couleurs : clair ---------- */
+:root {
+  /* Le bleu franc : texte, liens, bouton principal (6,8:1 sur blanc) */
+  --bleu: #1a50cf;
+  --bleu-fonce: #133d9e;
+  --bleu-fond: #eaf0fc;
+  --surface-2: #f4f6f9;
+
+  --nuit: #1a50cf;
+  --nuit-2: #133d9e;
+  --papier: #f4f6f9;
+  --surface: #ffffff;
+  --encre: #131a26;
+  --encre-douce: #4b5566;
+  --trait: #d9dee6;
+  --trait-fort: #b7bfcb;
+  --lampe: #1a50cf;
+  --lampe-encre: #ffffff;
+  --lien: #1a50cf;
+  --focus: #0d2a6e;
+  --sur-nuit: #ffffff;
+  --sur-nuit-doux: #dbe4fa;
+  --quitter: #c62a1d;
+  --ok: #0f6b3e;
+  --ok-fond: #e4f3ea;
+  --bientot: #8a4b00;
+  --bientot-fond: #fcefd9;
+  --ferme: #535d6d;
+  --ferme-fond: #edf0f4;
+  --urgent: #b42318;
+  --urgent-fond: #fdeceb;
+
+  --f-titre: "Hanken Grotesk", "Atkinson Hyperlegible", system-ui, sans-serif;
+
+  --r: 8px;
+  --r-btn: 6px;
+  /* pastilles : fond teinté de la couleur du besoin, pictogramme dans cette couleur */
+  --pastille-fond: 11%;
+  --pastille-trait: 100%;
+  --ombre-carte: 0 1px 2px rgb(19 26 38 / 0.12), 0 4px 12px rgb(19 26 38 / 0.10);
+}
+
+/* ---------- Couleurs : sombre (préférence système) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bleu: #8fb2ff;
+    --bleu-fonce: #b5ccff;
+    --bleu-fond: #17233f;
+    --surface-2: #1a2029;
+
+    --nuit: #2d63de;
+    --nuit-2: #2353c4;
+    --papier: #0d1117;
+    --surface: #151a22;
+    --encre: #e7ebf1;
+    --encre-douce: #a3adbb;
+    --trait: #2a323f;
+    --trait-fort: #434d5d;
+    --lampe: #2d63de;
+    --lampe-encre: #ffffff;
+    --lien: #8fb2ff;
+    --focus: #b5ccff;
+    --sur-nuit: #ffffff;
+    --sur-nuit-doux: #d6e1fb;
+    --quitter: #c9362a;
+    --ok: #5fd39a;
+    --ok-fond: #0f2e20;
+    --bientot: #f2bf62;
+    --bientot-fond: #33260d;
+    --ferme: #a6afbd;
+    --ferme-fond: #212833;
+    --urgent: #ff8a80;
+    --urgent-fond: #351a1b;
+    --ombre-carte: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.45);
+    --pastille-fond: 22%;
+    --pastille-trait: 48%;
+  }
+}
+:root[data-theme="dark"] {
+  --bleu: #8fb2ff;
+  --bleu-fonce: #b5ccff;
+  --bleu-fond: #17233f;
+  --surface-2: #1a2029;
+
+  --nuit: #2d63de;
+  --nuit-2: #2353c4;
+  --papier: #0d1117;
+  --surface: #151a22;
+  --encre: #e7ebf1;
+  --encre-douce: #a3adbb;
+  --trait: #2a323f;
+  --trait-fort: #434d5d;
+  --lampe: #2d63de;
+  --lampe-encre: #ffffff;
+  --lien: #8fb2ff;
+  --focus: #b5ccff;
+  --sur-nuit: #ffffff;
+  --sur-nuit-doux: #d6e1fb;
+  --quitter: #c9362a;
+  --ok: #5fd39a;
+  --ok-fond: #0f2e20;
+  --bientot: #f2bf62;
+  --bientot-fond: #33260d;
+  --ferme: #a6afbd;
+  --ferme-fond: #212833;
+  --urgent: #ff8a80;
+  --urgent-fond: #351a1b;
+  --ombre-carte: 0 1px 2px rgb(0 0 0 / 0.5), 0 4px 14px rgb(0 0 0 / 0.45);
+  --pastille-fond: 22%;
+  --pastille-trait: 48%;
+}
+
+/* ---------- Base ---------- */
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.012em;
+}
+h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+}
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+a {
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+.sauter {
+  border-radius: var(--r-btn);
+}
+
+/* ---------- En-tête : blanc, filet en bas ---------- */
+.entete {
+  background: var(--surface);
+  color: var(--encre);
+  border-bottom: 1px solid var(--trait);
+}
+.entete :focus-visible {
+  outline-color: var(--focus);
+}
+.marque {
+  gap: 10px;
+}
+.marque-logo {
+  width: 28px;
+  height: 28px;
+}
+.logo-bouclier {
+  fill: var(--bleu);
+}
+.logo-lueur {
+  fill: var(--surface);
+}
+.marque-nom {
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+.btn-entete {
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: var(--r-btn);
+  color: var(--encre);
+  letter-spacing: 0.02em;
+}
+.btn-entete:hover {
+  background: var(--surface-2);
+}
+.btn-quitter {
+  min-height: 40px;
+  border-radius: var(--r-btn);
+  padding: 0 12px;
+  background: var(--quitter);
+  color: #fff;
+}
+.menu-langue {
+  border-radius: var(--r);
+  box-shadow: var(--ombre-carte);
+}
+.menu-langue button {
+  border-radius: var(--r-btn);
+}
+.menu-langue button:hover,
+.menu-langue button[aria-checked="true"] {
+  background: var(--bleu-fond);
+  color: var(--bleu);
+}
+
+/* ---------- Accueil ---------- */
+.hero {
+  background: var(--surface);
+  color: var(--encre);
+  border-radius: 0;
+  border-bottom: 1px solid var(--trait);
+  padding: 20px var(--gouttiere) 24px;
+  gap: 18px;
+}
+.proto {
+  padding: 6px 10px;
+  border: 0;
+  border-inline-start: 3px solid var(--trait-fort);
+  border-radius: 4px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  background: var(--surface-2);
+  color: var(--encre-douce);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+/* Taille calée pour que « De quoi avez-vous besoin ? » tienne sur une ligne
+   (pas de « ? » orphelin, pas de coupure sur « avez- ») */
+.hero-titre {
+  font-size: clamp(1.625rem, 7.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  text-wrap: wrap;
+  text-wrap: pretty;
+}
+.hero-titre span {
+  display: block;
+  color: var(--bleu);
+}
+.cta-proche {
+  gap: 14px;
+  padding: 14px 16px;
+  min-height: 76px;
+  border-radius: var(--r);
+  background: var(--lampe);
+  color: var(--lampe-encre);
+  box-shadow: none;
+  animation: none;
+}
+.cta-proche:hover {
+  background: var(--bleu-fonce);
+}
+:root[data-theme="dark"] .cta-proche:hover {
+  background: var(--nuit-2);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cta-proche:hover {
+    background: var(--nuit-2);
+  }
+}
+.cta-proche:focus-visible {
+  outline-color: var(--focus);
+}
+.cta-ic {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-btn);
+  background: rgb(255 255 255 / 0.16);
+}
+.cta-txt {
+  gap: 2px;
+}
+.cta-txt strong {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+.cta-txt small {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.alerte,
+.rappel,
+.installer-bandeau {
+  border-radius: var(--r);
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+.alerte {
+  border: 1px solid var(--trait);
+  border-inline-start: 4px solid var(--bientot);
+}
+
+.titre-bloc {
+  font-family: var(--f-titre);
+  font-size: 1.1875rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: -0.005em;
+  color: var(--encre);
+}
+.titre-bloc--urg {
+  color: var(--encre);
+}
+.titre-bloc--urg .ic {
+  color: var(--urgent);
+}
+
+/* Tuiles : blanches, filet fin, survol en bleu */
+.grille-cat {
+  gap: 8px;
+}
+.tuile {
+  gap: 2px;
+  padding: 14px;
+  min-height: 140px;
+  border-radius: var(--r);
+  background: var(--surface);
+  border: 1px solid var(--trait);
+}
+.tuile:hover {
+  border-color: var(--bleu);
+}
+.tuile .pastille {
+  margin-bottom: 8px;
+}
+.tuile-nom {
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.005em;
+}
+.tuile-desc {
+  font-size: 0.8125rem;
+}
+
+/* Pastilles : carré doux teinté de la couleur du besoin */
+.pastille,
+.tete .pastille {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-btn);
+  background: var(--surface-2);
+  color: var(--c, var(--bleu));
+  box-shadow: inset 0 0 0 1px var(--trait);
+}
+@supports (background: color-mix(in srgb, red 10%, white)) {
+  .pastille,
+  .tete .pastille {
+    background: color-mix(in srgb, var(--c, var(--bleu)) var(--pastille-fond), var(--surface));
+    color: color-mix(in srgb, var(--c, var(--bleu)) var(--pastille-trait), #fff);
+    box-shadow: none;
+  }
+}
+/* Navigateurs anciens sans color-mix() : en sombre, pictogramme couleur texte */
+@supports not (background: color-mix(in srgb, red 10%, white)) {
+  :root[data-theme="dark"] .pastille {
+    color: var(--encre);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .pastille {
+      color: var(--encre);
+    }
+  }
+}
+.pastille--grande,
+.tete .pastille--grande {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r);
+}
+.tete--proche .pastille,
+.tete--infos .pastille,
+.tete--favoris .pastille {
+  background: var(--bleu-fond);
+  color: var(--bleu);
+}
+.tete--urg .pastille {
+  background: var(--urgent-fond);
+  color: var(--urgent);
+}
+
+/* Urgences rapides : blanc, filet, numéro en rouge */
+.urg-rapides {
+  gap: 8px;
+}
+.urg-rapide {
+  gap: 4px;
+  padding: 12px;
+  min-height: 48px;
+  border-radius: var(--r);
+  background: var(--surface);
+  border: 1px solid var(--trait);
+}
+.urg-rapide:hover {
+  border-color: var(--urgent);
+}
+.urg-rapide-num {
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+}
+.urg-rapide-txt {
+  color: var(--encre-douce);
+}
+.lien-fleche {
+  min-height: 48px;
+  color: var(--lien);
+}
+.liens-bas a {
+  min-height: 56px;
+}
+.liens-bas .ic {
+  color: var(--bleu);
+}
+
+/* ---------- En-têtes de vues ---------- */
+.retour {
+  min-height: 48px;
+  color: var(--lien);
+}
+.tete h1 {
+  font-size: 1.625rem;
+}
+.rappel {
+  border: 1px solid var(--trait);
+  border-inline-start: 4px solid var(--urgent);
+  background: var(--surface);
+}
+
+/* Filtres : puces à filet, état actif en bleu */
+.puce {
+  min-height: 44px;
+  border-color: var(--trait-fort);
+  background: var(--surface);
+}
+.puce:hover {
+  border-color: var(--bleu);
+}
+.puce[aria-pressed="true"] {
+  background: var(--bleu-fond);
+  border-color: var(--bleu);
+  color: var(--bleu);
+}
+
+/* ---------- Listes ---------- */
+.position-actions {
+  width: 100%;
+}
+.position-actions .btn {
+  flex: 1 1 100%;
+}
+.compte {
+  font-weight: 700;
+}
+.liste {
+  border-radius: var(--r);
+}
+.lieu {
+  padding: 14px;
+}
+.lieu:hover {
+  background: var(--surface-2);
+}
+.lieu-cat {
+  letter-spacing: 0.06em;
+}
+.lieu-nom {
+  font-size: 1.0625rem;
+}
+.statut {
+  align-items: flex-start;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.statut::before {
+  margin-top: 0.44em;
+}
+.ligne-lieu .lieu:has(+ .appel-rapide) .chevron {
+  display: none;
+}
+.appel-rapide {
+  width: 72px;
+  background: var(--surface);
+  color: var(--bleu);
+}
+.appel-rapide:hover {
+  background: var(--bleu-fond);
+  filter: none;
+}
+.vide {
+  border-radius: var(--r);
+  background: var(--surface);
+}
+
+/* ---------- Boutons ---------- */
+.btn {
+  min-height: 48px;
+  border-radius: var(--r-btn);
+  border-color: var(--lampe);
+  background: var(--lampe);
+  color: var(--lampe-encre);
+}
+.btn:hover {
+  background: var(--nuit-2);
+  border-color: var(--nuit-2);
+}
+.btn--doux {
+  background: var(--surface);
+  color: var(--bleu);
+  border-color: var(--trait-fort);
+}
+.btn--doux:hover {
+  background: var(--bleu-fond);
+  border-color: var(--bleu);
+}
+.btn--mini {
+  min-height: 44px;
+}
+.btn--danger {
+  background: var(--urgent);
+  border-color: var(--urgent);
+  color: var(--surface);
+}
+.btn--appel {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: var(--surface);
+}
+.leaflet-container a.btn {
+  color: var(--lampe-encre);
+}
+.leaflet-container a.btn--doux {
+  color: var(--bleu);
+}
+
+/* ---------- Fiche d'un lieu ---------- */
+.fiche-lieu {
+  gap: 20px;
+}
+.badge-fictif {
+  padding: 2px 8px;
+  border: 1px solid var(--trait-fort);
+  border-radius: 4px;
+  background: var(--surface);
+}
+.adresse-txt {
+  font-weight: 700;
+}
+.adresse-masquee {
+  border-radius: var(--r);
+}
+.actions {
+  gap: 8px;
+}
+.action {
+  min-height: 72px;
+  border-radius: var(--r);
+  color: var(--encre);
+}
+.action .ic {
+  color: var(--bleu);
+}
+.action:hover {
+  border-color: var(--bleu);
+}
+.action[aria-pressed="true"] {
+  border-color: var(--bleu);
+  background: var(--bleu-fond);
+}
+.action[aria-pressed="true"] .ic {
+  color: var(--bleu);
+}
+.fiche-lieu > .section {
+  padding-top: 16px;
+  border-top: 1px solid var(--trait);
+}
+.section h2 {
+  font-size: 1.125rem;
+}
+.horaires {
+  border-bottom: 1px solid var(--trait);
+}
+.horaires tr.auj th,
+.horaires tr.auj td {
+  background: var(--bleu-fond);
+  color: var(--encre);
+}
+.horaires tr.auj th {
+  box-shadow: inset 3px 0 0 var(--bleu);
+}
+[dir="rtl"] .horaires tr.auj th {
+  box-shadow: inset -3px 0 0 var(--bleu);
+}
+.criteres li {
+  border-radius: 4px;
+}
+.verifie {
+  border-radius: var(--r);
+  background: var(--surface-2);
+}
+.signaler summary {
+  min-height: 48px;
+}
+.signaler form {
+  border-radius: var(--r);
+}
+.signaler label {
+  min-height: 44px;
+}
+.signaler input {
+  accent-color: var(--bleu);
+}
+
+/* ---------- Urgences, infos, réglages ---------- */
+.liste-urg,
+.fiches {
+  border-radius: var(--r);
+}
+.urg-num {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.urg:not(.urg--fort) .urg-actions .btn {
+  background: var(--surface);
+  color: var(--bleu);
+  border-color: var(--trait-fort);
+}
+.urg:not(.urg--fort) .urg-actions .btn:hover {
+  background: var(--bleu-fond);
+  border-color: var(--bleu);
+}
+.fiche summary {
+  font-family: var(--f-titre);
+  font-size: 1.0625rem;
+}
+.fiche summary .chevron {
+  color: var(--bleu);
+}
+.installer-bandeau {
+  border-inline-start: 4px solid var(--bleu);
+}
+.installer-bandeau strong {
+  font-family: var(--f-titre);
+}
+.installer-bandeau strong .ic {
+  color: var(--bleu);
+}
+code {
+  background: var(--surface-2);
+}
+.choix-repere select {
+  border-color: var(--trait-fort);
+  border-radius: var(--r-btn);
+}
+
+/* ---------- Carte ---------- */
+.barre-carte .puce {
+  box-shadow: var(--ombre-carte);
+  border-color: var(--trait);
+}
+.btn-localiser {
+  border-radius: var(--r);
+  box-shadow: var(--ombre-carte);
+  color: var(--bleu);
+}
+.btn-placer,
+.btn-tel-carte {
+  border-radius: var(--r);
+  box-shadow: var(--ombre-carte);
+}
+.btn-placer .ic {
+  color: var(--bleu);
+}
+.btn-placer[aria-pressed="true"] .ic {
+  color: inherit;
+}
+.carte-msg,
+.carte-tel {
+  border-radius: var(--r);
+  box-shadow: var(--ombre-carte);
+}
+.leaflet-popup-content-wrapper {
+  border-radius: var(--r);
+}
+.leaflet-touch .leaflet-bar,
+.leaflet-bar {
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  box-shadow: var(--ombre-carte);
+  overflow: hidden;
+}
+.leaflet-bar a,
+.leaflet-touch .leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  border-bottom-color: var(--trait);
+  color: var(--encre);
+}
+.leaflet-bar a:hover {
+  background: var(--surface-2);
+}
+.leaflet-touch .leaflet-bar a:first-child,
+.leaflet-touch .leaflet-bar a:last-child {
+  border-radius: 0;
+}
+.marqueur {
+  border-width: 2px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+}
+.moi {
+  background: var(--lampe);
+  box-shadow: 0 0 0 8px rgb(26 80 207 / 0.22);
+}
+
+/* ---------- Onglets du bas : filet en haut, onglet actif souligné en bleu ---------- */
+.onglets {
+  background: var(--surface);
+  border-top: 1px solid var(--trait);
+}
+.onglets a {
+  position: relative;
+  color: var(--encre-douce);
+  font-weight: 700;
+}
+.onglets .ic {
+  padding: 2px;
+}
+.onglets a[aria-current="page"] {
+  color: var(--bleu);
+}
+.onglets a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 22%;
+  right: 22%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--bleu);
+}
+.onglets a[aria-current="page"] .ic {
+  background: transparent;
+  color: inherit;
+  padding-inline: 2px;
+}
+.onglets .onglet-urg {
+  color: var(--urgent);
+}
+.onglets .onglet-urg[aria-current="page"]::before {
+  background: var(--urgent);
+}
+
+@media (min-width: 40rem) {
+  .hero {
+    border-radius: 0;
+  }
+  .hero-titre {
+    font-size: 2.375rem;
+  }
+}
