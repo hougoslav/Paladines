@@ -126,6 +126,22 @@ C'est cette adresse qu'il faut mettre dans `affiche.html` pour générer les QR 
 À chaque mise à jour, changer `VERSION` dans `sw.js` pour que les téléphones récupèrent
 les nouveaux fichiers.
 
+### Ou avec Netlify (adresse du type paladines.netlify.app)
+
+1. Créer un compte gratuit sur <https://app.netlify.com> avec **Sign up with GitHub**.
+2. **Add new project** → **Import an existing project** → **GitHub** → autoriser Netlify,
+   puis choisir le dépôt **Paladines**.
+3. **Branch to deploy** : la branche qui contient l'appli (`main` une fois fusionnée).
+   Les autres réglages sont lus dans `netlify.toml` : ne rien remplir, puis **Deploy**.
+4. *Project configuration* → *Change project name* → `paladines` (si le nom est libre).
+   Le site est alors à **https://paladines.netlify.app**.
+
+⚠️ L'offre gratuite donne **300 crédits par mois**. Chaque mise en ligne de la branche
+publiée en coûte 15 et chaque Go de trafic 20. Si les crédits sont épuisés, **le site est
+mis en pause jusqu'au mois suivant**. Pour l'éviter : publier la branche `main`, n'y
+fusionner les changements qu'en groupe, de temps en temps (pas à chaque modification),
+et surveiller *Usage & Billing*.
+
 ## Avoir l'appli sur son téléphone
 
 1. **Ouvrir le site sur le téléphone** : taper l'adresse, scanner une affiche, ou scanner le
