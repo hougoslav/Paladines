@@ -1,18 +1,26 @@
 {
+  "id": "./",
   "name": "Paladines",
   "short_name": "Paladines",
-  "description": "Trouver un lieu pour dormir, manger, se laver, se soigner ou être aidée.",
+  "description": "Trouver un lieu pour dormir, manger, se laver, se soigner ou être aidée, à Lille.",
   "lang": "fr",
+  "dir": "auto",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#14233a",
   "theme_color": "#14233a",
+  "categories": ["social", "health", "navigation"],
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
     { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    { "name": "Ouvert maintenant, près de moi", "short_name": "Près de moi", "url": "./index.html#proche", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Carte", "url": "./index.html#carte", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Numéros d'urgence", "short_name": "Urgences", "url": "./index.html#urgences", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }

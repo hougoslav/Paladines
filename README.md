@@ -103,25 +103,42 @@ Copier le bloc `en` de [`js/i18n.js`](js/i18n.js), le traduire, puis ajouter le 
 langue dans `LANGUES` (début de `js/app.js`) et un bouton dans le menu de langue
 (`index.html`). Un texte manquant s'affiche en français.
 
-## Mettre le site en ligne
+## Mettre le site en ligne (2 minutes, gratuit)
 
-Avec **GitHub Pages** (gratuit) : dans le dépôt GitHub, *Settings → Pages*, choisir la branche
-et le dossier racine. Le site sera à une adresse du type
-`https://<compte>.github.io/Paladines/`. C'est cette adresse à mettre dans `affiche.html`
-pour générer les QR codes.
+Le GPS, la carte de Lille, les appels et l'installation sur téléphone ne marchent vraiment
+que sur un site **en ligne en https**. Le plus simple est **GitHub Pages** :
+
+1. Ouvrir <https://github.com/hougoslav/Paladines/settings/pages>.
+2. Dans *Build and deployment* → *Source*, choisir **Deploy from a branch**.
+3. Dans *Branch*, choisir la branche `claude/homeless-women-aid-app-kg6mpg`
+   (ou `main` une fois la branche fusionnée) et le dossier **`/ (root)`**, puis **Save**.
+4. Attendre une à deux minutes. Le site est alors à l'adresse
+   **<https://hougoslav.github.io/Paladines/>**.
+
+Le fichier `.nojekyll` est déjà là pour que GitHub publie les fichiers tels quels.
+C'est cette adresse qu'il faut mettre dans `affiche.html` pour générer les QR codes.
 
 À chaque mise à jour, changer `VERSION` dans `sw.js` pour que les téléphones récupèrent
 les nouveaux fichiers.
 
-## En faire une appli de téléphone
+## Avoir l'appli sur son téléphone
 
-1. **Dès maintenant (PWA)** : sur Android, Chrome propose « Installer l'application » ;
-   sur iPhone, Safari → Partager → « Sur l'écran d'accueil ». L'appli a alors son icône,
-   s'ouvre en plein écran et marche sans internet.
-2. **Sur le Play Store** : [PWABuilder](https://www.pwabuilder.com/) transforme le site en
-   paquet Android à partir de son adresse en ligne.
-3. **Sur l'App Store et le Play Store** : [Capacitor](https://capacitorjs.com/) emballe ce
-   même code dans une vraie appli native (il faut un Mac pour iOS et un compte développeur).
+1. **Ouvrir le site sur le téléphone** : taper l'adresse, scanner une affiche, ou scanner le
+   QR code affiché dans *Réglages → Ouvrir sur mon téléphone* depuis un ordinateur.
+2. **L'installer** :
+   - **Android (Chrome)** : un bandeau « Installer Paladines » apparaît sur l'accueil de
+     l'appli. Sinon : menu ⋮ → *Installer l'application* (ou *Ajouter à l'écran d'accueil*).
+   - **iPhone (Safari)** : bouton Partager → *Sur l'écran d'accueil* → *Ajouter*.
+3. L'appli a son icône, s'ouvre en plein écran, et les lieux restent disponibles **sans
+   internet**. Un appui long sur l'icône (Android) donne des raccourcis : *Près de moi*,
+   *Carte*, *Urgences*.
+
+Plus tard, pour la mettre dans les stores :
+
+- **Play Store** : [PWABuilder](https://www.pwabuilder.com/) transforme le site en
+  paquet Android à partir de son adresse en ligne.
+- **App Store et Play Store** : [Capacitor](https://capacitorjs.com/) emballe ce même
+  code dans une vraie appli native (il faut un Mac pour iOS et un compte développeur).
 
 ## Points à connaître
 

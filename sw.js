@@ -4,7 +4,7 @@
  * - Fonds de carte : gardés au fur et à mesure (300 au plus).
  * Changer VERSION à chaque mise en ligne force la mise à jour du cache.
  */
-const VERSION = "paladines-v3";
+const VERSION = "paladines-v4";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 
@@ -25,7 +25,10 @@ const FICHIERS = [
   "fonts/atkinson-700.woff2",
   "fonts/bricolage-var.woff2",
   "icons/icon.svg",
-  "icons/icon-192.png"
+  "icons/icon-192.png",
+  "icons/icon-512.png",
+  "icons/icon-maskable-512.png",
+  "icons/icon-180.png"
 ];
 
 self.addEventListener("install", (e) => {

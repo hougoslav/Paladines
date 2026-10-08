@@ -62,7 +62,9 @@
     coucheLieux: null,
     marqueurMoi: null,
     carteCat: "toutes",
-    carteOuvert: false
+    carteOuvert: false,
+    modePlacer: false, // la prochaine touche sur la carte place « je suis ici »
+    carteCadree: false
   };
 
   function langueDuTelephone() {
@@ -232,28 +234,65 @@
     return txt + " · " + t("aPied", { min: min });
   }
 
+  // Le GPS du navigateur ne marche que sur un site en https (ou en local)
+  function gpsPossible() {
+    return !!navigator.geolocation && (window.isSecureContext !== false || /^(localhost|127\.0\.0\.1)$/.test(location.hostname));
+  }
+
   function demanderPosition() {
-    if (!navigator.geolocation) {
-      etat.positionMessage = "positionRefus";
+    etat.gpsDemande = true;
+    if (!gpsPossible()) {
+      etat.positionMessage = navigator.geolocation ? "gpsHttps" : "gpsIndispo";
       rafraichir();
+      surEchecGps();
       return;
     }
-    etat.gpsDemande = true;
     etat.positionMessage = "positionEnCours";
     rafraichir();
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        etat.position = { lat: pos.coords.latitude, lng: pos.coords.longitude, source: "gps" };
-        etat.positionMessage = null;
-        rafraichir();
-        majMoiSurCarte(true);
+        definirPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude, source: "gps" }, true);
       },
-      () => {
-        etat.positionMessage = "positionRefus";
+      (err) => {
+        etat.positionMessage = err && err.code === 1 ? "gpsRefuse" : "gpsIndispo";
         rafraichir();
+        surEchecGps();
       },
-      { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 120000 }
     );
+  }
+
+  // Sur la carte, si le GPS ne répond pas, on propose de toucher la carte
+  function surEchecGps() {
+    if (vueCourante().vue === "carte") activerModePlacer();
+  }
+
+  function definirPosition(pos, centrer) {
+    etat.position = pos;
+    etat.positionMessage = null;
+    etat.modePlacer = false;
+    rafraichir();
+    majMarqueurs();
+    majMoiSurCarte(centrer);
+    majMsgCarte();
+  }
+
+  function reperes() {
+    return (D.reperes || []).filter((r) => typeof r.lat === "number");
+  }
+
+  function choisirRepere(valeur) {
+    if (!valeur) return;
+    const parts = valeur.split(":");
+    let pos = null;
+    if (parts[0] === "r") {
+      const r = reperes().find((x) => x.id === parts[1]);
+      if (r) pos = { lat: r.lat, lng: r.lng, source: "repere", nom: r.nom, id: valeur };
+    } else if (parts[0] === "l") {
+      const l = lieu(parts[1]);
+      if (l && aCoord(l)) pos = { lat: l.lat, lng: l.lng, source: "repere", nom: l.nom, id: valeur };
+    }
+    if (pos) definirPosition(pos, true);
   }
 
   /* ---------- Position des lieux ----------
@@ -271,7 +310,7 @@
     const connues = window.PALADINES_COORDS || {};
     const cache = stock.lire("geo", {});
     D.lieux.forEach((l) => {
-      if (l.adresseMasquee || typeof l.lat === "number") return;
+      if (l.adresseMasquee || !adresseGeo(l) || typeof l.lat === "number") return;
       const enCache = cache[l.id] && cache[l.id].adresse === adresseGeo(l) ? cache[l.id].c : null;
       const c = connues[l.id] || enCache;
       if (c) {
@@ -337,15 +376,23 @@
         return true;
       })
       .sort((a, b) => {
-        const r = rangStatut(a.s) - rangStatut(b.s);
-        if (r) return r;
-        if (a.d !== null || b.d !== null) {
-          const da = a.d === null ? Infinity : a.d;
-          const db = b.d === null ? Infinity : b.d;
+        // Position connue : du plus proche au plus loin (les lieux sans adresse à la fin).
+        // Sinon : les lieux ouverts d'abord. Le filtre « Ouvert maintenant » garde seulement les ouverts.
+        if (ref) {
+          const da = distanceTri(a);
+          const db = distanceTri(b);
           if (da !== db) return da - db;
         }
+        const r = rangStatut(a.s) - rangStatut(b.s);
+        if (r) return r;
         return a.l.nom.localeCompare(b.l.nom, "fr");
       });
+  }
+
+  // Un numéro à appeler (115, équipe mobile) est joignable de partout : en tête de liste
+  function distanceTri(x) {
+    if (x.d !== null) return x.d;
+    return !x.l.adresse && !x.l.adresseMasquee ? -1 : Infinity;
   }
 
   function htmlLieu(x, avecCategorie) {
@@ -353,7 +400,7 @@
     const cat = categorie(l.cat);
     const tags = CRITERES_CARTE.filter((c) => l.criteres && l.criteres[c]).slice(0, 3).map((c) => t("f_" + c));
     return (
-      '<li><a class="lieu" href="#lieu-' + l.id + '">' +
+      '<li class="ligne-lieu"><a class="lieu" href="#lieu-' + l.id + '">' +
       '<span class="pastille" style="--c:' + cat.couleur + '">' + icone(cat.icone) + "</span>" +
       '<span class="lieu-corps">' +
       (avecCategorie ? '<span class="lieu-cat">' + esc(t("cat_" + l.cat)) + "</span>" : "") +
@@ -361,7 +408,9 @@
       '<span class="statut statut--' + x.s.classe + '">' + esc(x.s.texte) + "</span>" +
       (x.d !== null ? '<span class="lieu-meta">' + icone("i-pied") + esc(formatDistance(x.d)) + "</span>" : "") +
       (tags.length ? '<span class="lieu-tags">' + tags.map(esc).join(" · ") + "</span>" : "") +
-      "</span>" + icone("i-chevron", "chevron") + "</a></li>"
+      "</span>" + icone("i-chevron", "chevron") + "</a>" +
+      (l.tel ? '<a class="appel-rapide" href="' + telLien(l.tel) + '" aria-label="' + esc(t("appeler") + " " + l.nom + " : " + l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>" : "") +
+      "</li>"
     );
   }
 
@@ -373,26 +422,48 @@
     );
   }
 
+  function nomPosition(p) {
+    if (p.source === "carte") return t("pointCarte");
+    return p.nom || t("positionAffiche");
+  }
+
+  function htmlChoixRepere() {
+    const rs = reperes();
+    const ls = D.lieux.filter(aCoord).slice().sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+    if (!rs.length && !ls.length) return "";
+    const actuel = etat.position && etat.position.id;
+    const opt = (v, nom) => '<option value="' + v + '"' + (actuel === v ? " selected" : "") + ">" + esc(nom) + "</option>";
+    return (
+      '<div class="choix-repere">' +
+      '<label for="repere">' + esc(t("jeSuisPres")) + "</label>" +
+      '<select id="repere" data-change="repere">' +
+      '<option value="">' + esc(t("choisirRepere")) + "</option>" +
+      (rs.length ? '<optgroup label="' + esc(t("groupeReperes")) + '">' + rs.map((r) => opt("r:" + r.id, r.nom)).join("") + "</optgroup>" : "") +
+      (ls.length ? '<optgroup label="' + esc(t("groupeLieux")) + '">' + ls.map((l) => opt("l:" + l.id, l.nom)).join("") + "</optgroup>" : "") +
+      "</select>" +
+      "</div>"
+    );
+  }
+
   function htmlPosition() {
-    let msg;
-    let bouton = true;
-    if (etat.positionMessage === "positionEnCours") {
-      msg = t("positionEnCours");
-      bouton = false;
-    } else if (etat.position && etat.position.source === "gps") {
-      msg = t("positionOk");
-      bouton = false;
-    } else if (etat.position && etat.position.source === "qr") {
-      msg = t("positionQR", { nom: etat.position.nom || t("positionAffiche") });
-    } else if (etat.positionMessage === "positionRefus") {
-      msg = t("positionRefus", { nom: D.ville.nom });
-    } else {
-      msg = null;
+    const p = etat.position;
+    let msg = null;
+    let erreur = false;
+    if (etat.positionMessage === "positionEnCours") msg = t("positionEnCours");
+    else if (p && p.source === "gps") msg = t("positionOk");
+    else if (p) msg = t("positionQR", { nom: nomPosition(p) });
+    if (etat.positionMessage && etat.positionMessage !== "positionEnCours") {
+      msg = t(etat.positionMessage);
+      erreur = true;
     }
     return (
       '<div class="position">' +
-      (msg ? '<p class="position-msg">' + icone("i-position") + esc(msg) + "</p>" : "") +
-      (bouton ? '<button type="button" class="btn btn--doux" data-action="position">' + icone("i-position") + esc(t("positionDemande")) + "</button>" : "") +
+      (msg ? '<p class="position-msg' + (erreur ? " position-msg--erreur" : "") + '" role="status">' + icone(erreur ? "i-info" : "i-position") + esc(msg) + "</p>" : "") +
+      '<div class="position-actions">' +
+      '<button type="button" class="btn' + (p && p.source === "gps" ? " btn--doux" : "") + '" data-action="position">' + icone("i-position") + esc(t(p ? "positionActualiser" : "positionDemande")) + "</button>" +
+      '<a class="btn btn--doux" href="#carte" data-action="placer">' + icone("i-carte") + esc(t("choisirSurCarte")) + "</a>" +
+      "</div>" +
+      htmlChoixRepere() +
       '<p class="position-prive">' + esc(t("positionPrive")) + "</p>" +
       "</div>"
     );
@@ -447,6 +518,7 @@
       '<span class="cta-txt"><strong>' + esc(t("procheCta")) + "</strong><small>" + esc(t("procheSous")) + "</small></span>" +
       icone("i-chevron", "chevron") + "</a>" +
       "</section>" +
+      htmlBandeauInstallation() +
       alerte +
       '<section class="bloc" aria-labelledby="h-cherche">' +
       '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
@@ -526,8 +598,7 @@
     const actions = [];
     if (!l.adresseMasquee && (l.adresse || aCoord(l))) {
       // L'adresse écrite est plus fiable que des coordonnées approchées pour guider jusqu'à la porte
-      const destination = l.adresse ? encodeURIComponent(l.adresse) : l.lat + "," + l.lng;
-      actions.push('<a class="action" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/dir/?api=1&amp;destination=' + destination + '&amp;travelmode=walking">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
+      actions.push('<a class="action" target="_blank" rel="noopener noreferrer" href="' + esc(lienItineraire(l)) + '">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
     }
     if (l.tel) actions.push('<a class="action" href="' + telLien(l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>");
     actions.push('<button type="button" class="action" data-action="partager" data-id="' + l.id + '">' + icone("i-partager") + "<span>" + esc(t("partager")) + "</span></button>");
@@ -624,12 +695,71 @@
     );
   }
 
+  function estIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  // Dans l'aperçu (page intégrée dans une autre), l'installation et le QR code n'ont pas de sens
+  function dansUnCadre() {
+    try {
+      return window.self !== window.top;
+    } catch (e) {
+      return true;
+    }
+  }
+
   function htmlInstallation() {
     if (estInstallee()) return '<p class="ok">' + icone("i-check") + esc(t("installee")) + "</p>";
     if (etat.installation) {
       return '<button type="button" class="btn" data-action="installer">' + icone("i-installer") + esc(t("installer")) + "</button>";
     }
-    return "<p>" + esc(/iphone|ipad|ipod/i.test(navigator.userAgent) ? t("installerIOS") : t("installerAutre")) + "</p>";
+    return "<p>" + esc(estIOS() ? t("installerIOS") : t("installerAutre")) + "</p>";
+  }
+
+  // Bandeau sur l'accueil : seulement quand l'installation est possible et pas refusée
+  function htmlBandeauInstallation() {
+    if (estInstallee() || dansUnCadre() || stock.lire("installMasque", false)) return "";
+    if (!etat.installation && !estIOS()) return "";
+    return (
+      '<section class="installer-bandeau" aria-labelledby="h-installer">' +
+      '<strong id="h-installer">' + icone("i-installer") + esc(t("installerTitre")) + "</strong>" +
+      "<p>" + esc(t("installerBandeau")) + "</p>" +
+      (etat.installation ? "" : "<p>" + esc(t("installerIOS")) + "</p>") +
+      '<div class="installer-actions">' +
+      (etat.installation ? '<button type="button" class="btn" data-action="installer">' + icone("i-installer") + esc(t("installerCourt")) + "</button>" : "") +
+      '<button type="button" class="btn btn--doux" data-action="installer-plus-tard">' + esc(t("installerPlusTard")) + "</button>" +
+      "</div></section>"
+    );
+  }
+
+  function urlSite() {
+    return location.href.split("#")[0].split("?")[0].replace(/index\.html$/, "");
+  }
+
+  // QR code pour passer de l'ordinateur au téléphone
+  function htmlOuvrirTelephone() {
+    if (dansUnCadre() || !/^https?:$/.test(location.protocol)) return "";
+    return (
+      '<section class="section"><h2>' + esc(t("ouvrirTelephone")) + "</h2>" +
+      '<div class="qr-telephone"><div class="qr" id="qr-site" aria-hidden="true"></div>' +
+      "<p>" + esc(t("ouvrirTelephoneAide")) + '<br><span class="lien-site">' + esc(urlSite()) + "</span></p></div></section>"
+    );
+  }
+
+  function dessinerQrSite() {
+    const zone = document.getElementById("qr-site");
+    if (!zone) return;
+    const dessiner = () => {
+      const qr = window.qrcode(0, "M");
+      qr.addData(urlSite());
+      qr.make();
+      zone.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    };
+    if (window.qrcode) return dessiner();
+    const sc = document.createElement("script");
+    sc.src = "vendor/qrcode/qrcode.js";
+    sc.onload = dessiner;
+    document.head.appendChild(sc);
   }
 
   function vueReglages() {
@@ -648,6 +778,7 @@
       [["auto", "themeAuto"], ["light", "themeClair"], ["dark", "themeSombre"]].map((x) => choix("theme", x[0], etat.theme === x[0], esc(t(x[1])))).join("") +
       '</div><p class="aide">' + esc(t("themeAstuce")) + "</p></section>" +
       '<section class="section" id="installer"><h2>' + esc(t("installer")) + '</h2><p class="aide">' + esc(t("installerAide")) + "</p>" + htmlInstallation() + "</section>" +
+      htmlOuvrirTelephone() +
       '<section class="section"><h2>' + esc(t("effacer")) + '</h2><p class="aide">' + esc(t("effacerAide")) + "</p>" +
       '<div class="effacer"><button type="button" class="btn btn--doux" data-action="effacer">' + esc(t("effacerBouton")) + "</button>" +
       '<div class="effacer-confirmer" hidden><button type="button" class="btn btn--danger" data-action="effacer-oui">' + esc(t("confirmerEffacer")) + '</button><button type="button" class="btn btn--doux" data-action="effacer-non">' + esc(t("annuler")) + "</button></div>" +
@@ -711,7 +842,11 @@
     rendreBarreCarte();
     majMarqueurs();
     majMoiSurCarte(false);
-    setTimeout(() => etat.carte.invalidateSize(), 0);
+    majMsgCarte();
+    setTimeout(() => {
+      etat.carte.invalidateSize();
+      cadrerCarte();
+    }, 0);
   }
 
   function creerCarte() {
@@ -724,23 +859,63 @@
       crossOrigin: "anonymous", // pour que le service worker puisse garder les tuiles hors ligne
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
     });
-    const msg = document.querySelector("#vue-carte .carte-msg");
     let erreurs = 0;
     fond.on("tileerror", () => {
       erreurs++;
-      // Le message « positions en cours de chargement » est plus utile : on le laisse
-      if (erreurs >= 2 && D.lieux.some(aCoord)) {
-        msg.textContent = t("fondIndispo");
-        msg.hidden = false;
+      if (erreurs >= 2 && !etat.fondEnErreur) {
+        etat.fondEnErreur = true;
+        majMsgCarte();
       }
     });
     fond.on("tileload", () => {
       erreurs = 0;
-      msg.hidden = true;
+      if (etat.fondEnErreur) {
+        etat.fondEnErreur = false;
+        majMsgCarte();
+      }
     });
     fond.addTo(carte);
+    carte.on("click", (e) => {
+      if (!etat.modePlacer) return;
+      definirPosition({ lat: e.latlng.lat, lng: e.latlng.lng, source: "carte" }, false);
+    });
     etat.carte = carte;
     etat.coucheLieux = L.layerGroup().addTo(carte);
+  }
+
+  // Au premier affichage : montrer tous les lieux (ou la personne si sa position est connue)
+  function cadrerCarte() {
+    if (etat.carteCadree || !etat.carte) return;
+    if (etat.position) {
+      etat.carte.setView([etat.position.lat, etat.position.lng], 15);
+      etat.carteCadree = true;
+      return;
+    }
+    const pts = D.lieux.filter(aCoord).map((l) => [l.lat, l.lng]);
+    if (pts.length >= 2) {
+      etat.carte.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
+      etat.carteCadree = true;
+    }
+  }
+
+  function activerModePlacer() {
+    etat.modePlacer = true;
+    majMsgCarte();
+  }
+
+  // Un seul message à la fois sur la carte, du plus utile au moins utile
+  function majMsgCarte() {
+    const msg = document.querySelector("#vue-carte .carte-msg");
+    if (!msg) return;
+    let txt = "";
+    if (etat.modePlacer) txt = t("carteToucher");
+    else if (!D.lieux.some(aCoord)) txt = t("carteSansPositions");
+    else if (etat.fondEnErreur) txt = t("fondIndispo");
+    msg.textContent = txt;
+    msg.hidden = !txt;
+    msg.classList.toggle("carte-msg--action", etat.modePlacer);
+    document.getElementById("vue-carte").classList.toggle("mode-placer", etat.modePlacer);
+    document.getElementById("btn-placer").setAttribute("aria-pressed", String(etat.modePlacer));
   }
 
   function rendreBarreCarte() {
@@ -755,19 +930,17 @@
       ).join("");
     document.getElementById("btn-localiser").setAttribute("aria-label", t("centrerSurMoi"));
     document.getElementById("btn-localiser").title = t("centrerSurMoi");
+    const placer = document.getElementById("btn-placer");
+    placer.querySelector("span").textContent = t("jeSuisIci");
+    placer.setAttribute("aria-pressed", String(etat.modePlacer));
   }
 
   function majMarqueurs() {
     if (!etat.coucheLieux) return;
     const maintenant = new Date();
     etat.coucheLieux.clearLayers();
-    const msg = document.querySelector("#vue-carte .carte-msg");
-    if (!D.lieux.some(aCoord)) {
-      msg.textContent = t("carteSansPositions");
-      msg.hidden = false;
-    } else if (msg.textContent === t("carteSansPositions")) {
-      msg.hidden = true;
-    }
+    majMsgCarte();
+    cadrerCarte();
     D.lieux
       .filter((l) => aCoord(l) && (etat.carteCat === "toutes" || dansCat(l, etat.carteCat)))
       .forEach((l) => {
@@ -782,13 +955,28 @@
           popupAnchor: [0, -20]
         });
         L.marker([l.lat, l.lng], { icon: ic, title: l.nom, alt: l.nom })
-          .bindPopup(
-            '<p class="popup-cat">' + esc(t("cat_" + l.cat)) + '</p><p class="popup-nom">' + esc(l.nom) + "</p>" +
-            '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
-            '<a class="btn btn--mini" href="#lieu-' + l.id + '">' + esc(t("voirFiche")) + "</a>"
-          )
+          .bindPopup(() => htmlPopup(l))
           .addTo(etat.coucheLieux);
       });
+  }
+
+  function htmlPopup(l) {
+    const s = statut(l, new Date());
+    return (
+      '<p class="popup-cat">' + esc(t("cat_" + l.cat)) + '</p><p class="popup-nom">' + esc(l.nom) + "</p>" +
+      '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
+      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
+      '<div class="popup-actions">' +
+      '<a class="btn btn--mini" href="#lieu-' + l.id + '">' + esc(t("voirFiche")) + "</a>" +
+      (l.tel ? '<a class="btn btn--mini btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+      '<a class="btn btn--mini btn--doux" target="_blank" rel="noopener noreferrer" href="' + lienItineraire(l) + '">' + icone("i-itineraire") + esc(t("itineraire")) + "</a>" +
+      "</div>"
+    );
+  }
+
+  function lienItineraire(l) {
+    const destination = l.adresse ? encodeURIComponent(l.adresse) : l.lat + "," + l.lng;
+    return "https://www.google.com/maps/dir/?api=1&destination=" + destination + "&travelmode=walking";
   }
 
   function majMoiSurCarte(centrer) {
@@ -798,8 +986,9 @@
       etat.marqueurMoi = L.marker(ll, {
         icon: L.divIcon({ className: "marqueur-boite", html: '<span class="moi"></span>', iconSize: [22, 22], iconAnchor: [11, 11] }),
         title: t("vousEtesIci"),
-        keyboard: false
-      }).addTo(etat.carte);
+        keyboard: false,
+        zIndexOffset: 1000
+      }).addTo(etat.carte).bindTooltip(t("vousEtesIci"));
     } else {
       etat.marqueurMoi.setLatLng(ll);
     }
@@ -955,6 +1144,10 @@
           });
         }
         break;
+      case "installer-plus-tard":
+        stock.ecrire("installMasque", true);
+        el.closest(".installer-bandeau").remove();
+        break;
       case "effacer":
         el.hidden = true;
         el.parentElement.querySelector(".effacer-confirmer").hidden = false;
@@ -986,6 +1179,16 @@
       case "localiser":
         if (etat.position && etat.position.source === "gps") majMoiSurCarte(true);
         else demanderPosition();
+        break;
+      case "placer":
+        // Lien vers la carte depuis une liste, ou bouton « Je suis ici » sur la carte
+        if (el.tagName === "BUTTON" && etat.modePlacer) {
+          etat.modePlacer = false;
+          majMsgCarte();
+        } else {
+          activerModePlacer();
+        }
+        rendreBarreCarte();
         break;
       case "sauter":
         e.preventDefault();
@@ -1115,6 +1318,7 @@
     }
     main.innerHTML = html;
     main.dataset.vue = h.vue;
+    if (h.vue === "reglages") dessinerQrSite();
 
     if (opts.rafraichir) return;
     const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param) : null;
@@ -1148,6 +1352,9 @@
     });
     document.addEventListener("click", surClic);
     document.addEventListener("submit", surEnvoi);
+    document.addEventListener("change", (e) => {
+      if (e.target.dataset && e.target.dataset.change === "repere") choisirRepere(e.target.value);
+    });
 
     document.getElementById("btn-quitter").addEventListener("click", quitter);
     let dernierEchap = 0;
@@ -1181,7 +1388,7 @@
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       etat.installation = e;
-      if (vueCourante().vue === "reglages") rafraichir();
+      if (["reglages", "accueil"].indexOf(vueCourante().vue) !== -1) rafraichir();
     });
     window.addEventListener("appinstalled", () => {
       etat.installation = null;
