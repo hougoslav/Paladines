@@ -104,7 +104,7 @@
   <form class="formulaire" id="form-affiche">
     <div class="champ">
       <label for="url-base">Adresse de l'appli en ligne</label>
-      <input type="url" id="url-base" required placeholder="https://exemple.github.io/Paladines/">
+      <input type="url" id="url-base" required placeholder="https://paladines.pages.dev/">
       <small>L'adresse publique du site, une fois mis en ligne.</small>
     </div>
     <div class="champ">
@@ -183,12 +183,12 @@
 
   // Adresse par défaut : le dossier de cette page, si elle est en ligne
   if (/^https?:$/.test(location.protocol)) base.value = location.href.replace(/[^/]*([?#].*)?$/, "");
-  else base.value = "https://exemple.github.io/Paladines/";
+  else base.value = "https://paladines.pages.dev/";
 
   function lienFinal() {
     var url;
-    try { url = new URL(base.value.trim() || "https://exemple.github.io/Paladines/"); }
-    catch (e) { url = new URL("https://exemple.github.io/Paladines/"); }
+    try { url = new URL(base.value.trim() || "https://paladines.pages.dev/"); }
+    catch (e) { url = new URL("https://paladines.pages.dev/"); }
     var la = parseFloat(lat.value), lo = parseFloat(lng.value);
     if (isFinite(la) && isFinite(lo)) url.searchParams.set("pres", la.toFixed(4) + "," + lo.toFixed(4));
     if (nom.value.trim()) url.searchParams.set("nom", nom.value.trim());

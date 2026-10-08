@@ -153,7 +153,8 @@ nuit dehors.
 5. **Nom de l'appli** : « Paladines » est-il assez discret sur un écran d'accueil ?
 6. **Itinéraire** : Google Maps (installé partout) ou une solution plus respectueuse de la vie
    privée ?
-7. **Hébergement du site** : GitHub Pages (gratuit) ou un hébergeur en Europe ?
+7. **Hébergement du site** : Cloudflare Pages pour l'instant (gratuit,
+   <https://paladines.pages.dev>). Passer plus tard à un hébergeur en Europe ?
 8. **Avec qui tester ?** L'idéal est de construire l'appli **avec** des femmes concernées et
    des travailleuses sociales : entretiens, tests du prototype sur le terrain.
 

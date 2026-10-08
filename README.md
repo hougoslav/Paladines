@@ -108,27 +108,27 @@ Copier le bloc `en` de [`js/i18n.js`](js/i18n.js), le traduire, puis ajouter le 
 langue dans `LANGUES` (début de `js/app.js`) et un bouton dans le menu de langue
 (`index.html`). Un texte manquant s'affiche en français.
 
-## Mettre le site en ligne (2 minutes, gratuit)
+## Le site en ligne
 
+L'appli est en ligne sur **<https://paladines.pages.dev>**, hébergée gratuitement par
+**Cloudflare Pages** : en https, sans mise en pause du site, 500 mises en ligne par mois.
 Le GPS, la carte de Lille, les appels et l'installation sur téléphone ne marchent vraiment
-que sur un site **en ligne en https**. Le plus simple est **GitHub Pages** :
+que sur ce site en ligne.
 
-1. Ouvrir <https://github.com/hougoslav/Paladines/settings/pages>.
-2. Dans *Build and deployment* → *Source*, choisir **Deploy from a branch**.
-3. Dans *Branch*, choisir la branche `claude/homeless-women-aid-app-kg6mpg`
-   (ou `main` une fois la branche fusionnée) et le dossier **`/ (root)`**, puis **Save**.
-4. Attendre une à deux minutes. Le site est alors à l'adresse
-   **<https://hougoslav.github.io/Paladines/>**.
+- **Mise à jour automatique** : chaque modification envoyée sur la branche
+  `claude/homeless-women-aid-app-kg6mpg` (depuis un ordinateur, ou avec le crayon ✏️ sur
+  GitHub) est en ligne en une minute environ. L'onglet *Deployments* du projet Cloudflare
+  montre chaque mise en ligne.
+- Une modification sur **une autre branche** ne touche pas le vrai site : Cloudflare en fait
+  un aperçu à une adresse à part. Si l'appli passe un jour sur `main`, changer la
+  *Production branch* dans les réglages du projet Cloudflare.
+- À chaque mise à jour, changer `VERSION` dans `sw.js` (`paladines-v6` → `paladines-v7`…)
+  pour que les téléphones prennent les nouveaux fichiers dès la première ouverture.
+- Les QR codes des affiches se font sur <https://paladines.pages.dev/affiche.html> :
+  l'adresse du site y est remplie toute seule. Le fichier `_headers` règle le cache et la
+  confidentialité.
 
-Le fichier `.nojekyll` est déjà là pour que GitHub publie les fichiers tels quels.
-C'est cette adresse qu'il faut mettre dans `affiche.html` pour générer les QR codes.
-
-À chaque mise à jour, changer `VERSION` dans `sw.js` pour que les téléphones récupèrent
-les nouveaux fichiers.
-
-### Recommandé : Cloudflare Pages (adresse du type paladines.pages.dev)
-
-Gratuit, sans mise en pause du site, trafic non limité en pratique, 500 mises en ligne par mois.
+### Refaire la mise en ligne sur Cloudflare Pages
 
 1. Créer un compte gratuit sur <https://dash.cloudflare.com>.
 2. Menu de gauche **Workers & Pages** → **Create**. Sur la page « Make something new »,
@@ -139,24 +139,16 @@ Gratuit, sans mise en pause du site, trafic non limité en pratique, 500 mises e
 3. **Project name** : `paladines` (ce nom donne l'adresse, il est difficile à changer après).
    **Production branch** : la branche qui contient l'appli. **Framework preset** : *None*.
    **Build command** : vide. **Build output directory** : vide (ou `/`). Puis **Save and Deploy**.
-4. Le site est à **https://paladines.pages.dev**. Le fichier `_headers` règle le cache et
-   la confidentialité.
 
-### Ou avec Netlify (adresse du type paladines.netlify.app)
+### Autres hébergeurs gratuits
 
-1. Créer un compte gratuit sur <https://app.netlify.com> avec **Sign up with GitHub**.
-2. **Add new project** → **Import an existing project** → **GitHub** → autoriser Netlify,
-   puis choisir le dépôt **Paladines**.
-3. **Branch to deploy** : la branche qui contient l'appli (`main` une fois fusionnée).
-   Les autres réglages sont lus dans `netlify.toml` : ne rien remplir, puis **Deploy**.
-4. *Project configuration* → *Change project name* → `paladines` (si le nom est libre).
-   Le site est alors à **https://paladines.netlify.app**.
-
-⚠️ L'offre gratuite donne **300 crédits par mois**. Chaque mise en ligne de la branche
-publiée en coûte 15 et chaque Go de trafic 20. Si les crédits sont épuisés, **le site est
-mis en pause jusqu'au mois suivant**. Pour l'éviter : publier la branche `main`, n'y
-fusionner les changements qu'en groupe, de temps en temps (pas à chaque modification),
-et surveiller *Usage & Billing*.
+- **GitHub Pages** (adresse en `hougoslav.github.io/Paladines`) : *Settings* → *Pages* →
+  *Deploy from a branch*, choisir la branche et le dossier **`/ (root)`**. Le fichier
+  `.nojekyll` est déjà là.
+- **Netlify** (adresse en `paladines.netlify.app`) : *Add new project* → *Import an existing
+  project* → GitHub → Paladines ; les réglages sont lus dans `netlify.toml`.
+  ⚠️ L'offre gratuite donne 300 crédits par mois (15 par mise en ligne, 20 par Go de trafic) :
+  une fois épuisés, **le site est mis en pause jusqu'au mois suivant**.
 
 ## Avoir l'appli sur son téléphone
 
