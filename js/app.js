@@ -141,7 +141,8 @@
   function formatHeure(hm) {
     const p = hm.split(":");
     const h = String(Number(p[0]));
-    if (etat.langue === "fr") return p[1] === "00" ? h + " h" : h + " h " + p[1];
+    // Espaces insécables : « 20 h 30 » ne se coupe jamais en fin de ligne
+    if (etat.langue === "fr") return p[1] === "00" ? h + "\u00a0h" : h + "\u00a0h\u00a0" + p[1];
     return h + ":" + p[1];
   }
 
