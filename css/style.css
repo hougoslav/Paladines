@@ -237,14 +237,11 @@ svg {
   min-height: 48px;
 }
 .marque-logo {
-  width: 30px;
+  width: 24px;
   height: 30px;
 }
-.logo-bouclier {
+.logo-lanterne {
   fill: var(--lampe);
-}
-.logo-lueur {
-  fill: var(--nuit);
 }
 .marque-nom {
   font-family: var(--f-titre);

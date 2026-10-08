@@ -10,7 +10,7 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v10";
+const VERSION = "paladines-v11";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 
@@ -19,6 +19,7 @@ const FICHIERS = [
   "affiche.html",
   "manifest.webmanifest",
   "css/style.css",
+  "css/theme.css",
   "js/app.js",
   "js/i18n.js",
   "data/lieux.js",

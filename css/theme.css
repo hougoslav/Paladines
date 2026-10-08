@@ -1,0 +1,909 @@
+/* Paladines — thème « Nuit raffinée »
+ * Évolution du style actuel : même bleu nuit, même lampe jaune, mêmes polices
+ * (Atkinson Hyperlegible pour le texte, Bricolage Grotesque pour les titres, fichiers déjà
+ * présents dans /fonts : aucun octet de police en plus à télécharger).
+ * Ce qui change : plus d'air, des surfaces nettes (filet fin + ombre très douce) au lieu
+ * de bordures appuyées, des rayons plus calmes, une échelle typographique plus claire
+ * (titres 700 au lieu de 800, approche serrée), des pastilles teintées, et des finitions
+ * (barre d'onglets, cartes, tableau des horaires, carte).
+ * Se charge APRÈS style.css. Aucun changement de HTML ni de JS.
+ * Contrastes vérifiés AA (4,5:1 texte courant) en clair et en sombre.
+ */
+
+/* ============ 1. Jetons ============ */
+:root {
+  --nuit: #14233a;
+  --nuit-2: #1f3354;
+  --nuit-3: #253c60;
+  --papier: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f8f9fb;
+  --encre: #14233a;
+  --encre-douce: #4e5a6d;
+  --trait: #e3e7ed;
+  --trait-fort: #cfd6e0;
+  --lampe: #f4b63f;
+  --lampe-encre: #1d1606;
+  --lampe-voile: #fdf3dd;
+  --lien: #1f4f8f;
+  --focus: #1d5fd0;
+  --sur-nuit: #f3f5f8;
+  --sur-nuit-doux: #aab6c8;
+  --sur-nuit-voile: rgb(255 255 255 / 0.07);
+  --sur-nuit-filet: rgb(255 255 255 / 0.1);
+  --quitter: #d4382c;
+  --ok: #146c45;
+  --ok-fond: #e3f3ea;
+  --bientot: #8a5200;
+  --bientot-fond: #fdf0d9;
+  --ferme: #5f6878;
+  --ferme-fond: #edf0f4;
+  --urgent: #b42318;
+  --urgent-fond: #fcecea;
+
+  --ombre-1: 0 1px 2px rgb(20 35 58 / 0.05);
+  --ombre-2: 0 1px 2px rgb(20 35 58 / 0.05), 0 4px 14px -6px rgb(20 35 58 / 0.1);
+  --ombre-flot: 0 1px 3px rgb(20 35 58 / 0.1), 0 10px 28px -10px rgb(20 35 58 / 0.3);
+
+  --teinte-fond: 12%;
+  --clair-ic: 0%;
+
+  --r: 14px;
+  --r-btn: 12px;
+  --r-petit: 10px;
+  --gouttiere: clamp(16px, 5vw, 24px);
+  --h-onglets: 66px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --nuit: #15233b;
+    --nuit-2: #1d2d4a;
+    --nuit-3: #253857;
+    --papier: #0b1221;
+    --surface: #131d31;
+    --surface-2: #18243a;
+    --encre: #e9eef5;
+    --encre-douce: #a3b0c3;
+    --trait: #223149;
+    --trait-fort: #31435e;
+    --teinte-fond: 22%;
+    --clair-ic: 45%;
+    --lampe: #f6c35a;
+    --lampe-encre: #1d1606;
+    --lampe-voile: #2e2612;
+    --lien: #9cc0ff;
+    --focus: #f6c35a;
+    --sur-nuit: #e9eef5;
+    --sur-nuit-doux: #9aa8bd;
+    --sur-nuit-voile: rgb(255 255 255 / 0.05);
+    --sur-nuit-filet: rgb(255 255 255 / 0.08);
+    --quitter: #c9372c;
+    --ok: #63d49c;
+    --ok-fond: #10301f;
+    --bientot: #f3c063;
+    --bientot-fond: #33260d;
+    --ferme: #a6b0c0;
+    --ferme-fond: #1f2c42;
+    --urgent: #ff8f84;
+    --urgent-fond: #351a1d;
+    --ombre-1: 0 1px 2px rgb(0 0 0 / 0.3);
+    --ombre-2: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 18px -8px rgb(0 0 0 / 0.5);
+    --ombre-flot: 0 1px 3px rgb(0 0 0 / 0.4), 0 12px 30px -10px rgb(0 0 0 / 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  --nuit: #15233b;
+  --nuit-2: #1d2d4a;
+  --nuit-3: #253857;
+  --papier: #0b1221;
+  --surface: #131d31;
+  --surface-2: #18243a;
+  --encre: #e9eef5;
+  --encre-douce: #a3b0c3;
+  --trait: #223149;
+  --trait-fort: #31435e;
+  --teinte-fond: 22%;
+  --clair-ic: 45%;
+  --lampe: #f6c35a;
+  --lampe-encre: #1d1606;
+  --lampe-voile: #2e2612;
+  --lien: #9cc0ff;
+  --focus: #f6c35a;
+  --sur-nuit: #e9eef5;
+  --sur-nuit-doux: #9aa8bd;
+  --sur-nuit-voile: rgb(255 255 255 / 0.05);
+  --sur-nuit-filet: rgb(255 255 255 / 0.08);
+  --quitter: #c9372c;
+  --ok: #63d49c;
+  --ok-fond: #10301f;
+  --bientot: #f3c063;
+  --bientot-fond: #33260d;
+  --ferme: #a6b0c0;
+  --ferme-fond: #1f2c42;
+  --urgent: #ff8f84;
+  --urgent-fond: #351a1d;
+  --ombre-1: 0 1px 2px rgb(0 0 0 / 0.3);
+  --ombre-2: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 18px -8px rgb(0 0 0 / 0.5);
+  --ombre-flot: 0 1px 3px rgb(0 0 0 / 0.4), 0 12px 30px -10px rgb(0 0 0 / 0.6);
+}
+
+/* ============ 2. Typographie ============ */
+body {
+  text-rendering: optimizeLegibility;
+}
+p,
+li {
+  text-wrap: pretty;
+}
+/* Le titre reçoit le focus à chaque changement de vue (lecteurs d'écran) : pas d'anneau visuel. */
+h1[tabindex="-1"]:focus {
+  outline: none;
+}
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+}
+h2 {
+  font-size: 1.1875rem;
+  line-height: 1.2;
+}
+
+/* ============ 3. En-tête ============ */
+.entete {
+  background: var(--nuit);
+  box-shadow: inset 0 -1px 0 var(--sur-nuit-filet);
+  -webkit-font-smoothing: antialiased;
+}
+body:has(.hero) .entete {
+  box-shadow: none;
+}
+.marque {
+  gap: 10px;
+}
+.marque-logo {
+  width: 23px;
+  height: 29px;
+}
+.marque-nom {
+  font-weight: 700;
+  font-size: 1.1875rem;
+  letter-spacing: -0.01em;
+}
+.entete-actions {
+  gap: 2px;
+}
+.btn-entete {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--r-petit);
+  color: var(--sur-nuit);
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+}
+.btn-entete:hover {
+  background: var(--sur-nuit-voile);
+}
+.btn-quitter {
+  position: relative;
+  min-height: 40px;
+  margin-inline-start: 6px;
+  padding: 0 14px 0 12px;
+  border-radius: var(--r-petit);
+  background: var(--quitter);
+  font-size: 0.9375rem;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 1px 2px rgb(0 0 0 / 0.25);
+}
+/* zone tactile portée à 48 px sans grossir le bouton */
+.btn-quitter::after {
+  content: "";
+  position: absolute;
+  inset: -4px -2px;
+}
+.menu-langue {
+  top: calc(100% + 8px);
+  padding: 6px;
+  border-radius: var(--r);
+  box-shadow: var(--ombre-flot);
+}
+.menu-langue button {
+  border-radius: var(--r-petit);
+}
+
+/* ============ 4. Vue et accueil ============ */
+.vue {
+  padding-block: 20px calc(var(--h-onglets) + 40px + env(safe-area-inset-bottom, 0px));
+  gap: 24px;
+}
+.hero {
+  margin: -20px calc(var(--gouttiere) * -1) 0;
+  padding: 20px var(--gouttiere) 28px;
+  gap: 20px;
+  border-radius: 0 0 28px 28px;
+  background: var(--nuit);
+  -webkit-font-smoothing: antialiased;
+}
+.proto {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  align-self: stretch;
+  padding: 8px 12px;
+  border: 1px solid var(--sur-nuit-filet);
+  border-radius: var(--r-petit);
+  background: var(--sur-nuit-voile);
+  color: var(--sur-nuit-doux);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+.proto::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lampe);
+  transform: translateY(-1px);
+}
+.hero-titre {
+  font-size: 2.125rem;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+}
+.cta-proche {
+  gap: 14px;
+  padding: 16px 14px 16px 16px;
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    0 1px 2px rgb(0 0 0 / 0.2),
+    0 12px 28px -16px rgb(244 182 63 / 0.5);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.cta-proche:active {
+  transform: scale(0.985);
+}
+.cta-ic {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--nuit);
+  color: var(--lampe);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+.cta-txt {
+  gap: 2px;
+}
+.cta-txt strong {
+  text-wrap: balance;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  line-height: 1.18;
+}
+.cta-txt small {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+@keyframes allumage {
+  from {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 1px 2px rgb(0 0 0 / 0), 0 0 0 rgb(244 182 63 / 0);
+  }
+}
+
+.alerte,
+.rappel {
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--r);
+  line-height: 1.45;
+}
+.alerte {
+  border: 1px solid color-mix(in srgb, var(--bientot) 18%, transparent);
+}
+.rappel {
+  border: 1px solid color-mix(in srgb, var(--urgent) 14%, transparent);
+}
+
+.bloc {
+  gap: 14px;
+}
+.titre-bloc {
+  font-size: 0.8125rem;
+  letter-spacing: 0.1em;
+  color: var(--encre-douce);
+}
+
+/* Tuiles */
+.grille-cat {
+  gap: 12px;
+}
+.tuile {
+  gap: 4px;
+  padding: 16px;
+  min-height: 156px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  box-shadow: var(--ombre-1);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tuile:hover {
+  border-color: var(--trait-fort);
+  box-shadow: var(--ombre-2);
+}
+.tuile .pastille {
+  margin-bottom: 10px;
+}
+.tuile-nom {
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.012em;
+}
+.tuile-desc {
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+.tuile-nb {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding-top: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+.tuile-nb::before {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin: calc((1.35em - 7px) / 2) 0 0;
+}
+
+/* Pastilles : carré adouci ; teintées quand le navigateur sait mélanger les couleurs */
+.pastille {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+.pastille--grande {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+}
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .pastille,
+  .tete .pastille {
+    background: color-mix(in srgb, var(--c, var(--nuit)) var(--teinte-fond), var(--surface));
+    color: color-mix(in srgb, var(--c, var(--nuit)), #fff var(--clair-ic));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, var(--nuit)) 16%, transparent);
+  }
+  .action .ic {
+    color: color-mix(in srgb, var(--c, var(--encre)), #fff var(--clair-ic));
+  }
+  .tete--urg .pastille {
+    background: var(--urgent-fond);
+    color: var(--urgent);
+  }
+  .tete--infos .pastille,
+  .tete--favoris .pastille {
+    background: color-mix(in srgb, var(--encre) 8%, var(--surface));
+    color: var(--encre);
+  }
+}
+.tete--proche .pastille {
+  background: var(--lampe);
+  color: var(--lampe-encre);
+  box-shadow: none;
+}
+
+/* Urgences rapides */
+.urg-rapides {
+  gap: 10px;
+}
+.urg-rapide {
+  gap: 4px;
+  padding: 14px 12px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--ombre-1);
+}
+.urg-rapide-num {
+  font-weight: 700;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+}
+.urg-rapide-txt {
+  font-size: 0.875rem;
+  color: var(--encre-douce);
+}
+.lien-fleche {
+  text-underline-offset: 3px;
+}
+
+/* Liens du bas : regroupés dans une carte, avec chevron */
+.liens-bas {
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--ombre-1);
+  overflow: hidden;
+}
+.liens-bas a {
+  gap: 12px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--trait);
+}
+.liens-bas a:last-child {
+  border-bottom: 0;
+}
+.liens-bas a::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-inline-start: auto;
+  border: solid var(--encre-douce);
+  border-width: 2px 2px 0 0;
+  transform: rotate(45deg);
+}
+[dir="rtl"] .liens-bas a::after {
+  transform: rotate(-135deg);
+}
+.liens-bas a:hover {
+  background: var(--surface-2);
+}
+.maj {
+  text-align: center;
+}
+
+/* ============ 5. En-têtes de vues ============ */
+.retour {
+  margin-bottom: -10px;
+  margin-inline-start: -6px;
+  padding-inline: 4px 10px;
+  border-radius: var(--r-petit);
+}
+.tete {
+  gap: 16px;
+}
+.tete > div {
+  gap: 6px;
+}
+.sous-titre {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+/* Position */
+.position {
+  gap: 10px;
+}
+.position-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+.position-actions .btn {
+  min-height: 52px;
+  padding: 6px 12px;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  text-align: center;
+}
+.position-msg {
+  font-size: 0.9375rem;
+}
+.position-msg--erreur {
+  border-radius: var(--r);
+}
+.choix-repere select {
+  min-height: 48px;
+  padding: 0 14px;
+  border-color: var(--trait-fort);
+  border-radius: var(--r-btn);
+  box-shadow: var(--ombre-1);
+}
+
+/* Filtres */
+.filtres {
+  gap: 8px;
+  padding: 2px var(--gouttiere) 8px;
+}
+.puce {
+  min-height: 44px;
+  padding: 0 16px;
+  border-color: var(--trait-fort);
+  background: var(--surface);
+  font-size: 0.9375rem;
+  box-shadow: var(--ombre-1);
+}
+.puce[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--papier);
+  box-shadow: none;
+}
+
+/* ============ 6. Listes de lieux ============ */
+.compte {
+  margin-bottom: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.liste,
+.liste-urg,
+.fiches {
+  border-color: var(--trait);
+  border-radius: var(--r);
+  box-shadow: var(--ombre-1);
+}
+.lieu {
+  gap: 14px;
+  padding: 16px;
+}
+.lieu:hover {
+  background: var(--surface-2);
+}
+.lieu-corps {
+  gap: 6px;
+}
+.lieu-cat {
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
+}
+.lieu-nom {
+  font-size: 1.0625rem;
+  line-height: 1.3;
+}
+.lieu-meta {
+  align-items: flex-start;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.lieu-meta .ic {
+  margin-top: 0.08em;
+}
+.statut {
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 10px 3px 9px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+.statut::before {
+  width: 7px;
+  height: 7px;
+  margin-top: calc((1.35em - 7px) / 2);
+}
+.appel-rapide {
+  width: 78px;
+  gap: 6px;
+  background: transparent;
+  border-inline-start: 1px solid var(--trait);
+  font-size: 0.8125rem;
+}
+.appel-rapide .ic {
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--ok-fond);
+  font-size: 1rem;
+}
+.appel-rapide:hover {
+  filter: none;
+  background: var(--surface-2);
+}
+.vide {
+  padding: 24px 20px;
+  border-color: var(--trait-fort);
+  border-radius: var(--r);
+}
+
+/* ============ 7. Boutons ============ */
+.btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: var(--r-btn);
+  box-shadow: 0 1px 2px rgb(20 35 58 / 0.18);
+  letter-spacing: 0.005em;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover {
+  background: color-mix(in srgb, var(--encre) 86%, var(--surface));
+  border-color: color-mix(in srgb, var(--encre) 86%, var(--surface));
+}
+.btn--doux {
+  border-color: var(--trait-fort);
+  box-shadow: var(--ombre-1);
+}
+.btn--doux:hover {
+  background: var(--surface-2);
+  border-color: var(--trait-fort);
+}
+.btn--mini {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: var(--r-petit);
+}
+.btn--danger,
+.btn--danger:hover {
+  background: var(--urgent);
+  border-color: var(--urgent);
+}
+.btn--appel,
+.btn--appel:hover {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+/* ============ 8. Fiche d'un lieu ============ */
+.fiche-lieu {
+  gap: 22px;
+}
+.fiche-lieu h1 {
+  font-size: 1.625rem;
+  line-height: 1.12;
+}
+.fiche-lieu .tete > div {
+  gap: 8px;
+}
+.badge-fictif {
+  padding: 3px 10px;
+  border: 1px solid var(--trait-fort);
+  background: var(--surface);
+  font-size: 0.8125rem;
+}
+.adresse {
+  gap: 10px 12px;
+  padding: 16px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--ombre-1);
+}
+.adresse-txt {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.adresse .lieu-meta {
+  font-size: 0.9375rem;
+}
+.tel-txt {
+  padding-top: 10px;
+  border-top: 1px solid var(--trait);
+}
+.tel-txt a {
+  text-underline-offset: 3px;
+}
+.adresse-masquee {
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--r);
+}
+.actions {
+  gap: 6px;
+}
+.action {
+  gap: 6px;
+  min-height: 72px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  box-shadow: var(--ombre-1);
+  font-size: 0.8125rem;
+}
+.action:hover {
+  border-color: var(--trait-fort);
+}
+.action[aria-pressed="true"] {
+  border-color: var(--lampe);
+  background: var(--lampe-voile);
+}
+.section {
+  gap: 10px;
+}
+.section h2 {
+  font-size: 1.1875rem;
+}
+
+/* Horaires : un tableau en carte, le jour même surligné à la lampe */
+.horaires {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--surface);
+  box-shadow: var(--ombre-1);
+  overflow: hidden;
+}
+.horaires th,
+.horaires td {
+  padding: 11px 16px;
+  border-top: 1px solid var(--trait);
+}
+.horaires tr:first-child th,
+.horaires tr:first-child td {
+  border-top: 0;
+}
+.horaires th {
+  width: 40%;
+  color: var(--encre-douce);
+}
+.horaires tr.auj th,
+.horaires tr.auj td {
+  background: var(--lampe-voile);
+  color: var(--encre);
+}
+.horaires tr.auj th {
+  box-shadow: inset 4px 0 0 var(--lampe);
+}
+[dir="rtl"] .horaires tr.auj th {
+  box-shadow: inset -4px 0 0 var(--lampe);
+}
+.puces-txt {
+  gap: 6px;
+}
+.puces-txt li::marker {
+  color: var(--encre-douce);
+}
+.criteres li {
+  padding: 7px 14px 7px 12px;
+  border-color: var(--trait);
+  box-shadow: var(--ombre-1);
+}
+.verifie {
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--r);
+  background: var(--surface-2);
+  border-color: var(--trait);
+}
+.signaler summary {
+  border-radius: var(--r-petit);
+}
+.signaler form {
+  padding: 16px;
+  border-radius: var(--r);
+  box-shadow: var(--ombre-1);
+}
+
+/* ============ 9. Urgences, infos, réglages ============ */
+.urg {
+  padding: 16px;
+}
+.urg-num {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.fiche summary {
+  min-height: 56px;
+  padding: 10px 16px;
+}
+.fiche ul {
+  padding: 0 16px 0 calc(16px + 1.2em);
+}
+.installer-bandeau {
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--r);
+  box-shadow: var(--ombre-2);
+}
+code {
+  border-radius: 6px;
+}
+
+/* ============ 10. Carte ============ */
+.barre-carte {
+  padding: 12px var(--gouttiere);
+}
+.barre-carte .puce {
+  border-color: var(--trait);
+  box-shadow: var(--ombre-flot);
+}
+.barre-carte .puce[aria-pressed="true"] {
+  border-color: var(--encre);
+}
+.carte-msg {
+  top: 72px;
+  padding: 12px 16px;
+  border-radius: var(--r);
+  box-shadow: var(--ombre-2);
+  line-height: 1.4;
+}
+.btn-localiser,
+.btn-placer,
+.btn-tel-carte {
+  border-color: var(--trait);
+  box-shadow: var(--ombre-flot);
+}
+.btn-localiser {
+  border-radius: 16px;
+}
+.btn-placer,
+.btn-tel-carte {
+  border-radius: 16px;
+}
+.carte-tel {
+  border-radius: var(--r);
+  box-shadow: var(--ombre-flot);
+}
+.marqueur {
+  width: 36px;
+  height: 36px;
+  border-width: 2.5px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25), 0 4px 10px -2px rgb(0 0 0 / 0.3);
+}
+.leaflet-touch .leaflet-bar,
+.leaflet-bar {
+  border: 1px solid var(--trait);
+  border-radius: var(--r-btn);
+  box-shadow: var(--ombre-flot);
+  overflow: hidden;
+}
+.leaflet-touch .leaflet-bar a,
+.leaflet-bar a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+  font-size: 20px;
+  border-bottom-color: var(--trait);
+}
+.leaflet-touch .leaflet-bar a:first-child,
+.leaflet-touch .leaflet-bar a:last-child {
+  border-radius: 0;
+}
+.leaflet-control-attribution {
+  border-top-left-radius: 8px;
+  font-size: 0.75rem;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: var(--r);
+  box-shadow: var(--ombre-flot);
+}
+
+/* ============ 11. Onglets du bas ============ */
+.onglets {
+  border-top: 1px solid var(--trait);
+  background: var(--surface);
+  box-shadow: 0 -1px 0 rgb(20 35 58 / 0.02), 0 -8px 24px -16px rgb(20 35 58 / 0.18);
+}
+.onglets a {
+  gap: 4px;
+  font-size: 0.78125rem;
+  letter-spacing: 0.01em;
+}
+.onglets .ic {
+  width: 1.375rem;
+  height: 1.375rem;
+  padding: 4px 16px;
+  transition: background-color 0.2s ease;
+}
+.onglets a[aria-current="page"] .ic {
+  padding-inline: 16px;
+}
+
+/* ============ 12. Écrans plus larges ============ */
+@media (min-width: 40rem) {
+  .hero {
+    border-radius: 0 0 32px 32px;
+  }
+  .hero-titre {
+    font-size: 2.625rem;
+  }
+}

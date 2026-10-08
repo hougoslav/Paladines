@@ -33,6 +33,7 @@ Pour tester un QR code d'affiche : `http://localhost:3000/?pres=50.6366,3.0707&n
 index.html             la page de l'appli (en-tête, onglets, pictogrammes)
 affiche.html           générateur d'affiches et d'autocollants avec QR code
 css/style.css          toute la mise en forme (thème clair et sombre)
+css/theme.css          le style choisi par le groupe (« Nuit raffinée »), chargé après style.css
 js/app.js              la logique : vues, horaires, distances, carte, réglages
 js/i18n.js             les textes en français, anglais et arabe
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
@@ -42,8 +43,9 @@ sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
 vendor/                Leaflet (carte) et qrcode-generator, copiés ici pour marcher hors ligne
 fonts/                 polices Atkinson Hyperlegible et Bricolage Grotesque (licence OFL)
-icons/                 icônes de l'appli
+icons/                 icônes de l'appli (logo « lanterne »)
 docs/IDEES.md          idées, feuille de route, questions pour le groupe
+docs/identite/         les logos et styles proposés, et le choix retenu
 docs/LIEUX-LILLE.md    les lieux de Lille, leurs sources, ce qui reste à vérifier
 ```
 
