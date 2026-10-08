@@ -19,6 +19,14 @@ const bac = { window: {} };
 vm.runInNewContext(code, bac);
 const { lieux } = bac.window.PALADINES_DATA;
 
+// On part des positions déjà connues : une adresse non trouvée garde sa position actuelle
+const actuel = { window: {} };
+try {
+  vm.runInNewContext(await readFile(new URL("../data/coordonnees.js", import.meta.url), "utf8"), actuel);
+} catch {
+  // pas encore de fichier
+}
+
 async function geocoder(adresse) {
   for (const service of SERVICES) {
     try {
@@ -34,7 +42,7 @@ async function geocoder(adresse) {
   return null;
 }
 
-const coords = {};
+const coords = { ...(actuel.window.PALADINES_COORDS || {}) };
 for (const l of lieux) {
   if (l.adresseMasquee || !(l.adresseGeo || l.adresse)) continue;
   const adresse = l.adresseGeo || l.adresse;
@@ -50,7 +58,7 @@ for (const l of lieux) {
 
 const entete = `/*
  * Positions GPS des lieux : { id: [latitude, longitude] }.
- * Fichier généré par \`node outils/geocoder.mjs\` (Base Adresse Nationale). Ne pas modifier à la main.
+ * Fichier généré par \`node outils/geocoder.mjs\` (Base Adresse Nationale).
  */
 `;
 await writeFile(new URL("../data/coordonnees.js", import.meta.url), entete + "window.PALADINES_COORDS = " + JSON.stringify(coords, null, 1) + ";\n");

@@ -84,18 +84,23 @@ Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
 
 ## Positions GPS des lieux
 
-La carte et le tri par distance ont besoin de la position de chaque lieu. Depuis le dossier
-du projet, sur un ordinateur avec internet (Node 18 ou plus) :
+La carte et le tri par distance ont besoin de la position de chaque lieu.
 
-```bash
-node outils/geocoder.mjs
-```
+- **Déjà dans `data/coordonnees.js`** : 17 lieux et les 15 repères de « Je suis près de… »
+  (gares, métro, Grand Place, cathédrale). Ces positions ont été trouvées par recherche web,
+  chacune confirmée par deux recherches indépendantes (écart de moins de 200 m).
+- **Les autres lieux** sont placés **automatiquement par l'appli** quand elle est en ligne :
+  elle cherche leur adresse dans la **Base Adresse Nationale** (service public gratuit) et
+  garde le résultat sur le téléphone.
+- **Pour tout fixer une fois pour toutes** (recommandé avant un lancement), depuis le dossier
+  du projet, sur un ordinateur avec internet (Node 18 ou plus) :
 
-Le script cherche chaque adresse dans la **Base Adresse Nationale** (service public gratuit)
-et écrit `data/coordonnees.js`. À relancer après chaque changement d'adresse.
-Tant que ce fichier est vide, l'appli fait ce calcul elle-même au premier chargement et
-le garde sur le téléphone.
-- Pour le bandeau d'alerte : `alerte.actif` à `true` ou `false`.
+  ```bash
+  node outils/geocoder.mjs
+  ```
+
+  Le script complète et corrige `data/coordonnees.js` avec les positions officielles.
+  À relancer après chaque changement d'adresse.
 
 ## Ajouter une langue
 

@@ -908,9 +908,11 @@
     const msg = document.querySelector("#vue-carte .carte-msg");
     if (!msg) return;
     let txt = "";
+    const sansPosition = D.lieux.filter((l) => !l.adresseMasquee && adresseGeo(l) && !aCoord(l)).length;
     if (etat.modePlacer) txt = t("carteToucher");
     else if (!D.lieux.some(aCoord)) txt = t("carteSansPositions");
-    else if (etat.fondEnErreur) txt = t("fondIndispo");
+    else if (etat.fondEnErreur) txt = t(dansUnCadre() ? "fondApercu" : "fondIndispo");
+    else if (sansPosition && !etat.msgPartielVu) txt = t("positionsPartielles", { n: sansPosition });
     msg.textContent = txt;
     msg.hidden = !txt;
     msg.classList.toggle("carte-msg--action", etat.modePlacer);
@@ -1189,6 +1191,12 @@
           activerModePlacer();
         }
         rendreBarreCarte();
+        break;
+      case "masquer-msg-carte":
+        if (!etat.modePlacer) {
+          etat.msgPartielVu = true;
+          majMsgCarte();
+        }
         break;
       case "sauter":
         e.preventDefault();

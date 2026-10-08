@@ -4,7 +4,7 @@
  * - Fonds de carte : gardés au fur et à mesure (300 au plus).
  * Changer VERSION à chaque mise en ligne force la mise à jour du cache.
  */
-const VERSION = "paladines-v4";
+const VERSION = "paladines-v5";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 

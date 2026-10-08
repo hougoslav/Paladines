@@ -29,6 +29,100 @@ window.PALADINES_DATA = {
     }
   },
 
+  // Repères pour « Je suis près de… » quand le GPS est refusé (positions vérifiées en double)
+  reperes: [
+    {
+      "id": "gare-flandres",
+      "nom": "Gare Lille Flandres",
+      "lat": 50.63639,
+      "lng": 3.07083
+    },
+    {
+      "id": "gare-europe",
+      "nom": "Gare Lille Europe",
+      "lat": 50.6393,
+      "lng": 3.07542
+    },
+    {
+      "id": "grand-place",
+      "nom": "Grand Place",
+      "lat": 50.63689,
+      "lng": 3.06337
+    },
+    {
+      "id": "republique",
+      "nom": "Métro République – Beaux-Arts",
+      "lat": 50.63167,
+      "lng": 3.06083
+    },
+    {
+      "id": "gambetta",
+      "nom": "Métro Gambetta (Wazemmes)",
+      "lat": 50.62639,
+      "lng": 3.05222
+    },
+    {
+      "id": "porte-des-postes",
+      "nom": "Métro Porte des Postes",
+      "lat": 50.61833,
+      "lng": 3.05
+    },
+    {
+      "id": "porte-d-arras",
+      "nom": "Métro Porte d'Arras (Lille-Sud)",
+      "lat": 50.61748,
+      "lng": 3.06226
+    },
+    {
+      "id": "fives",
+      "nom": "Métro Fives",
+      "lat": 50.63304,
+      "lng": 3.09059
+    },
+    {
+      "id": "lille-grand-palais",
+      "nom": "Métro Lille Grand Palais",
+      "lat": 50.62944,
+      "lng": 3.075
+    },
+    {
+      "id": "chu",
+      "nom": "Métro CHU – Centre Oscar Lambret",
+      "lat": 50.61309,
+      "lng": 3.03643
+    },
+    {
+      "id": "mairie-de-lille",
+      "nom": "Métro Mairie de Lille",
+      "lat": 50.63256,
+      "lng": 3.0709
+    },
+    {
+      "id": "bois-blancs",
+      "nom": "Métro Bois-Blancs",
+      "lat": 50.63429,
+      "lng": 3.03053
+    },
+    {
+      "id": "montebello",
+      "nom": "Métro Montebello",
+      "lat": 50.62201,
+      "lng": 3.04552
+    },
+    {
+      "id": "marbrerie",
+      "nom": "Métro Marbrerie",
+      "lat": 50.63006,
+      "lng": 3.0979
+    },
+    {
+      "id": "cathedrale",
+      "nom": "Cathédrale de la Treille (Vieux-Lille)",
+      "lat": 50.64008,
+      "lng": 3.06253
+    }
+  ],
+
   categories: [
     { id: "dormir",    icone: "i-lit",      couleur: "#3E5BA9" },
     { id: "manger",    icone: "i-bol",      couleur: "#C2671D" },
