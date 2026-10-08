@@ -131,12 +131,14 @@ les nouveaux fichiers.
 Gratuit, sans mise en pause du site, trafic non limité en pratique, 500 mises en ligne par mois.
 
 1. Créer un compte gratuit sur <https://dash.cloudflare.com>.
-2. Menu de gauche **Workers & Pages** → **Create** → onglet **Pages** (ou le lien
-   « Looking to deploy Pages? ») → **Connect to Git** → **GitHub** → autoriser Cloudflare,
-   puis choisir le dépôt **Paladines** → **Begin setup**.
+2. Menu de gauche **Workers & Pages** → **Create**. Sur la page « Make something new »,
+   ne pas prendre *Continue with GitHub* (c'est pour les Workers) : cliquer tout en bas sur
+   « Need to use the legacy Pages workflow? **Continue to Pages** ».
+   Puis **Import an existing Git repository** → **Get started** → **GitHub** → autoriser
+   Cloudflare, choisir le dépôt **Paladines** → **Begin setup**.
 3. **Project name** : `paladines` (ce nom donne l'adresse, il est difficile à changer après).
    **Production branch** : la branche qui contient l'appli. **Framework preset** : *None*.
-   **Build command** : vide. **Build output directory** : `/`. Puis **Save and Deploy**.
+   **Build command** : vide. **Build output directory** : vide (ou `/`). Puis **Save and Deploy**.
 4. Le site est à **https://paladines.pages.dev**. Le fichier `_headers` règle le cache et
    la confidentialité.
 
