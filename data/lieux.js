@@ -3292,7 +3292,7 @@ window.PALADINES_DATA = {
       "nom": "Médiathèque de la Cité (hôpital Claude Huriez)",
       "structure": "CHU de Lille, avec la Bibliothèque municipale de Lille",
       "adresse": "Hall de l'hôpital Claude Huriez, rue Michel Polonovski, 59000 Lille",
-      "adresseGeo": "Rue Michel Polonovski, 59000 Lille",
+      "adresseGeo": "1 place de Verdun, 59000 Lille",
       "lat": null,
       "lng": null,
       "tel": "03 62 94 36 50",
