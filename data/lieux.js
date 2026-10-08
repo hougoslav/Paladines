@@ -370,6 +370,7 @@ window.PALADINES_DATA = {
       },
       "langues": [],
       "adresseMasquee": true,
+      "acces": "l02",
       "verifie": "2026-10-07",
       "confiance": "moyenne",
       "sources": [
@@ -401,6 +402,7 @@ window.PALADINES_DATA = {
       },
       "langues": [],
       "adresseMasquee": true,
+      "acces": "l26",
       "verifie": "2026-10-07",
       "confiance": "moyenne",
       "sources": [
@@ -432,6 +434,7 @@ window.PALADINES_DATA = {
       },
       "langues": [],
       "adresseMasquee": true,
+      "acces": "l26",
       "verifie": "2026-10-07",
       "confiance": "moyenne",
       "sources": [
@@ -1205,8 +1208,8 @@ window.PALADINES_DATA = {
       "structure": "CHU de Lille",
       "adresse": "Hôpital Jeanne de Flandre, avenue Eugène Avinée, 59000 Lille",
       "adresseGeo": "Avenue Eugène Avinée, 59000 Lille",
-      "lat": null,
-      "lng": null,
+      "lat": 50.60509,
+      "lng": 3.0349,
       "tel": "03 20 44 69 08",
       "horaires": null,
       "horairesTexte": "",

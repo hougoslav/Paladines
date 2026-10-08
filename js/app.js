@@ -621,7 +621,8 @@
       "</header>" +
       '<div class="adresse">' +
       (l.adresseMasquee
-        ? '<p class="adresse-masquee">' + icone("i-bouclier") + esc(t("adresseMasquee")) + "</p>"
+        ? '<p class="adresse-masquee">' + icone("i-bouclier") + esc(t("adresseMasquee")) + "</p>" +
+          (l.acces && lieu(l.acces) ? '<p class="acces-lien">' + esc(t("ouDemander")) + ' <a href="#lieu-' + l.acces + '">' + esc(lieu(l.acces).nom) + "</a></p>" : "")
         : !l.adresse
         ? '<p class="adresse-masquee">' + icone("i-tel") + esc(t("sansAdresse")) + "</p>"
         : '<p class="adresse-txt">' + esc(l.adresse) + "</p>" +
@@ -938,43 +939,97 @@
     placer.setAttribute("aria-pressed", String(etat.modePlacer));
   }
 
+  // Où montrer un lieu sur la carte : à sa position, ou, pour une adresse protégée, au lieu
+  // public où l'on peut demander à y aller (jamais à sa vraie adresse)
+  function pointCarte(l) {
+    if (aCoord(l)) return { lat: l.lat, lng: l.lng, acces: null };
+    const a = l.adresseMasquee && l.acces ? lieu(l.acces) : null;
+    return a && aCoord(a) ? { lat: a.lat, lng: a.lng, acces: a } : null;
+  }
+
+  // Plusieurs lieux à la même adresse : leurs repères sont écartés en cercle pour rester tous visibles
+  function ecarter(points) {
+    const groupes = {};
+    points.forEach((p) => {
+      const cle = p.lat.toFixed(4) + "," + p.lng.toFixed(4);
+      (groupes[cle] = groupes[cle] || []).push(p);
+    });
+    Object.keys(groupes).forEach((cle) => {
+      const g = groupes[cle];
+      if (g.length < 2) return;
+      g.forEach((p, i) => {
+        const angle = (2 * Math.PI * i) / g.length - Math.PI / 2;
+        p.dx = Math.round(Math.cos(angle) * 22);
+        p.dy = Math.round(Math.sin(angle) * 22);
+      });
+    });
+  }
+
   function majMarqueurs() {
     if (!etat.coucheLieux) return;
     const maintenant = new Date();
     etat.coucheLieux.clearLayers();
     majMsgCarte();
+    majTelCarte();
     cadrerCarte();
+    const points = [];
     D.lieux
-      .filter((l) => aCoord(l) && (etat.carteCat === "toutes" || dansCat(l, etat.carteCat)))
+      .filter((l) => etat.carteCat === "toutes" || dansCat(l, etat.carteCat))
       .forEach((l) => {
+        const pt = pointCarte(l);
         const s = statut(l, maintenant);
-        if (etat.carteOuvert && s.ouvert !== true) return;
-        const cat = categorie(l.cat);
-        const ic = L.divIcon({
-          className: "marqueur-boite",
-          html: '<span class="marqueur' + (s.ouvert === true ? "" : " marqueur--ferme") + '" style="--c:' + cat.couleur + '">' + icone(cat.icone) + "</span>",
-          iconSize: [38, 38],
-          iconAnchor: [19, 19],
-          popupAnchor: [0, -20]
-        });
-        L.marker([l.lat, l.lng], { icon: ic, title: l.nom, alt: l.nom })
-          .bindPopup(() => htmlPopup(l))
-          .addTo(etat.coucheLieux);
+        if (!pt || (etat.carteOuvert && s.ouvert !== true)) return;
+        points.push({ l: l, s: s, acces: pt.acces, lat: pt.lat, lng: pt.lng, dx: 0, dy: 0 });
       });
+    ecarter(points);
+    points.forEach((p) => {
+      const cat = categorie(p.l.cat);
+      const ic = L.divIcon({
+        className: "marqueur-boite",
+        html: '<span class="marqueur' + (p.s.ouvert === true ? "" : " marqueur--ferme") + (p.acces ? " marqueur--protege" : "") + '" style="--c:' + cat.couleur + '">' + icone(cat.icone) + "</span>",
+        iconSize: [38, 38],
+        iconAnchor: [19 - p.dx, 19 - p.dy],
+        popupAnchor: [p.dx, p.dy - 20]
+      });
+      L.marker([p.lat, p.lng], { icon: ic, title: p.l.nom, alt: p.l.nom })
+        .bindPopup(() => htmlPopup(p.l, p.acces))
+        .addTo(etat.coucheLieux);
+    });
   }
 
-  function htmlPopup(l) {
+  function htmlPopup(l, acces) {
     const s = statut(l, new Date());
+    const ici = acces || l;
     return (
       '<p class="popup-cat">' + esc(t("cat_" + l.cat)) + '</p><p class="popup-nom">' + esc(l.nom) + "</p>" +
       '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
-      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
+      (acces ? '<p class="popup-protege">' + icone("i-bouclier") + esc(t("accesProtege", { lieu: acces.nom })) + "</p>" : "") +
+      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, ici))) + "</p>" : "") +
       '<div class="popup-actions">' +
       '<a class="btn btn--mini" href="#lieu-' + l.id + '">' + esc(t("voirFiche")) + "</a>" +
       (l.tel ? '<a class="btn btn--mini btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
-      '<a class="btn btn--mini btn--doux" target="_blank" rel="noopener noreferrer" href="' + lienItineraire(l) + '">' + icone("i-itineraire") + esc(t("itineraire")) + "</a>" +
+      '<a class="btn btn--mini btn--doux" target="_blank" rel="noopener noreferrer" href="' + lienItineraire(ici) + '">' + icone("i-itineraire") + esc(t("itineraire")) + "</a>" +
       "</div>"
     );
+  }
+
+  // Les services sans adresse (115, équipe mobile…) se joignent de partout : un bouton sur la carte les rappelle
+  function majTelCarte() {
+    const btn = document.getElementById("btn-tel-carte");
+    const boite = document.getElementById("carte-tel");
+    if (!btn || !boite) return;
+    const liste = D.lieux.filter((l) => !l.adresse && !l.adresseMasquee && l.tel && (etat.carteCat === "toutes" || dansCat(l, etat.carteCat)));
+    const ouvert = !!etat.telCarteOuvert && liste.length > 0;
+    btn.hidden = !liste.length;
+    btn.querySelector("span").textContent = t("parTelephone", { n: liste.length });
+    btn.setAttribute("aria-expanded", String(ouvert));
+    boite.hidden = !ouvert;
+    boite.innerHTML =
+      '<p class="carte-tel-titre">' + esc(t("parTelephoneTitre")) + "</p>" +
+      liste.map((l) =>
+        '<div class="carte-tel-ligne"><a class="carte-tel-nom" href="#lieu-' + l.id + '">' + esc(l.nom) + "</a>" +
+        '<a class="btn btn--mini btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(l.tel) + "</a></div>"
+      ).join("");
   }
 
   function lienItineraire(l) {
@@ -1192,6 +1247,10 @@
           activerModePlacer();
         }
         rendreBarreCarte();
+        break;
+      case "tel-carte":
+        etat.telCarteOuvert = !etat.telCarteOuvert;
+        majTelCarte();
         break;
       case "masquer-msg-carte":
         if (!etat.modePlacer) {

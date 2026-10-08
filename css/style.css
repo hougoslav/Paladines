@@ -1590,3 +1590,86 @@ code {
     transition: none !important;
   }
 }
+
+/* Carte : adresses protégées et services sans adresse */
+.marqueur--protege {
+  border-style: dashed;
+  box-shadow: 0 0 0 3px var(--c), 0 2px 6px rgb(0 0 0 / 0.35);
+}
+.popup-protege,
+.acces-lien {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 6px 0;
+  font-size: 0.875rem;
+  color: var(--encre-douce);
+}
+.popup-protege .ic {
+  flex: none;
+  margin-top: 2px;
+}
+.btn-tel-carte {
+  position: absolute;
+  z-index: 500;
+  inset-inline-start: var(--gouttiere);
+  bottom: 88px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--encre);
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgb(10 18 32 / 0.2);
+  cursor: pointer;
+}
+.btn-tel-carte .ic {
+  color: var(--ok);
+}
+.btn-tel-carte[aria-expanded="true"] {
+  background: var(--nuit);
+  border-color: var(--nuit);
+  color: var(--sur-nuit);
+}
+.btn-tel-carte[aria-expanded="true"] .ic {
+  color: inherit;
+}
+.carte-tel {
+  position: absolute;
+  z-index: 500;
+  inset-inline: var(--gouttiere);
+  bottom: 146px;
+  max-width: 26rem;
+  padding: 12px 14px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--encre);
+  box-shadow: 0 4px 16px rgb(10 18 32 / 0.25);
+}
+.carte-tel-titre {
+  margin: 0 0 6px;
+  font-size: 0.875rem;
+  color: var(--encre-douce);
+}
+.carte-tel-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--trait);
+}
+.carte-tel-nom {
+  color: var(--encre);
+  font-weight: 700;
+  text-decoration: none;
+}
+.carte-tel-ligne .btn {
+  flex: none;
+  white-space: nowrap;
+}
