@@ -133,7 +133,8 @@ window.PALADINES_DATA = {
     { id: "vetements", icone: "i-cintre",   couleur: "#4E7D3A" },
     { id: "bagagerie", icone: "i-sac",      couleur: "#7A6A3A" },
     { id: "droits",    icone: "i-papier",   couleur: "#3D6E8F" },
-    { id: "recharge",  icone: "i-prise",    couleur: "#8A5A00" }
+    { id: "recharge",  icone: "i-prise",    couleur: "#8A5A00" },
+    { id: "wifi",      icone: "i-wifi",     couleur: "#11806A" }
   ],
 
   /*
@@ -1944,8 +1945,8 @@ window.PALADINES_DATA = {
       "structure": "Association Intercommunale d'Aide aux Victimes et de Médiation (AIAVM), membre de France Victimes",
       "adresse": "Hôtel de Ville, place Roger Salengro, 59000 Lille",
       "adresseGeo": "Place Roger Salengro, 59000 Lille",
-      "lat": null,
-      "lng": null,
+      "lat": 50.63044,
+      "lng": 3.07115,
       "tel": "03 20 49 50 79",
       "horaires": {
         "lun": [
@@ -2391,8 +2392,8 @@ window.PALADINES_DATA = {
       "structure": "Ville de Lille / CDAD du Nord (Point d'accès au droit)",
       "adresse": "Hôtel de Ville, place Roger Salengro (côté Porte de Paris), 59000 Lille",
       "adresseGeo": "Place Roger Salengro, 59000 Lille",
-      "lat": null,
-      "lng": null,
+      "lat": 50.63044,
+      "lng": 3.07115,
       "tel": "03 20 49 50 77",
       "horaires": {
         "lun": [

@@ -49,13 +49,17 @@ function decouper(adresse) {
   while (n.length && /^(\d+|bis|ter)$/.test(n[0])) n.shift(); // « 32 34 », « 12 bis »
   const type = TYPES_VOIE.includes(n[0]) ? n.shift() : null;
   const cp = (reste.match(/\b59\d{3}\b/) || [])[0] || null;
-  return { voie: voie.trim(), numero, type, mots: n.filter((m) => !MOTS_VIDES.has(m)), cp };
+  const ville = normaliser(reste.replace(/\b\d{5}\b/, "")) || "lille";
+  return { voie: voie.trim(), numero, type, mots: n.filter((m) => !MOTS_VIDES.has(m)), cp, ville };
 }
 
 // Le résultat est-il dans la bonne rue ?
 function bonneRue(f, a) {
   const p = f.properties;
   if (p.type !== "housenumber" && p.type !== "street") return false;
+  // La bonne ville (« Lille » n'est pas « Lillers ») : même nom, ou même code postal (Lomme, Hellemmes)
+  const villes = normaliser(p.city || "").split(" ");
+  if (!a.ville.split(" ").some((v) => villes.includes(v)) && p.postcode !== a.cp) return false;
   const rue = normaliser(p.street || p.name || "");
   if (a.type && !rue.startsWith(a.type)) return false;
   const mots = rue.split(" ");
@@ -87,7 +91,7 @@ async function geocoder(adresse) {
   const debut = (a.numero ? a.numero + " " : "") + a.voie.replace(/^[\d\s-]+(bis|ter)?\s*/i, "");
   if (a.cp === "59000") essais.push(debut + ", 59800 Lille");
   if (a.cp === "59800") essais.push(debut + ", 59000 Lille");
-  essais.push(debut + ", Lille");
+  essais.push(debut + ", " + (a.ville === "lille" ? "Lille" : a.ville));
   let rueSeule = null; // la bonne rue sans le numéro : position approximative, en dernier recours
   for (const requete of essais) {
     const trouves = (await chercher(requete)).filter((x) => bonneRue(x, a));
