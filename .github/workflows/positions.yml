@@ -1,0 +1,37 @@
+# Calcule les positions GPS des lieux (Base Adresse Nationale) à chaque changement d'adresse,
+# et enregistre data/coordonnees.js. Ainsi, chaque lieu a sa place sur la carte, même hors ligne.
+name: Positions GPS des lieux
+
+on:
+  push:
+    paths:
+      - data/lieux.js
+      - outils/geocoder.mjs
+      - .github/workflows/positions.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: positions-${{ github.ref }}
+
+jobs:
+  geocoder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Calculer les positions
+        run: node outils/geocoder.mjs
+      - name: Enregistrer les positions
+        run: |
+          if git diff --quiet data/coordonnees.js; then echo "Positions inchangées"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/coordonnees.js
+          git commit -m "Positions GPS des lieux (Base Adresse Nationale)"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
