@@ -1,6 +1,7 @@
 /*
  * Positions GPS des lieux : { id: [latitude, longitude] }.
  * Fichier généré par `node outils/geocoder.mjs` (Base Adresse Nationale).
+ * Les lieux qui ont lat/lng dans data/lieux.js n'y figurent pas (position vérifiée à la main).
  */
 window.PALADINES_COORDS = {
  "l02": [
@@ -32,8 +33,8 @@ window.PALADINES_COORDS = {
   3.07738
  ],
  "l17": [
-  50.62746,
-  3.07421
+  50.62745,
+  3.07457
  ],
  "l18": [
   50.63163,
@@ -48,8 +49,8 @@ window.PALADINES_COORDS = {
   3.06085
  ],
  "l33": [
-  50.63044,
-  3.07115
+  50.5635,
+  2.48073
  ],
  "l34": [
   50.60738,
@@ -60,12 +61,12 @@ window.PALADINES_COORDS = {
   3.05006
  ],
  "l42": [
-  50.63044,
-  3.07115
+  50.5635,
+  2.48073
  ],
  "l44": [
-  50.6326,
-  3.06643
+  50.63243,
+  3.06623
  ],
  "l08": [
   50.62068,
@@ -150,5 +151,17 @@ window.PALADINES_COORDS = {
  "l46": [
   50.61002,
   3.05482
+ ],
+ "l10": [
+  50.62443,
+  3.09078
+ ],
+ "l37": [
+  50.64496,
+  3.05985
+ ],
+ "l39": [
+  50.61794,
+  3.04849
  ]
 };
