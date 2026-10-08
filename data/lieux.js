@@ -672,7 +672,8 @@ window.PALADINES_DATA = {
       "id": "l13",
       "cat": "hygiene",
       "autresCats": [
-        "recharge"
+        "recharge",
+        "wifi"
       ],
       "nom": "Douches solidaires de l'association La Deûle",
       "structure": "Association La Deûle",
@@ -686,7 +687,7 @@ window.PALADINES_DATA = {
         "Douche gratuite, avec serviette, savon et shampoing.",
         "Café offert.",
         "Recharger son téléphone.",
-        "Wifi, ordinateurs, imprimante.",
+        "Wifi gratuit, ordinateurs, imprimante.",
         "Petites baignoires pour les bébés et jeux pour enfants.",
         "Le vendredi : petit-déjeuner et lessive possibles pour les femmes."
       ],
@@ -703,7 +704,8 @@ window.PALADINES_DATA = {
       "sources": [
         "https://solidarites.lille.fr/acteur/626/3-association-la-deule.htm",
         "https://www.lille.fr/Actualites/Droits-des-personnes-sans-abris-la-Ville-et-le-CCAS-engages",
-        "https://ladeule.com/"
+        "https://ladeule.com/",
+        "https://solidarites.lille.fr/aide/586/2-acceder-au-wifi-recharger-son-telephone.htm"
       ]
     },
     {
@@ -1799,7 +1801,9 @@ window.PALADINES_DATA = {
     {
       "id": "l31",
       "cat": "accueil",
-      "autresCats": [],
+      "autresCats": [
+        "wifi"
+      ],
       "nom": "L'Île de Solidarité – accueil du matin",
       "structure": "Association L'Île de Solidarité",
       "adresse": "13 rue de Rivoli, 59800 Lille",
@@ -1841,7 +1845,7 @@ window.PALADINES_DATA = {
       "horairesTexte": "Lundi au vendredi 8h30-12h.",
       "services": [
         "Recharger son téléphone",
-        "Wifi",
+        "Wifi gratuit pendant l'accueil (demandez le code sur place).",
         "Petit-déjeuner",
         "Douches",
         "Moments de détente"
@@ -1854,7 +1858,8 @@ window.PALADINES_DATA = {
       "confiance": "moyenne",
       "sources": [
         "https://solidarites.lille.fr/aide/247/2-se-laver-laver-ses-vetements-acceder-aux-toilettes-se-poser.htm",
-        "https://www.helloasso.com/associations/l-ile-de-solidarite"
+        "https://www.helloasso.com/associations/l-ile-de-solidarite",
+        "https://solidarites.lille.fr/aide/586/2-acceder-au-wifi-recharger-son-telephone.htm"
       ]
     },
     {
@@ -2503,7 +2508,9 @@ window.PALADINES_DATA = {
     {
       "id": "l44",
       "cat": "recharge",
-      "autresCats": [],
+      "autresCats": [
+        "wifi"
+      ],
       "nom": "Médiathèque Jean Lévy (Lille-Centre)",
       "structure": "Bibliothèque municipale de Lille",
       "adresse": "32-34 rue Edouard Delesalle, 59000 Lille",
@@ -2550,32 +2557,42 @@ window.PALADINES_DATA = {
       },
       "horairesTexte": "Toute l'année : lundi et mardi 14h-19h ; mercredi, jeudi, samedi 10h-19h ; vendredi 12h-20h. En été : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-18h.",
       "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
         "Ordinateurs gratuits avec internet (2 heures par jour, réserver sur place)",
         "Ordinateur rapide (15 minutes)",
         "Imprimer ou écrire des documents (traitement de texte)",
         "Conseiller numérique pour aider (mar, jeu, ven 14h-18h ; mer et sam 10h-12h)",
         "Salle pour lire et s'asseoir au chaud"
       ],
-      "conditions": "Entrée libre et gratuite pour consulter.",
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée).",
       "criteres": {
         "gratuit": true,
         "sansRdv": true
       },
       "langues": [],
       "adresseMasquee": false,
-      "verifie": "2026-10-07",
+      "verifie": "2026-10-08",
       "confiance": "haute",
       "sources": [
         "https://www.lille.fr/Nos-equipements/Mediatheque-Lille-Centre-Jean-Levy",
         "https://bm-lille.fr/jean-levy-lille-centre.aspx?_lg=fr-FR",
         "https://bm-lille.fr/services-numeriques.aspx?_lg=fr-FR",
-        "https://solidarites.lille.fr/acteur/145/3-mediatheque-jean-levy.htm"
+        "https://solidarites.lille.fr/acteur/145/3-mediatheque-jean-levy.htm",
+        "https://bm-lille.fr/horaires.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires-ete-2026.aspx",
+        "https://bm-lille.fr/tarifs.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://www.lille.fr/Annuaire-des-demarches/Inscription-a-la-bibliotheque",
+        "https://bm-lille.fr/inscription-bibliotheque.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/Default/basicfilesdownload.ashx?itemGuid=26F7A5E9-B183-40C0-8435-EBD8A9F6032B"
       ]
     },
     {
       "id": "l45",
       "cat": "recharge",
-      "autresCats": [],
+      "autresCats": [
+        "wifi"
+      ],
       "nom": "Médiathèque de Fives",
       "structure": "Bibliothèque municipale de Lille",
       "adresse": "18 rue Bourjembois, 59800 Lille",
@@ -2622,29 +2639,38 @@ window.PALADINES_DATA = {
           ]
         ]
       },
-      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h.",
+      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé le dimanche, le lundi et les jours fériés.",
       "services": [
-        "Accès à internet gratuit",
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Ordinateurs gratuits avec internet, à réserver sur place.",
         "Lieu calme pour s'asseoir et lire"
       ],
-      "conditions": "Entrée libre.",
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée).",
       "criteres": {
         "gratuit": true,
         "sansRdv": true
       },
       "langues": [],
       "adresseMasquee": false,
-      "verifie": "2026-10-07",
-      "confiance": "moyenne",
+      "verifie": "2026-10-08",
+      "confiance": "haute",
       "sources": [
         "https://www.lille.fr/Nos-equipements/Mediatheque-de-Fives",
-        "https://solidarites.lille.fr/acteur/148/3-mediatheque-de-fives.htm"
+        "https://solidarites.lille.fr/acteur/148/3-mediatheque-de-fives.htm",
+        "https://bm-lille.fr/fives.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/tarifs.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://www.lille.fr/Annuaire-des-demarches/Inscription-a-la-bibliotheque",
+        "https://solidarites.lille.fr/aide/586/2-acceder-au-wifi-recharger-son-telephone.htm",
+        "https://bm-lille.fr/services-numeriques.aspx?_lg=fr-FR"
       ]
     },
     {
       "id": "l46",
       "cat": "recharge",
-      "autresCats": [],
+      "autresCats": [
+        "wifi"
+      ],
       "nom": "Médiathèque de Lille-Sud",
       "structure": "Bibliothèque municipale de Lille",
       "adresse": "11 rue de l'Asie, 59000 Lille",
@@ -2691,24 +2717,791 @@ window.PALADINES_DATA = {
           ]
         ]
       },
-      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé les jours fériés.",
+      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé le dimanche, le lundi et les jours fériés.",
       "services": [
-        "Accès à internet gratuit",
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Ordinateurs gratuits avec internet, à réserver sur place.",
         "Lieu calme pour s'asseoir et lire"
       ],
-      "conditions": "Entrée libre.",
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée).",
       "criteres": {
         "gratuit": true,
         "sansRdv": true
       },
       "langues": [],
       "adresseMasquee": false,
-      "verifie": "2026-10-07",
-      "confiance": "moyenne",
+      "verifie": "2026-10-08",
+      "confiance": "haute",
       "sources": [
         "https://www.lille.fr/Nos-equipements/Mediatheque-de-Lille-Sud",
         "https://bm-lille.fr/default/horaires.aspx?_lg=fr-FR",
-        "https://www.citizenkid.com/sortie/mediatheque-de-lille-sud-lille-a1013027"
+        "https://www.citizenkid.com/sortie/mediatheque-de-lille-sud-lille-a1013027",
+        "https://www.lille.fr/lille-sud/Decouvrir-le-quartier/Culture-loisirs-et-patrimoine/Mediatheque-de-Lille-Sud",
+        "https://bm-lille.fr/default/lille-sud.aspx?_lg=fr-FR",
+        "https://solidarites.lille.fr/acteur/149/1-mediatheque-de-lille-sud.htm",
+        "https://bm-lille.fr/tarifs.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://solidarites.lille.fr/aide/586/2-acceder-au-wifi-recharger-son-telephone.htm"
+      ]
+    },
+    {
+      "id": "l47",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "Médiathèque de Wazemmes",
+      "structure": "Bibliothèque municipale de Lille",
+      "adresse": "134 rue de l'Abbé Aerts, 59000 Lille",
+      "lat": null,
+      "lng": null,
+      "tel": "03 20 12 84 68",
+      "horaires": {
+        "mar": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "mer": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "ven": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "sam": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé le dimanche, le lundi et les jours fériés.",
+      "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Tablettes avec internet, gratuites sur place.",
+        "Se poser au chaud.",
+        "Accès en fauteuil (rampe et ascenseur)."
+      ],
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée).",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "haute",
+      "sources": [
+        "https://www.lille.fr/Nos-equipements/Mediatheque-de-Wazemmes",
+        "https://www.lille.fr/Wazemmes/Decouvrir-le-quartier/Culture-loisirs-et-patrimoine/Mediatheque-de-Wazemmes",
+        "https://bm-lille.fr/default/wazemmes.aspx?_lg=fr-FR",
+        "https://solidarites.lille.fr/acteur/153/1-mediatheque-de-wazemmes.htm",
+        "https://solidarites.lille.fr/acteur/153/3-mediatheque-de-wazemmes.htm",
+        "https://bm-lille.fr/tarifs.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://solidarites.lille.fr/aide/586/2-acceder-au-wifi-recharger-son-telephone.htm",
+        "https://www.citizenkid.com/sortie/kilikili-a1065437",
+        "https://www.pagesjaunes.fr/pros/55382031"
+      ]
+    },
+    {
+      "id": "l48",
+      "cat": "wifi",
+      "autresCats": [],
+      "nom": "Médiathèque du Vieux-Lille",
+      "structure": "Bibliothèque municipale de Lille",
+      "adresse": "25-27 place Louise de Bettignies, 59000 Lille",
+      "lat": null,
+      "lng": null,
+      "tel": "03 20 55 75 90",
+      "horaires": {
+        "mar": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "mer": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "ven": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "sam": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé le dimanche, le lundi et les jours fériés.",
+      "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Permanences numériques « Pause-Café Solidaire » : mardi et jeudi 14h-17h30, samedi 10h-12h.",
+        "Se poser au chaud, places assises."
+      ],
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée). Une panne d'internet a été signalée sur les ordinateurs : appelez avant pour savoir si le wifi marche.",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "basse",
+      "sources": [
+        "https://www.lille.fr/Nos-equipements/Mediatheque-du-Vieux-Lille",
+        "https://bm-lille.fr/default/vieux-lille.aspx?_lg=fr-FR",
+        "https://solidarites.lille.fr/acteur/152/3-mediatheque-du-vieux-lille.htm",
+        "https://bm-lille.fr/services-numeriques.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires.aspx?_lg=fr-FR",
+        "https://www.lille.fr/Vieux-Lille/Decouvrir-le-quartier/Culture-loisirs-et-patrimoine/Mediatheque-du-Vieux-Lille",
+        "https://bm-lille.fr/vieux-lille.aspx",
+        "https://solidarites.lille.fr/aide/586/2-acceder-au-wifi-recharger-son-telephone.htm",
+        "https://rdvemploipublic.fr/offres/responsable-adjoint-de-la-mediatheque-de-vieux-lille-59-o059260827001223"
+      ]
+    },
+    {
+      "id": "l49",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "Médiathèque des Bois-Blancs",
+      "structure": "Bibliothèque municipale de Lille",
+      "adresse": "36 avenue Marx Dormoy, 59000 Lille",
+      "lat": null,
+      "lng": null,
+      "tel": "03 20 92 52 87",
+      "horaires": {
+        "mar": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "mer": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "ven": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "sam": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé le dimanche, le lundi et les jours fériés.",
+      "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Ordinateurs avec internet, à réserver sur place.",
+        "Se poser au chaud."
+      ],
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée).",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "moyenne",
+      "sources": [
+        "https://www.lille.fr/Nos-equipements/Mediatheque-des-Bois-Blancs",
+        "https://bm-lille.fr/default/bois-blancs.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires.aspx?_lg=fr-FR",
+        "https://solidarites.lille.fr/acteur/146/3-mediatheque-des-bois-blancs.htm"
+      ]
+    },
+    {
+      "id": "l50",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "Médiathèque de Moulins",
+      "structure": "Bibliothèque municipale de Lille",
+      "adresse": "8 allée de la Filature, 59000 Lille",
+      "lat": null,
+      "lng": null,
+      "tel": "03 28 55 30 93",
+      "horaires": {
+        "mar": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "mer": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "ven": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "sam": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé le dimanche, le lundi et les jours fériés.",
+      "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Ordinateurs gratuits avec internet.",
+        "Impression gratuite de 5 pages par jour.",
+        "Se poser au chaud."
+      ],
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée).",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "moyenne",
+      "sources": [
+        "https://www.lille.fr/Nos-equipements/Mediatheque-de-Moulins",
+        "https://www.lille.fr/lille-moulins/Decouvrir-le-quartier/Culture-loisirs-et-patrimoine/Mediatheque-de-Moulins",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires.aspx?_lg=fr-FR",
+        "https://solidarites.lille.fr/aide/608/2-pour-une-consultation-libre.htm?show=78",
+        "https://solidarites.lille.fr/aide/586/2-acceder-au-wifi-recharger-son-telephone.htm",
+        "https://www.citizenkid.com/sortie/mediatheque-de-moulins-lille-a1012047",
+        "https://acceslibre.beta.gouv.fr/app/59-lille/a/bibliotheque-mediatheque/erp/mairie-de-lille-mediatheque-de-quartier-moulins/rpa_pdf"
+      ]
+    },
+    {
+      "id": "l51",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "Médiathèque de Saint-Maurice Pellevoisin",
+      "structure": "Bibliothèque municipale de Lille",
+      "adresse": "205 bis rue du Faubourg de Roubaix, 59000 Lille",
+      "lat": null,
+      "lng": null,
+      "tel": "03 20 12 53 90",
+      "horaires": {
+        "mar": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "mer": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "ven": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "sam": [
+          [
+            "10:00",
+            "13:00"
+          ],
+          [
+            "14:00",
+            "18:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Période scolaire : mardi, jeudi, vendredi 14h-18h ; mercredi et samedi 10h-13h et 14h-18h. Vacances scolaires : mardi au samedi 14h-18h. Fermé le dimanche, le lundi et les jours fériés.",
+      "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Ordinateurs et tablettes avec internet.",
+        "Impression gratuite de 5 pages par jour.",
+        "Se poser au chaud."
+      ],
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée).",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "moyenne",
+      "sources": [
+        "https://www.lille.fr/Nos-equipements/Mediatheque-de-Saint-Maurice-Pellevoisin",
+        "https://solidarites.lille.fr/acteur/151/3-mediatheque-de-saint-maurice-pellevoisin.htm",
+        "https://solidarites.lille.fr/aide/608/1-pour-une-consultation-libre.htm?show=82",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires.aspx"
+      ]
+    },
+    {
+      "id": "l52",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "Le Fil, médiathèque d'Hellemmes",
+      "structure": "Bibliothèque municipale de Lille",
+      "adresse": "48 rue Faidherbe, 59260 Lille-Hellemmes",
+      "lat": null,
+      "lng": null,
+      "tel": "03 20 56 93 38",
+      "horaires": {
+        "mar": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "mer": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "ven": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "sam": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Période scolaire : mardi, jeudi et vendredi 14h-18h ; mercredi et samedi 10h-18h. Fermé le dimanche et le lundi. Horaires différents pendant les vacances.",
+      "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Ordinateurs ou tablettes sur place.",
+        "Toilettes adaptées.",
+        "Se poser au chaud."
+      ],
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée). Pas d'impression ni de photocopie.",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "moyenne",
+      "sources": [
+        "https://bm-lille.fr/bml/hellemmes-le-fil.aspx?_lg=fr-FR",
+        "https://www.hellemmes.fr/Culture-et-loisirs/La-culture-a-Hellemmes/Le-Fil-mediatheque/La-mediatheque-infos-pratiques",
+        "https://bm-lille.fr/default/horaires.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/services-numeriques.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/default/tarifs.aspx?_lg=fr-FR",
+        "https://www.lille.fr/Annuaire-des-demarches/Inscription-a-la-bibliotheque"
+      ]
+    },
+    {
+      "id": "l53",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "L'Odyssée, médiathèque de Lomme",
+      "structure": "Bibliothèque municipale de Lille",
+      "adresse": "794 avenue de Dunkerque, 59160 Lille-Lomme",
+      "lat": null,
+      "lng": null,
+      "tel": "03 20 17 27 40",
+      "horaires": {
+        "mar": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "mer": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "ven": [
+          [
+            "14:00",
+            "18:00"
+          ]
+        ],
+        "sam": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "dim": [
+          [
+            "10:00",
+            "13:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Période scolaire : mardi, jeudi et vendredi 14h-18h ; mercredi et samedi 10h-18h ; dimanche 10h-13h. Fermé le lundi et les jours fériés. En été : mardi au samedi, fermé le dimanche.",
+      "services": [
+        "Wifi gratuit, sans rien acheter. Pour se connecter, demandez à l'accueil : le code arrive en général par SMS, ou avec la carte gratuite de consultation (pièce d'identité demandée).",
+        "Ordinateurs ou tablettes sur place.",
+        "80 places assises, toilettes adaptées.",
+        "Ouvert le dimanche matin."
+      ],
+      "conditions": "Entrée libre et gratuite, sans inscription. Pour le wifi : un portable qui reçoit les SMS, ou la carte gratuite de consultation sur place (pièce d'identité demandée). Pas d'impression ni de photocopie.",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "moyenne",
+      "sources": [
+        "https://bm-lille.fr/lomme.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/default/lomme.aspx",
+        "https://bm-lille.fr/default/horaires.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/horaires-ete-2026.aspx",
+        "https://www.ville-lomme.fr/Nos-equipements/L-Odyssee-mediatheque",
+        "https://www.ville-lomme.fr/Culture-et-loisirs/La-culture-a-Lomme/L-Odyssee-mediatheque",
+        "https://bm-lille.fr/faq.aspx?_lg=fr-FR",
+        "https://bm-lille.fr/services-numeriques.aspx?_lg=fr-FR",
+        "https://www.lille.fr/Annuaire-des-demarches/Inscription-a-la-bibliotheque"
+      ]
+    },
+    {
+      "id": "l54",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "Médiathèque de la Cité (hôpital Claude Huriez)",
+      "structure": "CHU de Lille, avec la Bibliothèque municipale de Lille",
+      "adresse": "Hall de l'hôpital Claude Huriez, rue Michel Polonovski, 59000 Lille",
+      "adresseGeo": "Rue Michel Polonovski, 59000 Lille",
+      "lat": null,
+      "lng": null,
+      "tel": "03 62 94 36 50",
+      "horaires": {
+        "lun": [
+          [
+            "12:00",
+            "16:00"
+          ]
+        ],
+        "mar": [
+          [
+            "12:00",
+            "16:00"
+          ]
+        ],
+        "mer": [
+          [
+            "12:00",
+            "16:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "12:00",
+            "16:00"
+          ]
+        ],
+        "ven": [
+          [
+            "12:00",
+            "16:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Du lundi au vendredi de 12h à 16h. Fermé le samedi et le dimanche.",
+      "services": [
+        "Wifi gratuit : demandez à l'accueil de la médiathèque pour vous connecter.",
+        "Ordinateurs avec internet en libre-service.",
+        "Se poser au chaud et lire (30 à 40 places assises)."
+      ],
+      "conditions": "Ouverte à tout le monde, pas seulement aux patients. Gratuit. Elle est dans le hall de l'hôpital : l'accueil ou la sécurité peuvent vous demander ce que vous venez faire. Métro ligne 1, station CHU – Centre Oscar Lambret.",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "moyenne",
+      "sources": [
+        "https://bm-lille.fr/bml/mediatheque-de-la-cite-chu-de-lille.aspx?_lg=fr-FR",
+        "https://www.chu-lille.fr/wp-content/uploads/2025/08/agenda-culturel-2025-2026-web.pdf",
+        "https://www.chu-lille.fr/pendant-votre-hospitalisation/",
+        "https://chu-lille.fr/wp-content/uploads/2023/09/huriez.pdf",
+        "https://www.chu-lille.fr/connectez-vous-a-la-wifi-du-chu-de-lille"
+      ]
+    },
+    {
+      "id": "l55",
+      "cat": "wifi",
+      "autresCats": [
+        "recharge"
+      ],
+      "nom": "Gare Lille Flandres (hall)",
+      "structure": "SNCF Gares & Connexions",
+      "adresse": "Place des Buisses, 59000 Lille",
+      "lat": 50.63639,
+      "lng": 3.07083,
+      "tel": "",
+      "horaires": {
+        "lun": [
+          [
+            "04:35",
+            "23:45"
+          ]
+        ],
+        "mar": [
+          [
+            "04:35",
+            "23:45"
+          ]
+        ],
+        "mer": [
+          [
+            "04:35",
+            "23:45"
+          ]
+        ],
+        "jeu": [
+          [
+            "04:35",
+            "23:45"
+          ]
+        ],
+        "ven": [
+          [
+            "04:35",
+            "23:45"
+          ]
+        ],
+        "sam": [
+          [
+            "05:40",
+            "23:45"
+          ]
+        ],
+        "dim": [
+          [
+            "05:40",
+            "00:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Gare ouverte du lundi au vendredi de 4h35 à 23h45, le samedi de 5h40 à 23h45, le dimanche de 5h40 à minuit. Le hall historique ferme à 21h.",
+      "services": [
+        "Wifi gratuit de la gare, sans billet : 20 minutes sans inscription, puis on peut se reconnecter. Illimité en créant un compte (adresse e-mail).",
+        "Prises pour recharger son téléphone dans les espaces d'attente (près du piano, de chaque côté de l'escalator).",
+        "Se poser au chaud dans le hall."
+      ],
+      "conditions": "Hall en entrée libre pendant les heures d'ouverture. Pas besoin de billet ni d'achat pour le wifi.",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "haute",
+      "sources": [
+        "https://www.garesetconnexions.sncf/fr/gares-services/lille-flandres/services-commerces/wifi",
+        "https://www.garesetconnexions.sncf/en/stations-services/lille-flandres",
+        "https://www.garesetconnexions.sncf/en/stations-services/lille-flandres/pratical-info",
+        "https://www.sncf-connect.com/gares/lille/lille-flandres",
+        "https://www.garesetconnexions.sncf/en/faq/services/how-do-i-connect-to-the-wifi-of-the-station-000001073",
+        "https://www.garesetconnexions.sncf/fr/gare/fradj/lille-flandres/services/110/services-pratiques/toilettes",
+        "https://www.ter.sncf.com/hauts-de-france/se-deplacer/gares/lille-flandres-87286005"
+      ]
+    },
+    {
+      "id": "l56",
+      "cat": "wifi",
+      "autresCats": [],
+      "nom": "Centre commercial Westfield Euralille",
+      "structure": "Westfield",
+      "adresse": "Centre commercial Euralille, avenue Willy Brandt, 59777 Lille",
+      "adresseGeo": "Avenue Willy Brandt, 59777 Lille",
+      "lat": null,
+      "lng": null,
+      "tel": "03 20 14 52 20",
+      "horaires": {
+        "lun": [
+          [
+            "09:30",
+            "20:00"
+          ]
+        ],
+        "mar": [
+          [
+            "09:30",
+            "20:00"
+          ]
+        ],
+        "mer": [
+          [
+            "09:30",
+            "20:00"
+          ]
+        ],
+        "jeu": [
+          [
+            "09:30",
+            "20:00"
+          ]
+        ],
+        "ven": [
+          [
+            "09:30",
+            "20:00"
+          ]
+        ],
+        "sam": [
+          [
+            "09:30",
+            "20:00"
+          ]
+        ]
+      },
+      "horairesTexte": "Du lundi au samedi de 9h30 à 20h. Fermé le dimanche, sauf ouvertures exceptionnelles.",
+      "services": [
+        "Wifi gratuit pendant la visite (une adresse e-mail ou un numéro peut être demandé).",
+        "Se poser au chaud."
+      ],
+      "conditions": "Entrée libre, sans achat obligatoire. C'est un lieu privé : la sécurité peut demander de partir.",
+      "criteres": {
+        "gratuit": true,
+        "sansRdv": true
+      },
+      "langues": [],
+      "adresseMasquee": false,
+      "verifie": "2026-10-08",
+      "confiance": "moyenne",
+      "sources": [
+        "https://www.westfield.com/fr/france/euralille",
+        "https://www.westfield.com/fr/france/euralille/horaires",
+        "https://www.westfield.com/fr/france/euralille/actualites/ouverture-exceptionnelle-dimanche-28-juin/137385",
+        "https://www.118000.fr/e_C0000779757",
+        "https://www.au-magasin.fr/guides-shopping/59000-lille/guide-de-shopping-au-centre-commercial-westfield-euralille-de-lille",
+        "https://www.westfield.com/fr/france/aeroville/services/wifi"
       ]
     }
   ],

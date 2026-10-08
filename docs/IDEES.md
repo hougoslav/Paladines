@@ -120,7 +120,7 @@ pouvoir la remplacer.
 
 ## Sources de données possibles
 
-Le prototype contient **46 vrais lieux de Lille**, relevés sur internet en octobre 2026 et
+Le prototype contient **56 vrais lieux de Lille**, relevés sur internet en octobre 2026 et
 contre-vérifiés, mais **pas encore confirmés par téléphone**. La liste, les sources et ce qui
 reste à vérifier sont dans [`LIEUX-LILLE.md`](LIEUX-LILLE.md).
 

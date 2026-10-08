@@ -95,6 +95,7 @@ async function geocoder(adresse) {
   let rueSeule = null; // la bonne rue sans le numéro : position approximative, en dernier recours
   for (const requete of essais) {
     const trouves = (await chercher(requete)).filter((x) => bonneRue(x, a));
+    trouves.sort((x, y) => (y.properties.postcode === a.cp) - (x.properties.postcode === a.cp)); // le bon code postal d'abord (rue Faidherbe à Lille et à Hellemmes)
     const f = trouves.find((x) => bonNumero(x, a));
     if (f) return resultat(f, requete, false);
     rueSeule = rueSeule || (trouves[0] && resultat(trouves[0], requete, true));

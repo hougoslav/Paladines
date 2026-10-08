@@ -5,8 +5,8 @@ elles arrivent sur une page qui montre **les lieux ouverts près d'elles** pour 
 se soigner, se poser, trouver de l'écoute en cas de violences, des vêtements, une bagagerie,
 une aide pour les papiers ou de quoi recharger son téléphone.
 
-> ⚠️ **Prototype** : les 46 lieux sont de **vrais lieux de Lille**, relevés sur internet le
-> 7 octobre 2026 (sources sur chaque fiche). Ils n'ont **pas encore été confirmés par téléphone** :
+> ⚠️ **Prototype** : les 56 lieux sont de **vrais lieux de Lille**, relevés sur internet les
+> 7 et 8 octobre 2026 (sources sur chaque fiche). Ils n'ont **pas encore été confirmés par téléphone** :
 > c'est à faire avant tout lancement. La liste complète, à appeler, est dans
 > [`docs/LIEUX-LILLE.md`](docs/LIEUX-LILLE.md).
 
