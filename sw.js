@@ -3,14 +3,19 @@
  * - Fichiers de l'appli : servis depuis le cache, puis mis à jour en arrière-plan.
  * - Fonds de carte : gardés au fur et à mesure (300 au plus).
  * Changer VERSION à chaque mise en ligne force la mise à jour du cache.
+ *
+ * Certains hébergeurs (Cloudflare Pages) redirigent /index.html vers / et /affiche.html
+ * vers /affiche. Une page gardée en cache après une redirection est refusée par les
+ * navigateurs (Safari : « Response served by service worker has redirections ») :
+ * on la recopie donc sans redirection avant de la garder, et /index.html partage
+ * l'entrée de /.
  */
-const VERSION = "paladines-v6";
+const VERSION = "paladines-v7";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 
 const FICHIERS = [
   "./",
-  "index.html",
   "affiche.html",
   "manifest.webmanifest",
   "css/style.css",
@@ -32,8 +37,23 @@ const FICHIERS = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FICHIERS)).then(() => self.skipWaiting()));
+  e.waitUntil(precharger().then(() => self.skipWaiting()));
 });
+
+async function precharger() {
+  const cache = await caches.open(VERSION);
+  await Promise.all(FICHIERS.map(async (f) => {
+    const rep = await fetch(f, { cache: "reload" });
+    if (!rep.ok) throw new Error("Impossible de garder " + f);
+    await cache.put(f, await sansRedirection(rep));
+  }));
+}
+
+// Une réponse arrivée après une redirection, recopiée telle quelle mais sans la redirection
+async function sansRedirection(rep) {
+  if (!rep.redirected) return rep;
+  return new Response(await rep.blob(), { status: rep.status, statusText: rep.statusText, headers: rep.headers });
+}
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
@@ -55,16 +75,17 @@ self.addEventListener("fetch", (e) => {
   if (url.origin !== self.location.origin) return;
 
   // Les QR codes ajoutent ?pres=…&nom=… : on sert la même page depuis le cache.
-  const cle = req.mode === "navigate" ? url.origin + url.pathname : req;
+  // /index.html et / sont la même page.
+  const cle = req.mode === "navigate" ? url.origin + url.pathname.replace(/index\.html$/, "") : req;
   e.respondWith(
     caches.open(VERSION).then((cache) =>
       cache.match(cle).then((enCache) => {
         const reseau = fetch(req)
           .then((rep) => {
-            if (rep.ok) cache.put(cle, rep.clone());
+            if (rep.ok) sansRedirection(rep.clone()).then((copie) => cache.put(cle, copie));
             return rep;
           })
-          .catch(() => enCache || (req.mode === "navigate" ? cache.match("index.html") : Response.error()));
+          .catch(() => enCache || (req.mode === "navigate" ? cache.match("./") : Response.error()));
         return enCache || reseau;
       })
     )

@@ -5,7 +5,7 @@
   "description": "Trouver un lieu pour dormir, manger, se laver, se soigner ou être aidée, à Lille.",
   "lang": "fr",
   "dir": "auto",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -19,8 +19,8 @@
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
   ],
   "shortcuts": [
-    { "name": "Ouvert maintenant, près de moi", "short_name": "Près de moi", "url": "./index.html#proche", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Carte", "url": "./index.html#carte", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Numéros d'urgence", "short_name": "Urgences", "url": "./index.html#urgences", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Ouvert maintenant, près de moi", "short_name": "Près de moi", "url": "./#proche", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Carte", "url": "./#carte", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Numéros d'urgence", "short_name": "Urgences", "url": "./#urgences", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
