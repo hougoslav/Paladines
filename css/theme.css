@@ -324,14 +324,17 @@ body:has(.hero) .entete {
   color: var(--encre-douce);
 }
 
-/* Tuiles */
+/* Tuiles : pictogramme, nom, lieux ouverts ; trois par ligne pour tout voir d'un coup d'œil */
 .grille-cat {
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 .tuile {
-  gap: 4px;
-  padding: 16px;
-  min-height: 156px;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 6px 12px;
+  min-height: 0;
+  text-align: center;
   border: 1px solid var(--trait);
   border-radius: var(--r);
   box-shadow: var(--ombre-1);
@@ -342,30 +345,30 @@ body:has(.hero) .entete {
   box-shadow: var(--ombre-2);
 }
 .tuile .pastille {
-  margin-bottom: 10px;
+  margin-bottom: 2px;
 }
 .tuile-nom {
   font-weight: 700;
-  font-size: 1.125rem;
-  letter-spacing: -0.012em;
-}
-.tuile-desc {
-  font-size: 0.875rem;
-  line-height: 1.35;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  overflow-wrap: break-word;
 }
 .tuile-nb {
   display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  padding-top: 10px;
-  font-size: 0.8125rem;
-  line-height: 1.35;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
 }
 .tuile-nb::before {
   flex: none;
-  width: 7px;
-  height: 7px;
-  margin: calc((1.35em - 7px) / 2) 0 0;
+  width: 6px;
+  height: 6px;
+  margin: 0;
 }
 
 /* Pastilles : carré adouci ; teintées quand le navigateur sait mélanger les couleurs */
@@ -905,5 +908,143 @@ code {
   }
   .hero-titre {
     font-size: 2.625rem;
+  }
+}
+
+/* ============ Accueil épuré ============ */
+/* « Pour les femmes » : une ligne, comme un raccourci, dans la couleur prune */
+.ligne-femmes {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 1px solid var(--femmes-trait);
+  border-radius: var(--r);
+  background: var(--femmes-fond);
+  color: var(--encre);
+  text-decoration: none;
+}
+.ligne-femmes .pastille {
+  flex: none;
+  background: var(--femmes);
+  color: var(--femmes-encre);
+  box-shadow: none;
+}
+.ligne-femmes-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.ligne-femmes-txt strong {
+  color: var(--femmes);
+  font-family: var(--f-titre);
+  font-size: 1.0625rem;
+}
+.ligne-femmes-txt small {
+  color: var(--encre-douce);
+  font-size: 0.875rem;
+}
+.ligne-femmes .chevron {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--femmes);
+}
+
+/* Urgences : trois numéros, plus compacts */
+.urg-rapide {
+  padding: 10px 12px;
+}
+.urg-rapide-num {
+  font-size: 1.5rem;
+}
+.urg-rapide-txt {
+  font-size: 0.8125rem;
+  line-height: 1.3;
+}
+.maj {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* Position : un bouton et un menu côte à côte */
+.position-actions {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: stretch;
+}
+.position-actions .choix-repere,
+.position-actions .choix-repere select {
+  height: 100%;
+  width: 100%;
+}
+.position-actions .choix-repere select {
+  min-height: 52px;
+  font-weight: 700;
+}
+.position-prive {
+  font-size: 0.8125rem;
+}
+
+/* Fiche : « Itinéraire » et « Appeler » en grand, les autres actions en dessous */
+.actions--principales .action--principale {
+  flex-direction: row;
+  gap: 10px;
+  min-height: 56px;
+  font-size: 1rem;
+}
+.actions--principales .action--principale .ic {
+  font-size: 1.375rem;
+}
+.actions--principales .action--appel {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: var(--surface);
+}
+.actions--principales .action--appel .ic {
+  color: inherit;
+}
+.actions--principales + .actions .action {
+  min-height: 52px;
+  flex-direction: row;
+  gap: 6px;
+  font-size: 0.8125rem;
+}
+.actions--principales + .actions {
+  margin-top: 8px;
+}
+
+/* Petits téléphones (320 px) : l'en-tête tient sur une ligne, « Quitter » reste entier */
+@media (max-width: 359px) {
+  .entete {
+    padding-inline: 10px;
+  }
+  .marque {
+    gap: 6px;
+  }
+  .marque-nom {
+    font-size: 1rem;
+  }
+  .entete-actions {
+    gap: 0;
+  }
+  .btn-entete {
+    min-width: 40px;
+    padding-inline: 6px;
+  }
+  #code-langue {
+    display: none;
+  }
+  .grille-cat {
+    gap: 6px;
+  }
+  .tuile {
+    padding-inline: 4px;
+  }
+  .tuile-nom {
+    font-size: 0.875rem;
+  }
+  .btn-quitter {
+    padding-inline: 10px;
   }
 }

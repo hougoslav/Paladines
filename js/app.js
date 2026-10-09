@@ -295,6 +295,12 @@
 
   function choisirRepere(valeur) {
     if (!valeur) return;
+    if (valeur === "carte") {
+      // « Me placer sur la carte » : ouvrir la carte, la prochaine touche place « je suis ici »
+      activerModePlacer();
+      location.hash = "#carte";
+      return;
+    }
     const parts = valeur.split(":");
     let pos = null;
     if (parts[0] === "r") {
@@ -450,9 +456,10 @@
     const opt = (v, nom) => '<option value="' + v + '"' + (actuel === v ? " selected" : "") + ">" + esc(nom) + "</option>";
     return (
       '<div class="choix-repere">' +
-      '<label for="repere">' + esc(t("jeSuisPres")) + "</label>" +
+      '<label for="repere" class="visuellement-cache">' + esc(t("jeSuisPres")) + "</label>" +
       '<select id="repere" data-change="repere">' +
       '<option value="">' + esc(t("choisirRepere")) + "</option>" +
+      '<option value="carte">' + esc(t("choisirSurCarte")) + "</option>" +
       (rs.length ? '<optgroup label="' + esc(t("groupeReperes")) + '">' + rs.map((r) => opt("r:" + r.id, r.nom)).join("") + "</optgroup>" : "") +
       (ls.length ? '<optgroup label="' + esc(t("groupeLieux")) + '">' + ls.map((l) => opt("l:" + l.id, l.nom)).join("") + "</optgroup>" : "") +
       "</select>" +
@@ -476,9 +483,8 @@
       (msg ? '<p class="position-msg' + (erreur ? " position-msg--erreur" : "") + '" role="status">' + icone(erreur ? "i-info" : "i-position") + esc(msg) + "</p>" : "") +
       '<div class="position-actions">' +
       '<button type="button" class="btn' + (p && p.source === "gps" ? " btn--doux" : "") + '" data-action="position">' + icone("i-position") + esc(t(p ? "positionActualiser" : "positionDemande")) + "</button>" +
-      '<a class="btn btn--doux" href="#carte" data-action="placer">' + icone("i-carte") + esc(t("choisirSurCarte")) + "</a>" +
-      "</div>" +
       htmlChoixRepere() +
+      "</div>" +
       '<p class="position-prive">' + esc(t("positionPrive")) + "</p>" +
       "</div>"
     );
@@ -507,13 +513,13 @@
     const tuiles = D.categories.map((c) => {
       const lieux = D.lieux.filter((l) => dansCat(l, c.id));
       const n = lieux.filter((l) => statut(l, maintenant).ouvert === true).length;
-      const nb = n === 0 ? t("ouverts0") : n === 1 ? t("ouverts1") : t("ouvertsN", { n: n });
+      const nb = n === 0 ? t("nbOuvert0") : n === 1 ? t("nbOuvert1") : t("nbOuvertN", { n: n });
+      const nbLong = n === 0 ? t("ouverts0") : n === 1 ? t("ouverts1") : t("ouvertsN", { n: n });
       return (
-        '<li><a class="tuile" href="#cat-' + c.id + '" style="--c:' + c.couleur + '">' +
+        '<li><a class="tuile" href="#cat-' + c.id + '" style="--c:' + c.couleur + '" aria-label="' + esc(t("cat_" + c.id) + " : " + nbLong) + '">' +
         '<span class="pastille">' + icone(c.icone) + "</span>" +
         '<span class="tuile-nom">' + esc(t("cat_" + c.id)) + "</span>" +
-        '<span class="tuile-desc">' + esc(t("catd_" + c.id)) + "</span>" +
-        '<span class="tuile-nb' + (n ? " tuile-nb--ouvert" : "") + '">' + esc(nb) + "</span>" +
+        '<span class="tuile-nb' + (n ? " tuile-nb--ouvert" : "") + '" aria-hidden="true">' + esc(nb) + "</span>" +
         "</a></li>"
       );
     }).join("");
@@ -526,7 +532,6 @@
 
     return (
       '<section class="hero">' +
-      '<p class="proto">' + esc(t("prototype")) + "</p>" +
       '<p class="hero-pour">' + esc(t("heroPour")) + "</p>" +
       '<h1 class="hero-titre"><span>' + esc(t("bonjour")) + "</span> " + esc(t("besoin")) + "</h1>" +
       '<a class="cta-proche" href="#proche">' +
@@ -536,7 +541,7 @@
       "</section>" +
       htmlBandeauInstallation() +
       alerte +
-      htmlBlocFemmes() +
+      htmlLigneFemmes() +
       '<section class="bloc" aria-labelledby="h-cherche">' +
       '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
       '<ul class="grille-cat">' + tuiles + "</ul>" +
@@ -546,27 +551,17 @@
       '<div class="urg-rapides">' + rapides + "</div>" +
       '<a class="lien-fleche" href="#urgences">' + esc(t("tousNumeros")) + icone("i-chevron", "chevron") + "</a>" +
       "</section>" +
-      '<nav class="liens-bas" aria-label="Plus">' +
-      '<a href="#infos-securite">' + icone("i-bouclier") + esc(t("securite")) + "</a>" +
-      '<a href="#reglages">' + icone("i-installer") + esc(t("installerCourt")) + "</a>" +
-      '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
-      "</nav>" +
-      '<p class="maj">' + esc(t("donneesDu", { date: formatDate(D.majDonnees) })) + "</p>"
+      '<p class="maj">' + esc(t("prototype")) + "<br>" + esc(t("donneesDu", { date: formatDate(D.majDonnees) })) + "</p>"
     );
   }
 
-  function htmlBlocFemmes() {
-    const n = D.lieux.filter((l) => pourFemmes(l)).length;
+
+  function htmlLigneFemmes() {
     return (
-      '<section class="bloc-femmes" aria-labelledby="h-femmes">' +
-      '<h2 id="h-femmes">' + esc(t("femmesTitre")) + "</h2>" +
-      "<p>" + esc(t("femmesTexte")) + "</p>" +
-      '<a class="btn-femmes" href="#pourvous">' + esc(t("femmesVoir", { n: n })) + icone("i-chevron", "chevron") + "</a>" +
-      '<div class="femmes-liens">' +
-      '<a href="#pourvous-protections">' + esc(t("pv_protections")) + "</a>" +
-      '<a href="#cat-ecoute">' + esc(t("femmesViolences")) + "</a>" +
-      "</div>" +
-      "</section>"
+      '<a class="ligne-femmes" href="#pourvous">' +
+      '<span class="pastille">' + icone("i-coeur") + "</span>" +
+      '<span class="ligne-femmes-txt"><strong>' + esc(t("femmesTitre")) + "</strong><small>" + esc(t("femmesSous")) + "</small></span>" +
+      icone("i-chevron", "chevron") + "</a>"
     );
   }
 
@@ -650,11 +645,12 @@
     }
 
     const actions = [];
+    const principales = [];
     if (!l.adresseMasquee && (l.adresse || aCoord(l))) {
       // L'adresse écrite est plus fiable que des coordonnées approchées pour guider jusqu'à la porte
-      actions.push('<a class="action" target="_blank" rel="noopener noreferrer" href="' + esc(lienItineraire(l)) + '">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
+      principales.push('<a class="action action--principale" target="_blank" rel="noopener noreferrer" href="' + esc(lienItineraire(l)) + '">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
     }
-    if (l.tel) actions.push('<a class="action" href="' + telLien(l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>");
+    if (l.tel) principales.push('<a class="action action--principale action--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>");
     actions.push('<button type="button" class="action" data-action="partager" data-id="' + l.id + '">' + icone("i-partager") + "<span>" + esc(t("partager")) + "</span></button>");
     actions.push('<button type="button" class="action" data-action="garder" data-id="' + l.id + '" aria-pressed="' + fav + '">' + icone(fav ? "i-etoile-pleine" : "i-etoile") + "<span>" + esc(fav ? t("garde") : t("garder")) + "</span></button>");
     if (peutLire) actions.push('<button type="button" class="action" data-action="ecouter" data-id="' + l.id + '" aria-pressed="false">' + icone("i-son") + "<span>" + esc(t("ecouter")) + "</span></button>");
@@ -684,6 +680,7 @@
       (etat.position && aCoord(l) ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
       (l.tel ? '<p class="tel-txt">' + icone("i-tel") + '<a href="' + telLien(l.tel) + '">' + esc(l.tel) + "</a></p>" : "") +
       "</div>" +
+      (principales.length ? '<div class="actions actions--principales">' + principales.join("") + "</div>" : "") +
       '<div class="actions">' + actions.join("") + "</div>" +
       (femmes && femmes.texte ? '<section class="encart-femmes"><h2>' + icone("i-coeur") + esc(t("encartFemmes")) + "</h2>" + badgeFemmes(l) + "<p>" + esc(femmes.texte) + "</p></section>" : "") +
       '<section class="section"><h2>' + esc(t("horaires")) + "</h2>" + horaires + "</section>" +
@@ -738,7 +735,11 @@
         (peutLire ? '<button type="button" class="btn btn--doux btn--mini" data-action="ecouter-fiche" data-id="' + f.id + '" aria-pressed="false">' + icone("i-son") + "<span>" + esc(t("ecouter")) + "</span></button>" : "") +
         "</details>"
       ).join("") +
-      "</div>"
+      "</div>" +
+      '<nav class="liens-bas" aria-label="Plus">' +
+      '<a href="#reglages">' + icone("i-installer") + esc(t("installerCourt")) + "</a>" +
+      '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
+      "</nav>"
     );
   }
 

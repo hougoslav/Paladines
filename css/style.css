@@ -504,11 +504,6 @@ svg {
   font-size: 1.125rem;
   line-height: 1.2;
 }
-.tuile-desc {
-  font-size: 0.8125rem;
-  color: var(--encre-douce);
-  line-height: 1.35;
-}
 .tuile-nb {
   margin-top: auto;
   padding-top: 6px;
@@ -1690,58 +1685,6 @@ code {
   font-weight: 700;
   font-size: 0.9375rem;
   letter-spacing: 0.02em;
-}
-.bloc-femmes {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-  padding: 18px;
-  border: 1px solid var(--femmes-trait);
-  border-radius: var(--r);
-  background: var(--femmes-fond);
-}
-.bloc-femmes h2 {
-  color: var(--femmes);
-  font-family: var(--f-titre);
-  font-size: 1.3rem;
-  line-height: 1.2;
-}
-.bloc-femmes p {
-  color: var(--encre);
-}
-.btn-femmes {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 48px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: var(--femmes);
-  color: var(--femmes-encre);
-  font-weight: 700;
-  text-decoration: none;
-}
-.btn-femmes .chevron {
-  flex: none;
-}
-.femmes-liens {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.femmes-liens a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 8px 14px;
-  border: 1px solid var(--femmes-trait);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--femmes);
-  font-weight: 700;
-  text-decoration: none;
 }
 .badge-femmes {
   align-self: flex-start;
