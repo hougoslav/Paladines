@@ -259,6 +259,10 @@ window.PALADINES_DATA = {
         "animaux": true,
         "sansRdv": true
       },
+      "femmes": {
+        "niveau": "creneau",
+        "texte": "Des chambres plus petites sont prévues pour les femmes."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -369,6 +373,10 @@ window.PALADINES_DATA = {
       "criteres": {
         "femmes": true
       },
+      "femmes": {
+        "niveau": "reserve",
+        "texte": "Cette maison est réservée aux femmes sans domicile qui consomment des drogues, et vous y avez votre propre chambre."
+      },
       "langues": [],
       "adresseMasquee": true,
       "acces": "l02",
@@ -378,7 +386,8 @@ window.PALADINES_DATA = {
         "https://www.mediacites.fr/solutions/lille/2025/10/09/une-maison-corinne-masiero-pour-les-femmes-sdf-toxicomanes-bientot-perennisee-pres-de-lille/",
         "https://france3-regions.franceinfo.fr/hauts-de-france/nord-0/lille/la-maison-corinne-masiero-un-accueil-pour-les-femmes-sdf-et-consommatrices-de-drogue-bientot-perennise-3231293.html",
         "https://www.francebleu.fr/emissions/l-info-d-ici-ici-nord/lille-des-femmes-sans-domicile-et-consommatrices-de-drogue-trouvent-refuge-dans-la-maison-corinne-masiero-9576818",
-        "https://www.moncompagnonderoute.fr/fr/structures/maison-corinne-masiero-abej-solidarit-vuhh16lw5kr083xqj23gaou0"
+        "https://www.moncompagnonderoute.fr/fr/structures/maison-corinne-masiero-abej-solidarit-vuhh16lw5kr083xqj23gaou0",
+        "https://abej-solidarite.fr/2024/10/08/maison-corinne-masiero/"
       ]
     },
     {
@@ -400,6 +409,10 @@ window.PALADINES_DATA = {
       "conditions": "Orientation par le 115. Réservé aux femmes seules.",
       "criteres": {
         "femmes": true
+      },
+      "femmes": {
+        "niveau": "reserve",
+        "texte": "Cet hébergement d'urgence est réservé aux femmes seules : demandez une place au 115."
       },
       "langues": [],
       "adresseMasquee": true,
@@ -697,6 +710,10 @@ window.PALADINES_DATA = {
         "gratuit": true,
         "inconditionnel": true
       },
+      "femmes": {
+        "niveau": "creneau",
+        "texte": "Le vendredi de 9h à 12h est réservé aux femmes et aux enfants, et vous pouvez aussi y prendre un petit-déjeuner et laver votre linge."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -851,6 +868,10 @@ window.PALADINES_DATA = {
         "gratuit": true,
         "sansRdv": true
       },
+      "femmes": {
+        "niveau": "specialise",
+        "texte": "Une consultation de gynécologie gratuite est proposée."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -975,6 +996,10 @@ window.PALADINES_DATA = {
         "gratuit": true,
         "sansRdv": true
       },
+      "femmes": {
+        "niveau": "specialise",
+        "texte": "Vous pouvez y avoir gratuitement la contraception d'urgence (pilule du lendemain), en priorité sans rendez-vous."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -1048,6 +1073,10 @@ window.PALADINES_DATA = {
       "conditions": "Information gratuite et anonyme. Une conseillère reçoit sans rendez-vous. Lieu discret, au rez-de-chaussée.",
       "criteres": {
         "sansRdv": true
+      },
+      "femmes": {
+        "niveau": "specialise",
+        "texte": "Une conseillère vous reçoit sans rendez-vous pour la contraception, la pilule du lendemain, un test de grossesse ou une IVG."
       },
       "langues": [],
       "adresseMasquee": false,
@@ -1223,6 +1252,10 @@ window.PALADINES_DATA = {
       ],
       "conditions": "Pour s'inscrire : par téléphone, au bureau des rendez-vous ou en ligne. Apporter si possible : carte Vitale ou attestation, carte mutuelle, pièce d'identité, résultats d'examens.",
       "criteres": {},
+      "femmes": {
+        "niveau": "specialise",
+        "texte": "Vous pouvez y être suivie pendant votre grossesse, y accoucher et consulter en gynécologie."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -1359,6 +1392,10 @@ window.PALADINES_DATA = {
       ],
       "conditions": "Pour les personnes à la rue de plus de 25 ans. Accès libre. Nouvelle adresse depuis décembre 2025 (avant : 228 rue de Solférino).",
       "criteres": {},
+      "femmes": {
+        "niveau": "creneau",
+        "texte": "Un espace de repos avec casiers est réservé aux femmes : inscrivez-vous à l'accueil, pour 2 heures maximum."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -1472,6 +1509,10 @@ window.PALADINES_DATA = {
         "enfants": true,
         "sansRdv": true,
         "inconditionnel": true
+      },
+      "femmes": {
+        "niveau": "specialise",
+        "texte": "Cet accueil reçoit les femmes seules, avec ou sans enfants, et les familles, mais pas les hommes seuls."
       },
       "langues": [],
       "adresseMasquee": false,
@@ -1929,6 +1970,10 @@ window.PALADINES_DATA = {
         "enfants": true,
         "sansRdv": true
       },
+      "femmes": {
+        "niveau": "reserve",
+        "texte": "Cet accueil est réservé aux femmes victimes de violences, avec ou sans enfants, et vous pouvez y rester anonyme."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -2083,6 +2128,10 @@ window.PALADINES_DATA = {
       ],
       "conditions": "Pour les femmes et les familles. Sur rendez-vous : appelez. Gratuit.",
       "criteres": {},
+      "femmes": {
+        "niveau": "specialise",
+        "texte": "Une juriste vous informe gratuitement sur vos droits (séparation, enfants, travail), et vous pouvez être aidée en cas de violences dans le couple ou la famille."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -2465,6 +2514,10 @@ window.PALADINES_DATA = {
         "gratuit": true,
         "inconditionnel": true
       },
+      "femmes": {
+        "niveau": "specialise",
+        "texte": "Le CIDFF, une association pour les droits des femmes et des familles, y tient des permanences gratuites : appelez pour connaître les jours."
+      },
       "langues": [],
       "adresseMasquee": false,
       "verifie": "2026-10-07",
@@ -2473,7 +2526,10 @@ window.PALADINES_DATA = {
         "https://solidarites.lille.fr/aide/626/2-pour-tous.htm",
         "https://www.lille.fr/Annuaire-des-demarches/Conseil-juridique",
         "https://www.cdad-nord.justice.fr/c/63/1/mjd-et-point-justice-lille-et-metropole.html",
-        "https://formulaires.mesdemarches.lille.fr/prendre-rendez-vous-avec-un-juriste-a-la-maison-de-la-mediation-et-du-citoyen/"
+        "https://formulaires.mesdemarches.lille.fr/prendre-rendez-vous-avec-un-juriste-a-la-maison-de-la-mediation-et-du-citoyen/",
+        "https://www.cdad-nord.justice.fr/c/63/1/mjd-et-pad-pj-lille-et-metropole.html",
+        "https://solidarites.lille.fr/acteur/18/3-maison-de-la-mediation-et-du-citoyen.htm",
+        "https://www.lille.fr/content/download/189626/2709397/file/Repertoire+Droits+des+Femmes.pdf"
       ]
     },
     {

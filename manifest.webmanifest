@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Paladines",
   "short_name": "Paladines",
-  "description": "Trouver un lieu pour dormir, manger, se laver, se soigner ou être aidée, à Lille.",
+  "description": "Pour les femmes à la rue à Lille : trouver un lieu pour dormir, manger, se laver, se soigner ou être aidée.",
   "lang": "fr",
   "dir": "auto",
   "start_url": "./",

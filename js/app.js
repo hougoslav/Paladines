@@ -15,7 +15,7 @@
   const URL_SORTIE = "https://www.google.com/search?q=m%C3%A9t%C3%A9o";
   const FERME_BIENTOT_MIN = 30;
   const CRITERES = ["femmes", "enfants", "animaux", "inconditionnel", "sansRdv", "gratuit", "pmr"];
-  const CRITERES_CARTE = ["femmes", "enfants", "animaux", "inconditionnel"];
+  const CRITERES_CARTE = ["enfants", "animaux", "inconditionnel"];
   const LOCALES = { fr: "fr-FR", en: "en-GB", ar: "ar-u-nu-latn" };
   const VOIX = { fr: "fr-FR", en: "en-GB", ar: "ar-SA" };
 
@@ -110,6 +110,17 @@
   // Un lieu n'apparaît sur la carte et n'a de distance que si ses coordonnées sont connues et publiques
   function aCoord(l) {
     return !l.adresseMasquee && typeof l.lat === "number" && typeof l.lng === "number";
+  }
+
+  // Ce qu'un lieu offre aux femmes : { niveau: "reserve" | "creneau" | "specialise", texte }
+  function pourFemmes(l) {
+    if (l.femmes) return l.femmes;
+    return l.criteres && l.criteres.femmes ? { niveau: "reserve", texte: "" } : null;
+  }
+
+  function badgeFemmes(l) {
+    const f = pourFemmes(l);
+    return f && f.niveau !== "specialise" ? '<span class="badge-femmes">' + esc(t("badge_" + f.niveau)) + "</span>" : "";
   }
 
   function hote(url) {
@@ -396,8 +407,9 @@
     return !x.l.adresse && !x.l.adresseMasquee ? -1 : Infinity;
   }
 
-  function htmlLieu(x, avecCategorie) {
+  function htmlLieu(x, avecCategorie, avecFemmes) {
     const l = x.l;
+    const f = avecFemmes ? pourFemmes(l) : null;
     const cat = categorie(l.cat);
     const tags = CRITERES_CARTE.filter((c) => l.criteres && l.criteres[c]).slice(0, 3).map((c) => t("f_" + c));
     return (
@@ -406,6 +418,8 @@
       '<span class="lieu-corps">' +
       (avecCategorie ? '<span class="lieu-cat">' + esc(t("cat_" + l.cat)) + "</span>" : "") +
       '<span class="lieu-nom">' + esc(l.nom) + "</span>" +
+      badgeFemmes(l) +
+      (f && f.texte ? '<span class="lieu-femmes">' + esc(f.texte) + "</span>" : "") +
       '<span class="statut statut--' + x.s.classe + '">' + esc(x.s.texte) + "</span>" +
       (x.d !== null ? '<span class="lieu-meta">' + icone("i-pied") + esc(formatDistance(x.d)) + "</span>" : "") +
       (tags.length ? '<span class="lieu-tags">' + tags.map(esc).join(" · ") + "</span>" : "") +
@@ -415,11 +429,11 @@
     );
   }
 
-  function htmlListe(prepares, avecCategorie) {
+  function htmlListe(prepares, avecCategorie, avecFemmes) {
     if (!prepares.length) return '<p class="vide">' + esc(t("aucun")) + "</p>";
     return (
       '<p class="compte">' + esc(prepares.length === 1 ? t("nbLieu1") : t("nbLieux", { n: prepares.length })) + "</p>" +
-      '<ul class="liste">' + prepares.map((x) => htmlLieu(x, avecCategorie)).join("") + "</ul>"
+      '<ul class="liste">' + prepares.map((x) => htmlLieu(x, avecCategorie, avecFemmes)).join("") + "</ul>"
     );
   }
 
@@ -513,6 +527,7 @@
     return (
       '<section class="hero">' +
       '<p class="proto">' + esc(t("prototype")) + "</p>" +
+      '<p class="hero-pour">' + esc(t("heroPour")) + "</p>" +
       '<h1 class="hero-titre"><span>' + esc(t("bonjour")) + "</span> " + esc(t("besoin")) + "</h1>" +
       '<a class="cta-proche" href="#proche">' +
       '<span class="cta-ic">' + icone("i-position") + "</span>" +
@@ -521,6 +536,7 @@
       "</section>" +
       htmlBandeauInstallation() +
       alerte +
+      htmlBlocFemmes() +
       '<section class="bloc" aria-labelledby="h-cherche">' +
       '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
       '<ul class="grille-cat">' + tuiles + "</ul>" +
@@ -536,6 +552,43 @@
       '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
       "</nav>" +
       '<p class="maj">' + esc(t("donneesDu", { date: formatDate(D.majDonnees) })) + "</p>"
+    );
+  }
+
+  function htmlBlocFemmes() {
+    const n = D.lieux.filter((l) => pourFemmes(l)).length;
+    return (
+      '<section class="bloc-femmes" aria-labelledby="h-femmes">' +
+      '<h2 id="h-femmes">' + esc(t("femmesTitre")) + "</h2>" +
+      "<p>" + esc(t("femmesTexte")) + "</p>" +
+      '<a class="btn-femmes" href="#pourvous">' + esc(t("femmesVoir", { n: n })) + icone("i-chevron", "chevron") + "</a>" +
+      '<div class="femmes-liens">' +
+      '<a href="#pourvous-protections">' + esc(t("pv_protections")) + "</a>" +
+      '<a href="#cat-ecoute">' + esc(t("femmesViolences")) + "</a>" +
+      "</div>" +
+      "</section>"
+    );
+  }
+
+  // « Pour les femmes » : les lieux réservés, les créneaux, la santé et les droits, les protections périodiques
+  function vuePourVous(ancre) {
+    const groupes = ["reserve", "creneau", "specialise"].map((niveau) => {
+      const lieux = D.lieux.filter((l) => { const f = pourFemmes(l); return f && f.niveau === niveau; });
+      return lieux.length
+        ? '<section class="section" id="pv-' + niveau + '"><h2>' + esc(t("pv_" + niveau)) + "</h2>" + htmlListe(preparer(lieux), true, true) + "</section>"
+        : "";
+    }).join("");
+    const protections = D.lieux.filter((l) => l.protections);
+    return (
+      htmlRetour() +
+      '<header class="tete tete--femmes"><span class="pastille pastille--grande">' + icone("i-coeur") + "</span>" +
+      "<div><h1>" + esc(t("pvTitre")) + '</h1><p class="sous-titre">' + esc(t("pvSous")) + "</p></div></header>" +
+      htmlPosition() +
+      groupes +
+      '<section class="section" id="pv-protections"><h2>' + esc(t("pv_protections")) + "</h2>" +
+      "<p>" + esc(t(protections.length ? "pvProtectionsIntro" : "pvProtectionsVide")) + "</p>" +
+      (protections.length ? htmlListe(preparer(protections), true, false) : "") +
+      "</section>"
     );
   }
 
@@ -607,6 +660,7 @@
     if (peutLire) actions.push('<button type="button" class="action" data-action="ecouter" data-id="' + l.id + '" aria-pressed="false">' + icone("i-son") + "<span>" + esc(t("ecouter")) + "</span></button>");
 
     const criteres = CRITERES.filter((c) => l.criteres && l.criteres[c]);
+    const femmes = pourFemmes(l);
     const langues = (l.langues || []).map((c) => t("nomsLangues")[c] || c);
     const raisons = ["ferme", "horaires", "adresse", "accueil", "autre"];
 
@@ -631,6 +685,7 @@
       (l.tel ? '<p class="tel-txt">' + icone("i-tel") + '<a href="' + telLien(l.tel) + '">' + esc(l.tel) + "</a></p>" : "") +
       "</div>" +
       '<div class="actions">' + actions.join("") + "</div>" +
+      (femmes && femmes.texte ? '<section class="encart-femmes"><h2>' + icone("i-coeur") + esc(t("encartFemmes")) + "</h2>" + badgeFemmes(l) + "<p>" + esc(femmes.texte) + "</p></section>" : "") +
       '<section class="section"><h2>' + esc(t("horaires")) + "</h2>" + horaires + "</section>" +
       '<section class="section"><h2>' + esc(t("surPlace")) + '</h2><ul class="puces-txt">' + l.services.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul></section>" +
       '<section class="section"><h2>' + esc(t("conditions")) + "</h2><p>" + esc(l.conditions) + "</p></section>" +
@@ -817,6 +872,7 @@
       htmlRetour() +
       '<article class="apropos" lang="fr" dir="ltr">' +
       "<h1>À propos de ce prototype</h1>" +
+      '<p class="apropos-pour"><strong>Paladines est faite pour les femmes à la rue à Lille</strong> : trouver vite un lieu sûr et ouvert, repérer les lieux réservés aux femmes, les créneaux rien que pour elles, la santé des femmes et l\'écoute en cas de violences.</p>' +
       "<p>Paladines est une première version, faite pour en discuter en groupe. Elle est centrée sur <strong>Lille</strong>. Les lieux sont de <strong>vrais lieux</strong>, relevés sur internet en octobre 2026 : ils doivent encore être confirmés par téléphone avec chaque structure avant un vrai lancement. Les numéros d'urgence sont nationaux.</p>" +
       "<h2>Le principe</h2>" +
       "<p>Une femme à la rue scanne un QR code (affiche, autocollant dans des toilettes, carte remise par une maraude). Elle arrive sur cette page, sans rien installer, et trouve tout de suite les lieux ouverts près d'elle pour dormir, manger, se laver, se soigner ou être aidée.</p>" +
@@ -927,6 +983,7 @@
     const cats = [{ id: "toutes" }].concat(D.categories);
     barre.innerHTML =
       '<button type="button" class="puce puce--ouvert" data-action="carte-ouvert" aria-pressed="' + etat.carteOuvert + '">' + esc(t("f_ouvert")) + "</button>" +
+      '<button type="button" class="puce puce--femmes" data-action="carte-femmes" aria-pressed="' + !!etat.carteFemmes + '">' + icone("i-coeur") + esc(t("carteFemmes")) + "</button>" +
       cats.map((c) =>
         '<button type="button" class="puce" data-action="carte-cat" data-valeur="' + c.id + '" aria-pressed="' + (etat.carteCat === c.id) + '"' +
         (c.couleur ? ' style="--c:' + c.couleur + '"' : "") + ">" +
@@ -978,7 +1035,7 @@
       .forEach((l) => {
         const pt = pointCarte(l);
         const s = statut(l, maintenant);
-        if (!pt || (etat.carteOuvert && s.ouvert !== true)) return;
+        if (!pt || (etat.carteOuvert && s.ouvert !== true) || (etat.carteFemmes && !pourFemmes(l))) return;
         points.push({ l: l, s: s, acces: pt.acces, lat: pt.lat, lng: pt.lng, dx: 0, dy: 0 });
       });
     ecarter(points);
@@ -1003,6 +1060,7 @@
     return (
       '<p class="popup-cat">' + esc(t("cat_" + l.cat)) + '</p><p class="popup-nom">' + esc(l.nom) + "</p>" +
       '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
+      badgeFemmes(l) +
       (acces ? '<p class="popup-protege">' + icone("i-bouclier") + esc(t("accesProtege", { lieu: acces.nom })) + "</p>" : "") +
       (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, ici))) + "</p>" : "") +
       '<div class="popup-actions">' +
@@ -1018,7 +1076,7 @@
     const btn = document.getElementById("btn-tel-carte");
     const boite = document.getElementById("carte-tel");
     if (!btn || !boite) return;
-    const liste = D.lieux.filter((l) => !l.adresse && !l.adresseMasquee && l.tel && (etat.carteCat === "toutes" || dansCat(l, etat.carteCat)));
+    const liste = D.lieux.filter((l) => !l.adresse && !l.adresseMasquee && l.tel && (etat.carteCat === "toutes" || dansCat(l, etat.carteCat)) && (!etat.carteFemmes || pourFemmes(l)));
     const ouvert = !!etat.telCarteOuvert && liste.length > 0;
     btn.hidden = !liste.length;
     btn.querySelector("span").textContent = t("parTelephone", { n: liste.length });
@@ -1234,6 +1292,11 @@
         rendreBarreCarte();
         majMarqueurs();
         break;
+      case "carte-femmes":
+        etat.carteFemmes = !etat.carteFemmes;
+        rendreBarreCarte();
+        majMarqueurs();
+        break;
       case "localiser":
         if (etat.position && etat.position.source === "gps") majMoiSurCarte(true);
         else demanderPosition();
@@ -1335,7 +1398,7 @@
   }
 
   function majNav(vue) {
-    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", lieu: null, carte: "carte", urgences: "urgences", infos: "infos", favoris: "favoris" };
+    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", urgences: "urgences", infos: "infos", favoris: "favoris" };
     const actif = correspond[vue];
     document.querySelectorAll(".onglets a").forEach((a) => {
       if (a.dataset.onglet === actif) a.setAttribute("aria-current", "page");
@@ -1382,6 +1445,7 @@
       case "favoris": html = vueFavoris(); break;
       case "reglages": html = vueReglages(); break;
       case "apropos": html = vueApropos(); break;
+      case "pourvous": html = vuePourVous(h.param); break;
       default: html = vueAccueil();
     }
     main.innerHTML = html;
@@ -1389,7 +1453,8 @@
     if (h.vue === "reglages") dessinerQrSite();
 
     if (opts.rafraichir) return;
-    const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param) : null;
+    const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param)
+      : h.vue === "pourvous" && h.param ? document.getElementById("pv-" + h.param) : null;
     if (fiche) fiche.scrollIntoView();
     else window.scrollTo(0, 0);
     if (etat.navInterne) {

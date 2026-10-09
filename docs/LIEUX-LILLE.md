@@ -154,3 +154,41 @@ Recherche du 8 octobre 2026 : chaque lieu a été trouvé par un agent puis rev�
 | **Centre commercial Westfield Euralille** | Centre commercial Euralille, avenue Willy Brandt, 59777 Lille | 03 20 14 52 20 | lun 09:30-20:00 ; mar 09:30-20:00 ; mer 09:30-20:00 ; jeu 09:30-20:00 ; ven 09:30-20:00 ; sam 09:30-20:00 | moyenne | [westfield.com](https://www.westfield.com/fr/france/euralille), [westfield.com](https://www.westfield.com/fr/france/euralille/horaires), [westfield.com](https://www.westfield.com/fr/france/euralille/actualites/ouverture-exceptionnelle-dimanche-28-juin/137385) |
 
 Pistes écartées faute de preuve d'un wifi gratuit et ouvert à toutes : gare Lille Europe, Hôtel de Ville, mairies de quartier, Maisons Folie, office de tourisme, métro, parcs et places, cyber-espaces des maisons de quartier (ordinateurs seulement), Emmaüs Connect (sur orientation), accueils de jour abej, Magdala, Ozanam et Rosa (pas de wifi mentionné). Le réseau Le Carillon (La Cloche) existe, mais aucun commerce lillois partenaire n'a été trouvé : **piste à appeler**.
+
+## Pour les femmes
+
+Analyse du 9 octobre 2026 : chaque lieu a été relu avec ses sources pour dire ce qu'il offre aux femmes. Ces informations apparaissent dans l'appli (badge, fiche, page « Pour les femmes », filtre de la carte).
+
+### Réservés aux femmes
+
+| Lieu | Ce qui est prévu pour les femmes |
+| --- | --- |
+| **Maison Corinne Masiero** | Cette maison est réservée aux femmes sans domicile qui consomment des drogues, et vous y avez votre propre chambre. |
+| **Hébergement d'urgence femmes seules – Eole** | Cet hébergement d'urgence est réservé aux femmes seules : demandez une place au 115. |
+| **Accueil de jour Rosa (SOLFA) – femmes victimes de violences** | Cet accueil est réservé aux femmes victimes de violences, avec ou sans enfants, et vous pouvez y rester anonyme. |
+
+### Un créneau, un espace ou des places pour les femmes
+
+| Lieu | Ce qui est prévu pour les femmes |
+| --- | --- |
+| **Halte de nuit abej SOLIDARITÉ** | Des chambres plus petites sont prévues pour les femmes. |
+| **Douches solidaires de l'association La Deûle** | Le vendredi de 9h à 12h est réservé aux femmes et aux enfants, et vous pouvez aussi y prendre un petit-déjeuner et laver votre linge. |
+| **Accueil de jour abej SOLIDARITÉ (Solférino)** | Un espace de repos avec casiers est réservé aux femmes : inscrivez-vous à l'accueil, pour 2 heures maximum. |
+
+### Santé, droits et écoute des femmes
+
+| Lieu | Ce qui est prévu pour les femmes |
+| --- | --- |
+| **Médecins Solidarité Lille (MSL)** | Une consultation de gynécologie gratuite est proposée. |
+| **CeGIDD de Lille (dépistage gratuit)** | Vous pouvez y avoir gratuitement la contraception d'urgence (pilule du lendemain), en priorité sans rendez-vous. |
+| **Planning familial du Nord – centre de santé sexuelle** | Une conseillère vous reçoit sans rendez-vous pour la contraception, la pilule du lendemain, un test de grossesse ou une IVG. |
+| **Maternité Jeanne de Flandre (CHU de Lille)** | Vous pouvez y être suivie pendant votre grossesse, y accoucher et consulter en gynécologie. |
+| **Accueil de jour Eole – femmes seules, couples et familles** | Cet accueil reçoit les femmes seules, avec ou sans enfants, et les familles, mais pas les hommes seuls. |
+| **CIDFF – droits des femmes et des familles** | Une juriste vous informe gratuitement sur vos droits (séparation, enfants, travail), et vous pouvez être aidée en cas de violences dans le couple ou la famille. |
+| **Point-justice – Maison de la Médiation et du Citoyen** | Le CIDFF, une association pour les droits des femmes et des familles, y tient des permanences gratuites : appelez pour connaître les jours. |
+
+**À vérifier par téléphone :**
+
+- **Point de Repère (abej)** : une page de l'abej indique que l'accueil du CAARUD est réservé aux femmes le mercredi de 9h à 11h30, mais nos données disent que l'accueil 18-25 ans est fermé le mercredi. Pas affiché tant que ce n'est pas confirmé (03 66 19 09 20).
+- **Protections périodiques** : aucune source ne dit qu'un lieu en donne librement à Lille. L'association SOLFA (accueil Rosa) en a collecté et distribué par le passé. Demander aux accueils pour femmes s'ils en ont : c'est une vraie piste d'action pour le projet.
+- **Accueil de jour Magdala** : pas encore vérifié pour les femmes.

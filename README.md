@@ -69,6 +69,7 @@ Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
   services: ["Un abri pour la nuit, dans une salle de repos."],
   conditions: "Pour les personnes sans abri. Les animaux sont acceptés.",
   criteres: { animaux: true, sansRdv: true },
+  femmes: { niveau: "creneau", texte: "Des chambres plus petites sont prévues pour les femmes." },
   langues: [],
   adresseMasquee: false,   // true : adresse jamais montrée (lieux protégés)
   // acces: "l26",         // pour une adresse protégée : le lieu public où demander à y aller
@@ -79,7 +80,10 @@ Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
 
 - Une plage qui finit avant de commencer (`["21:00", "08:00"]`) passe minuit.
 - `horaires: null` : l'appli affiche « appeler avant » et le texte de la source.
-- `adresseGeo` (facultatif) : adresse simplifiée pour le calcul de la position, quand
+- `femmes` (facultatif) : ce que le lieu offre aux femmes, affiché en badge, dans la fiche et
+  sur la page « Pour les femmes ». `niveau` : `reserve` (réservé aux femmes), `creneau` (un
+  créneau, un espace ou des places pour les femmes) ou `specialise` (santé, droits, écoute).
+- - `adresseGeo` (facultatif) : adresse simplifiée pour le calcul de la position, quand
   l'adresse affichée contient des précisions (« cour de la mairie de quartier… »).
 - Catégories possibles : `dormir`, `manger`, `hygiene`, `sante`, `accueil`, `ecoute`,
   `vetements`, `bagagerie`, `droits`, `recharge`, `wifi`.
