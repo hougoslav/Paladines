@@ -268,7 +268,7 @@
         definirPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude, source: "gps" }, true);
       },
       (err) => {
-        etat.positionMessage = err && err.code === 1 ? "gpsRefuse" : "gpsIndispo";
+        etat.positionMessage = etat.position && etat.position.source !== "gps" ? "gpsGarde" : err && err.code === 1 ? "gpsRefuse" : "gpsIndispo";
         rafraichir();
         surEchecGps();
       },
@@ -289,6 +289,12 @@
     majMarqueurs();
     majMoiSurCarte(centrer);
     majMsgCarte();
+    // Venue d'une liste pour se placer : y revenir, triée depuis l'endroit touché
+    if (pos.source === "carte" && etat.retourCarte) {
+      const retour = etat.retourCarte;
+      etat.retourCarte = null;
+      setTimeout(() => { if (vueCourante().vue === "carte") location.hash = retour; }, 700);
+    }
   }
 
   function reperes() {
@@ -297,12 +303,6 @@
 
   function choisirRepere(valeur) {
     if (!valeur) return;
-    if (valeur === "carte") {
-      // « Me placer sur la carte » : ouvrir la carte, la prochaine touche place « je suis ici »
-      activerModePlacer();
-      location.hash = "#carte";
-      return;
-    }
     const parts = valeur.split(":");
     let pos = null;
     if (parts[0] === "r") {
@@ -440,7 +440,7 @@
   function htmlListe(prepares, avecCategorie, avecFemmes) {
     if (!prepares.length) return '<p class="vide">' + esc(t("aucun")) + "</p>";
     return (
-      '<p class="compte">' + esc(prepares.length === 1 ? t("nbLieu1") : t("nbLieux", { n: prepares.length })) + "</p>" +
+      '<p class="compte">' + esc(prepares.length === 1 ? t("nbLieu1") : t("nbLieux", { n: prepares.length })) + ' <span class="compte-note">' + esc(t("aConfirmer")) + "</span></p>" +
       '<ul class="liste">' + prepares.map((x) => htmlLieu(x, avecCategorie, avecFemmes)).join("") + "</ul>"
     );
   }
@@ -460,8 +460,7 @@
       '<div class="choix-repere">' +
       '<label for="repere" class="visuellement-cache">' + esc(t("jeSuisPres")) + "</label>" +
       '<select id="repere" data-change="repere">' +
-      '<option value="">' + esc(t("choisirRepere")) + "</option>" +
-      '<option value="carte">' + esc(t("choisirSurCarte")) + "</option>" +
+      '<option value="">' + esc(etat.position && etat.position.source === "carte" ? t("pointCarteMenu") : t("choisirRepere")) + "</option>" +
       (rs.length ? '<optgroup label="' + esc(t("groupeReperes")) + '">' + rs.map((r) => opt("r:" + r.id, r.nom)).join("") + "</optgroup>" : "") +
       (ls.length ? '<optgroup label="' + esc(t("groupeLieux")) + '">' + ls.map((l) => opt("l:" + l.id, l.nom)).join("") + "</optgroup>" : "") +
       "</select>" +
@@ -474,19 +473,21 @@
     let msg = null;
     let erreur = false;
     if (etat.positionMessage === "positionEnCours") msg = t("positionEnCours");
+    else if (etat.positionMessage === "gpsGarde" && p) msg = t("gpsGarde", { nom: nomPosition(p) });
     else if (p && p.source === "gps") msg = t("positionOk");
     else if (p) msg = t("positionQR", { nom: nomPosition(p) });
-    if (etat.positionMessage && etat.positionMessage !== "positionEnCours") {
+    if (etat.positionMessage && etat.positionMessage !== "positionEnCours" && etat.positionMessage !== "gpsGarde") {
       msg = t(etat.positionMessage);
       erreur = true;
     }
     return (
       '<div class="position">' +
       (msg ? '<p class="position-msg' + (erreur ? " position-msg--erreur" : "") + '" role="status">' + icone(erreur ? "i-info" : "i-position") + esc(msg) + "</p>" : "") +
-      '<div class="position-actions">' +
-      '<button type="button" class="btn' + (p && p.source === "gps" ? " btn--doux" : "") + '" data-action="position">' + icone("i-position") + esc(t(p ? "positionActualiser" : "positionDemande")) + "</button>" +
+      '<div class="position-actions' + (erreur ? " position-actions--sans-gps" : "") + '">' +
+      '<button type="button" class="btn' + (p || erreur ? " btn--doux" : "") + '" data-action="position">' + icone("i-position") + esc(t(p && p.source === "gps" ? "positionActualiser" : "positionDemande")) + "</button>" +
       htmlChoixRepere() +
       "</div>" +
+      '<a class="lien-carte" href="#carte" data-action="placer">' + icone("i-carte") + esc(t("choisirSurCarte")) + "</a>" +
       '<p class="position-prive">' + esc(t("positionPrive")) + "</p>" +
       "</div>"
     );
@@ -509,19 +510,26 @@
   function vueAccueil() {
     const maintenant = new Date();
 
-    const tuiles = D.categories.map((c) => {
-      const lieux = D.lieux.filter((l) => dansCat(l, c.id));
+    // Une tuile : le besoin et combien de lieux sont ouverts (« Appeler avant » si les horaires sont inconnus)
+    const tuile = (lien, nom, aide, ic, lieux, attrs) => {
       const n = lieux.filter((l) => statut(l, maintenant).ouvert === true).length;
-      const nb = n === 0 ? t("nbOuvert0") : n === 1 ? t("nbOuvert1") : t("nbOuvertN", { n: n });
-      const nbLong = n === 0 ? t("ouverts0") : n === 1 ? t("ouverts1") : t("ouvertsN", { n: n });
+      const inconnus = n === 0 && lieux.some((l) => statut(l, maintenant).ouvert === null);
+      const nb = n === 0 ? t(inconnus ? "nbInconnu" : "nbOuvert0") : n === 1 ? t("nbOuvert1") : t("nbOuvertN", { n: n });
+      const nbLong = n === 0 ? t(inconnus ? "ouvertsInconnus" : "ouverts0") : n === 1 ? t("ouverts1") : t("ouvertsN", { n: n });
       return (
-        '<li><a class="tuile" href="#cat-' + c.id + '" style="--c:' + c.couleur + '" aria-label="' + esc(t("cat_" + c.id) + " : " + nbLong) + '">' +
-        '<span class="pastille">' + icone(c.icone) + "</span>" +
-        '<span class="tuile-nom">' + esc(t("cat_" + c.id)) + "</span>" +
-        '<span class="tuile-nb' + (n ? " tuile-nb--ouvert" : "") + '" aria-hidden="true">' + esc(nb) + "</span>" +
+        '<li><a href="' + lien + '" ' + attrs + ' aria-label="' + esc(nom + (aide ? " (" + aide + ")" : "") + " : " + nbLong) + '">' +
+        '<span class="pastille">' + icone(ic) + "</span>" +
+        '<span class="tuile-nom">' + esc(nom) + "</span>" +
+        '<span class="tuile-nb' + (n ? " tuile-nb--ouvert" : inconnus ? " tuile-nb--inconnu" : "") + '" aria-hidden="true">' + esc(nb) + "</span>" +
         "</a></li>"
       );
-    }).join("");
+    };
+    // « Pour les femmes » en premier, dans sa couleur prune, puis les besoins
+    const tuiles =
+      tuile("#pourvous", t("femmesTitre"), t("femmesSous"), "i-coeur", D.lieux.filter(pourFemmes), 'class="tuile tuile--femmes"') +
+      D.categories.map((c) =>
+        tuile("#cat-" + c.id, t("cat_" + c.id), "", c.icone, D.lieux.filter((l) => dansCat(l, c.id)), 'class="tuile" style="--c:' + c.couleur + '"')
+      ).join("");
 
     const rapides = [
       { num: "115", txt: t("urg115") },
@@ -540,7 +548,6 @@
       "</section>" +
       htmlBandeauInstallation() +
       htmlInfosMoment(maintenant) +
-      htmlLigneFemmes() +
       '<section class="bloc" aria-labelledby="h-cherche">' +
       '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
       '<ul class="grille-cat">' + tuiles + "</ul>" +
@@ -712,15 +719,6 @@
     }, DEFILEMENT_MS);
   }
 
-  function htmlLigneFemmes() {
-    return (
-      '<a class="ligne-femmes" href="#pourvous">' +
-      '<span class="pastille">' + icone("i-coeur") + "</span>" +
-      '<span class="ligne-femmes-txt"><strong>' + esc(t("femmesTitre")) + "</strong><small>" + esc(t("femmesSous")) + "</small></span>" +
-      icone("i-chevron", "chevron") + "</a>"
-    );
-  }
-
   // « Pour les femmes » : les lieux réservés, les créneaux, la santé et les droits, les protections périodiques
   function vuePourVous(ancre) {
     const groupes = ["reserve", "creneau", "specialise"].map((niveau) => {
@@ -730,10 +728,15 @@
         : "";
     }).join("");
     const protections = D.lieux.filter((l) => l.protections);
+    const nb = (niveau) => D.lieux.filter((l) => { const f = pourFemmes(l); return f && f.niveau === niveau; }).length;
+    const sommaire = ["reserve", "creneau", "specialise"].filter((x) => nb(x))
+      .map((x) => '<a class="puce" href="#pourvous-' + x + '">' + esc(t("pvCourt_" + x)) + " (" + nb(x) + ")</a>").join("") +
+      '<a class="puce" href="#pourvous-protections">' + esc(t("pvCourt_protections")) + "</a>";
     return (
       htmlRetour() +
       '<header class="tete tete--femmes"><span class="pastille pastille--grande">' + icone("i-coeur") + "</span>" +
       "<div><h1>" + esc(t("pvTitre")) + '</h1><p class="sous-titre">' + esc(t("pvSous")) + "</p></div></header>" +
+      '<nav class="sommaire-femmes" aria-label="' + esc(t("pvTitre")) + '">' + sommaire + "</nav>" +
       htmlPosition() +
       groupes +
       '<section class="section" id="pv-protections"><h2>' + esc(t("pv_protections")) + "</h2>" +
@@ -831,10 +834,10 @@
           (l.acces && lieu(l.acces) ? '<p class="acces-lien">' + esc(t("ouDemander")) + ' <a href="#lieu-' + l.acces + '">' + esc(lieu(l.acces).nom) + "</a></p>" : "")
         : !l.adresse
         ? '<p class="adresse-masquee">' + icone("i-tel") + esc(t("sansAdresse")) + "</p>"
-        : '<p class="adresse-txt">' + esc(l.adresse) + "</p>" +
+        : '<p class="adresse-txt"><span dir="ltr">' + esc(l.adresse) + "</span></p>" +
           '<button type="button" class="btn btn--doux btn--mini" data-action="copier" data-texte="' + esc(l.adresse) + '">' + icone("i-copier") + esc(t("copier")) + "</button>") +
       (etat.position && aCoord(l) ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
-      (l.tel ? '<p class="tel-txt">' + icone("i-tel") + '<a href="' + telLien(l.tel) + '">' + esc(l.tel) + "</a></p>" : "") +
+      (l.tel ? '<p class="tel-txt">' + icone("i-tel") + '<a dir="ltr" href="' + telLien(l.tel) + '">' + esc(l.tel) + "</a></p>" : "") +
       "</div>" +
       (principales.length ? '<div class="actions actions--principales">' + principales.join("") + "</div>" : "") +
       '<div class="actions">' + actions.join("") + "</div>" +
@@ -866,7 +869,7 @@
       '<ul class="liste-urg">' +
       D.urgences.map((u) =>
         '<li class="urg' + (u.couleur === "urgent" ? " urg--fort" : "") + '">' +
-        '<a class="urg-num" href="' + telLien(u.num) + '">' + u.num + "</a>" +
+        '<a class="urg-num" dir="ltr" href="' + telLien(u.num) + '">' + u.num + "</a>" +
         '<div class="urg-corps"><p>' + esc(t("urg_" + u.id)) + "</p>" +
         '<div class="urg-actions"><a class="btn btn--mini" href="' + telLien(u.num) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" +
         (u.sms ? '<a class="btn btn--mini" href="sms:' + u.num + '">' + icone("i-sms") + esc(t("envoyerSms")) + "</a>" : "") +
@@ -892,7 +895,7 @@
         "</details>"
       ).join("") +
       "</div>" +
-      '<nav class="liens-bas" aria-label="Plus">' +
+      '<nav class="liens-bas" aria-label="' + esc(t("plus")) + '">' +
       '<a href="#reglages">' + icone("i-installer") + esc(t("installerCourt")) + "</a>" +
       '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
       "</nav>"
@@ -997,7 +1000,7 @@
       '<div class="effacer"><button type="button" class="btn btn--doux" data-action="effacer">' + esc(t("effacerBouton")) + "</button>" +
       '<div class="effacer-confirmer" hidden><button type="button" class="btn btn--danger" data-action="effacer-oui">' + esc(t("confirmerEffacer")) + '</button><button type="button" class="btn btn--doux" data-action="effacer-non">' + esc(t("annuler")) + "</button></div>" +
       '<p class="ok" role="status" hidden>' + icone("i-check") + esc(t("effacerOk")) + "</p></div></section>" +
-      '<nav class="liens-bas" aria-label="Plus">' +
+      '<nav class="liens-bas" aria-label="' + esc(t("plus")) + '">' +
       '<a href="#infos-securite">' + icone("i-bouclier") + esc(t("securite")) + "</a>" +
       '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
       "</nav>"
@@ -1243,7 +1246,7 @@
       '<p class="carte-tel-titre">' + esc(t("parTelephoneTitre")) + "</p>" +
       liste.map((l) =>
         '<div class="carte-tel-ligne"><a class="carte-tel-nom" href="#lieu-' + l.id + '">' + esc(l.nom) + "</a>" +
-        '<a class="btn btn--mini btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(l.tel) + "</a></div>"
+        '<a class="btn btn--mini btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + '<span dir="ltr">' + esc(l.tel) + "</span></a></div>"
       ).join("");
   }
 
@@ -1464,6 +1467,11 @@
           etat.modePlacer = false;
           majMsgCarte();
         } else {
+          if (el.tagName === "A") {
+            const h = vueCourante();
+            etat.retourCarte = location.hash || "#accueil";
+            if (h.vue === "cat" && categorie(h.param)) etat.carteCat = h.param;
+          }
           activerModePlacer();
         }
         rendreBarreCarte();
@@ -1601,6 +1609,7 @@
     }
     document.getElementById("vue-carte").hidden = true;
     main.hidden = false;
+    etat.retourCarte = null;
 
     let html;
     switch (h.vue) {
@@ -1655,7 +1664,11 @@
     document.addEventListener("click", surClic);
     document.addEventListener("submit", surEnvoi);
     document.addEventListener("change", (e) => {
-      if (e.target.dataset && e.target.dataset.change === "repere") choisirRepere(e.target.value);
+      if (e.target.dataset && e.target.dataset.change === "repere") {
+        choisirRepere(e.target.value);
+        const menu = document.getElementById("repere");
+        if (menu) menu.focus();
+      }
     });
 
     document.getElementById("btn-quitter").addEventListener("click", quitter);

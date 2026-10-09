@@ -170,6 +170,7 @@ body:has(.hero) .entete {
   gap: 10px;
 }
 .marque-logo {
+  flex: none;
   width: 23px;
   height: 29px;
 }
@@ -912,43 +913,22 @@ code {
 }
 
 /* ============ Accueil épuré ============ */
-/* « Pour les femmes » : une ligne, comme un raccourci, dans la couleur prune */
-.ligne-femmes {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 64px;
-  padding: 10px 14px;
-  border: 1px solid var(--femmes-trait);
-  border-radius: var(--r);
-  background: var(--femmes-fond);
-  color: var(--encre);
-  text-decoration: none;
-}
-.ligne-femmes .pastille {
-  flex: none;
+/* « Pour les femmes » : la première tuile et l'en-tête de page, dans la couleur prune */
+.tete.tete--femmes .pastille {
   background: var(--femmes);
   color: var(--femmes-encre);
   box-shadow: none;
 }
-.ligne-femmes-txt {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+.tuile--femmes {
+  border-color: var(--femmes-trait);
+  background: var(--femmes-fond);
 }
-.ligne-femmes-txt strong {
-  color: var(--femmes);
-  font-family: var(--f-titre);
-  font-size: 1.0625rem;
+.tuile--femmes .pastille {
+  background: var(--femmes);
+  color: var(--femmes-encre);
+  box-shadow: none;
 }
-.ligne-femmes-txt small {
-  color: var(--encre-douce);
-  font-size: 0.875rem;
-}
-.ligne-femmes .chevron {
-  flex: none;
-  margin-inline-start: auto;
+.tuile--femmes .tuile-nom {
   color: var(--femmes);
 }
 
@@ -968,9 +948,9 @@ code {
   line-height: 1.5;
 }
 
-/* Position : un bouton et un menu côte à côte */
+/* Position : un bouton et un menu côte à côte, l'un sous l'autre si la place manque */
 .position-actions {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   align-items: stretch;
 }
 .position-actions .choix-repere,
@@ -1014,6 +994,16 @@ code {
   margin-top: 8px;
 }
 
+/* Téléphones de 360 px : un peu moins de marge pour que l'en-tête tienne sur une ligne */
+@media (max-width: 374px) {
+  .marque {
+    gap: 8px;
+  }
+  .btn-quitter {
+    margin-inline-start: 2px;
+  }
+}
+
 /* Petits téléphones (320 px) : l'en-tête tient sur une ligne, « Quitter » reste entier */
 @media (max-width: 359px) {
   .entete {
@@ -1022,18 +1012,19 @@ code {
   .marque {
     gap: 6px;
   }
-  .marque-nom {
-    font-size: 1rem;
-  }
   .entete-actions {
     gap: 0;
   }
   .btn-entete {
-    min-width: 40px;
     padding-inline: 6px;
   }
-  #code-langue {
-    display: none;
+  .marque-nom {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
   .grille-cat {
     gap: 6px;
@@ -1046,6 +1037,45 @@ code {
   }
   .btn-quitter {
     padding-inline: 10px;
+  }
+  .cta-txt strong {
+    font-size: 1.0625rem;
+  }
+}
+
+/* Écrans peu hauts (téléphone dans le navigateur, petits modèles) : un accueil plus serré,
+   pour voir « Je cherche… » et la première rangée de besoins dès l'ouverture */
+@media (max-height: 760px) {
+  .vue[data-vue="accueil"] {
+    gap: 16px;
+  }
+  .hero {
+    padding-block: 14px 18px;
+    gap: 12px;
+  }
+  .hero-titre {
+    font-size: 1.625rem;
+  }
+  .cta-proche {
+    padding-block: 10px;
+  }
+  .cta-ic {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+  .cta-txt small {
+    display: none;
+  }
+  .im-carte {
+    min-height: 0;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+  .im-ic {
+    width: 32px;
+    height: 32px;
   }
 }
 
@@ -1155,4 +1185,74 @@ code {
   .im-point::before {
     transition: none;
   }
+}
+
+/* Lien « Me placer sur la carte », sous le bouton GPS et le menu */
+.lien-carte {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  min-height: 44px;
+  color: var(--lien);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+.lien-carte .ic {
+  flex: none;
+  font-size: 1.15rem;
+}
+
+/* GPS en échec : le menu « Je suis près de… » prend le relais, on le met en avant */
+.position-actions--sans-gps .choix-repere select {
+  border: 2px solid var(--lien);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lien) 18%, transparent);
+}
+
+/* Tuile sans horaires connus : « Appeler avant », pas « Fermé » */
+.tuile-nb--inconnu {
+  color: var(--bientot);
+}
+.tuile-nb--inconnu::before {
+  background: none;
+  border: 1.5px solid currentColor;
+}
+
+/* Nombre de lieux + rappel d'appeler avant */
+.compte-note {
+  font-weight: 400;
+  color: var(--encre-douce);
+}
+.compte-note::before {
+  content: "· ";
+}
+
+/* « Pour les femmes » : sommaire en haut de page */
+.sommaire-femmes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sommaire-femmes .puce {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.875rem;
+  border-color: var(--femmes-trait);
+  background: var(--femmes-fond);
+  color: var(--encre);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: normal;
+}
+
+/* Liens du bas : l'anneau de focus reste visible dans la carte arrondie */
+.liens-bas a:focus-visible {
+  outline-offset: -3px;
+  border-radius: var(--r);
+}
+
+/* Un lien vers une section (sommaire, ancres) ne passe pas sous l'en-tête ni sous les onglets */
+html {
+  scroll-padding-top: calc(var(--h-entete) + env(safe-area-inset-top, 0px) + 8px);
+  scroll-padding-bottom: calc(var(--h-onglets) + 16px + env(safe-area-inset-bottom, 0px));
 }
