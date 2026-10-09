@@ -1048,3 +1048,111 @@ code {
     padding-inline: 10px;
   }
 }
+
+/* Infos du moment : une carte à la fois, qui défile ; on peut aussi glisser du doigt */
+.infos-moment {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.im-piste {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: var(--r);
+  overscroll-behavior-x: contain;
+}
+.im-piste::-webkit-scrollbar {
+  display: none;
+}
+.im-carte {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r);
+  background: var(--surface);
+  color: var(--encre);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.im-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--papier);
+  color: var(--c, var(--encre));
+  font-size: 1.15rem;
+}
+.im-txt {
+  flex: 1;
+  min-width: 0;
+}
+.im-carte .chevron {
+  flex: none;
+  color: var(--encre-douce);
+}
+.im--alerte {
+  border-color: color-mix(in srgb, var(--bientot) 25%, transparent);
+  background: var(--bientot-fond);
+}
+.im--alerte .im-ic {
+  background: var(--lampe);
+  color: var(--lampe-encre);
+}
+.im--femmes {
+  border-color: var(--femmes-trait);
+  background: var(--femmes-fond);
+}
+.im--femmes .im-ic {
+  background: var(--femmes);
+  color: var(--femmes-encre);
+}
+.im-ctrl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.im-point,
+.im-pause {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+}
+.im-point::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--trait-fort, var(--encre-douce));
+  transition: width 0.2s ease;
+}
+.im-point[aria-current="true"]::before {
+  width: 18px;
+  background: var(--encre);
+}
+.im-pause .ic {
+  font-size: 0.95rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .im-point::before {
+    transition: none;
+  }
+}

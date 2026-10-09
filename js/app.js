@@ -64,7 +64,9 @@
     carteCat: "toutes",
     carteOuvert: false,
     modePlacer: false, // la prochaine touche sur la carte place « je suis ici »
-    carteCadree: false
+    carteCadree: false,
+    meteo: null,
+    imPause: stock.lire("imPause", false)
   };
 
   function langueDuTelephone() {
@@ -506,9 +508,6 @@
   /* ---------- Vues ---------- */
   function vueAccueil() {
     const maintenant = new Date();
-    const alerte = D.alerte && D.alerte.actif
-      ? '<div class="alerte" role="status">' + icone("i-alerte") + "<p>" + esc(D.alerte.texte[etat.langue] || D.alerte.texte.fr) + "</p></div>"
-      : "";
 
     const tuiles = D.categories.map((c) => {
       const lieux = D.lieux.filter((l) => dansCat(l, c.id));
@@ -540,7 +539,7 @@
       icone("i-chevron", "chevron") + "</a>" +
       "</section>" +
       htmlBandeauInstallation() +
-      alerte +
+      htmlInfosMoment(maintenant) +
       htmlLigneFemmes() +
       '<section class="bloc" aria-labelledby="h-cherche">' +
       '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
@@ -555,6 +554,163 @@
     );
   }
 
+
+  /* ---------- Infos du moment ----------
+   * Calculées à chaque affichage : la période de l'année (data/lieux.js, « infos »), la météo de Lille
+   * (Open-Meteo, gardée 3 h sur le téléphone) et les lieux ouverts ou qui ouvrent bientôt.
+   * Elles défilent toutes seules ; on peut mettre en pause ou glisser du doigt. */
+  const METEO_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.63&longitude=3.06&daily=temperature_2m_min,temperature_2m_max,precipitation_sum&timezone=Europe%2FParis&forecast_days=3";
+  const DEFILEMENT_MS = 6000;
+
+  // Ouvert maintenant ({ ouvert: true, fin }) ou prochaine ouverture aujourd'hui ({ ouvert: false, debut, dans } en minutes)
+  function momentLieu(l, maintenant) {
+    if (!l.horaires || l.horaires === "24/7") return null;
+    const jour = maintenant.getDay();
+    const m = maintenant.getHours() * 60 + maintenant.getMinutes();
+    for (const p of plages(l, JOURS[(jour + 6) % 7])) {
+      if (enMinutes(p[1]) <= enMinutes(p[0]) && m < enMinutes(p[1])) return { ouvert: true, fin: p[1] };
+    }
+    let prochain = null;
+    for (const p of plages(l, JOURS[jour])) {
+      const d = enMinutes(p[0]);
+      const f = enMinutes(p[1]);
+      if ((f > d && m >= d && m < f) || (f <= d && m >= d)) return { ouvert: true, fin: p[1] };
+      if (d > m && (!prochain || d - m < prochain.dans)) prochain = { ouvert: false, debut: p[0], dans: d - m };
+    }
+    return prochain;
+  }
+
+  // Une période « MM-JJ » à « MM-JJ » (qui peut passer le nouvel an, comme le plan hiver)
+  function dansPeriode(x, maintenant) {
+    const j = String(maintenant.getMonth() + 1).padStart(2, "0") + "-" + String(maintenant.getDate()).padStart(2, "0");
+    return x.du <= x.au ? j >= x.du && j <= x.au : j >= x.du || j <= x.au;
+  }
+
+  function infoMeteo(maintenant) {
+    const d = etat.meteo;
+    if (!d) return null;
+    const auj = maintenant.getFullYear() + "-" + String(maintenant.getMonth() + 1).padStart(2, "0") + "-" + String(maintenant.getDate()).padStart(2, "0");
+    const i = d.jours.indexOf(auj);
+    if (i === -1) return null;
+    // La nuit qui vient : le minimum du lendemain matin ; entre minuit et 6 h, on est dans la nuit du jour
+    const nuit = maintenant.getHours() < 6 ? d.min[i] : d.min[i + 1];
+    const max = d.max[i];
+    if (typeof nuit === "number" && nuit <= 0) return { type: "alerte", icone: "i-alerte", texte: t("im_glace", { t: Math.round(nuit) }), lien: "tel:115" };
+    if (typeof nuit === "number" && nuit <= 5) return { type: "alerte", icone: "i-alerte", texte: t("im_froid", { t: Math.round(nuit) }), lien: "tel:115" };
+    if (typeof max === "number" && max >= 30) return { type: "alerte", icone: "i-alerte", texte: t("im_chaleur", { t: Math.round(max) }), lien: "#cat-accueil" };
+    if (typeof d.pluie[i] === "number" && d.pluie[i] >= 5) return { type: "info", icone: "i-info", texte: t("im_pluie"), lien: "#cat-accueil" };
+    return null;
+  }
+
+  function chargerMeteo() {
+    const c = stock.lire("meteo", null);
+    if (c && c.d) etat.meteo = c.d;
+    if ((c && Date.now() - c.t < 3 * 3600 * 1000) || !navigator.onLine || !/^https?:$/.test(location.protocol)) return;
+    fetch(METEO_URL, { referrerPolicy: "no-referrer" })
+      .then((rep) => (rep.ok ? rep.json() : Promise.reject(rep.status)))
+      .then((j) => {
+        const d = { jours: j.daily.time, min: j.daily.temperature_2m_min, max: j.daily.temperature_2m_max, pluie: j.daily.precipitation_sum };
+        stock.ecrire("meteo", { t: Date.now(), d: d });
+        etat.meteo = d;
+        if (vueCourante().vue === "accueil") rafraichir();
+      })
+      .catch(() => { /* pas de météo : les autres infos restent */ });
+  }
+
+  function infosDuMoment(maintenant) {
+    const infos = [];
+    const meteo = infoMeteo(maintenant);
+    if (meteo) infos.push(meteo);
+    (D.infos || []).filter((x) => dansPeriode(x, maintenant)).forEach((x) => {
+      infos.push({ type: x.type || "info", icone: x.type === "alerte" ? "i-alerte" : "i-info", texte: x.texte[etat.langue] || x.texte.fr, lien: x.lien });
+    });
+
+    // Les lieux : le plus proche d'abord si la position est connue
+    const proche = (a, b) => (etat.position && aCoord(a.l) && aCoord(b.l) ? distanceM(etat.position, a.l) - distanceM(etat.position, b.l) : 0);
+    const candidats = (filtre) => D.lieux.filter(filtre).map((l) => ({ l: l, mo: momentLieu(l, maintenant) })).filter((x) => x.mo);
+    const ouvertDabord = (liste) => liste.filter((x) => x.mo.ouvert).sort(proche)[0];
+    const bientot = (liste, max) => liste.filter((x) => !x.mo.ouvert && x.mo.dans <= max).sort((a, b) => a.mo.dans - b.mo.dans)[0];
+    const lieuInfo = (cat, cle, x, h) => ({ type: "lieu", icone: categorie(cat).icone, c: categorie(cat).couleur, texte: t(cle, { nom: x.l.nom, h: formatHeure(h) }), lien: "#lieu-" + x.l.id });
+
+    const dormir = candidats((l) => dansCat(l, "dormir"));
+    const dOuvert = ouvertDabord(dormir);
+    const dSoir = bientot(dormir, 600);
+    if (dOuvert) infos.push(lieuInfo("dormir", "im_dormirOuvert", dOuvert, dOuvert.mo.fin));
+    else if (dSoir) infos.push(lieuInfo("dormir", "im_dormirSoir", dSoir, dSoir.mo.debut));
+
+    const manger = candidats((l) => dansCat(l, "manger"));
+    const mOuvert = ouvertDabord(manger);
+    const mBientot = bientot(manger, 180);
+    if (mOuvert) infos.push(lieuInfo("manger", "im_mangerOuvert", mOuvert, mOuvert.mo.fin));
+    else if (mBientot) infos.push(lieuInfo("manger", "im_mangerBientot", mBientot, mBientot.mo.debut));
+
+    const laver = D.lieux.filter((l) => dansCat(l, "hygiene") && statut(l, maintenant).ouvert === true).length;
+    if (laver) infos.push({ type: "lieu", icone: categorie("hygiene").icone, c: categorie("hygiene").couleur, texte: t(laver === 1 ? "im_laver1" : "im_laver", { n: laver }), lien: "#cat-hygiene" });
+
+    const femmes = ouvertDabord(candidats((l) => { const f = pourFemmes(l); return f && f.niveau !== "specialise"; }));
+    if (femmes) infos.push({ type: "femmes", icone: "i-coeur", texte: t("im_femmes", { nom: femmes.l.nom, h: formatHeure(femmes.mo.fin) }), lien: "#lieu-" + femmes.l.id });
+    return infos;
+  }
+
+  function htmlInfosMoment(maintenant) {
+    const infos = infosDuMoment(maintenant);
+    if (!infos.length) return "";
+    const n = infos.length;
+    const cartes = infos.map((x, i) => {
+      const contenu = '<span class="im-ic"' + (x.c ? ' style="--c:' + x.c + '"' : "") + ">" + icone(x.icone) + "</span><span class=\"im-txt\">" + esc(x.texte) + "</span>" + (x.lien ? icone("i-chevron", "chevron") : "");
+      const attrs = ' class="im-carte im--' + x.type + '" role="group" aria-roledescription="info" aria-label="' + esc(t("im_numero", { i: i + 1, n: n })) + '"';
+      return x.lien ? "<a" + attrs + ' href="' + esc(x.lien) + '">' + contenu + "</a>" : "<div" + attrs + ">" + contenu + "</div>";
+    }).join("");
+    return (
+      '<section class="infos-moment" aria-roledescription="carrousel" aria-label="' + esc(t("im_titre")) + '">' +
+      '<div class="im-piste">' + cartes + "</div>" +
+      (n > 1
+        ? '<div class="im-ctrl">' +
+          '<button type="button" class="im-pause" data-action="im-pause" aria-pressed="' + !!etat.imPause + '" aria-label="' + esc(t(etat.imPause ? "im_lecture" : "im_pause")) + '">' + icone(etat.imPause ? "i-lecture" : "i-pause") + "</button>" +
+          infos.map((x, i) => '<button type="button" class="im-point" data-action="im-aller" data-i="' + i + '" aria-label="' + esc(t("im_numero", { i: i + 1, n: n })) + '"></button>').join("") +
+          "</div>"
+        : "") +
+      "</section>"
+    );
+  }
+
+  // Défilement : toutes les 6 s, en pause quand on touche, survole ou lit l'info, ou si l'on préfère moins d'animations
+  const im = { minuterie: null, index: 0, retenue: false };
+  function demarrerDefilement() {
+    clearInterval(im.minuterie);
+    const boite = document.querySelector("#vue .infos-moment");
+    if (!boite) return;
+    const piste = boite.querySelector(".im-piste");
+    const n = piste.children.length;
+    const doux = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    const sens = getComputedStyle(piste).direction === "rtl" ? -1 : 1;
+    const courant = () => Math.round(Math.abs(piste.scrollLeft) / Math.max(1, piste.clientWidth));
+    const marquer = () => {
+      im.index = courant();
+      boite.querySelectorAll(".im-point").forEach((b, k) => b.setAttribute("aria-current", String(k === im.index)));
+    };
+    im.aller = (i, anime) => {
+      piste.scrollTo({ left: sens * i * piste.clientWidth, behavior: anime && doux ? "smooth" : "auto" });
+      im.index = i;
+      boite.querySelectorAll(".im-point").forEach((b, k) => b.setAttribute("aria-current", String(k === i)));
+    };
+    // Après un rafraîchissement de l'accueil, reprendre là où l'on en était
+    im.aller(Math.min(im.index, n - 1), false);
+    let attente = null;
+    piste.addEventListener("scroll", () => { clearTimeout(attente); attente = setTimeout(marquer, 100); }, { passive: true });
+    const retenir = (oui) => () => { im.retenue = oui; };
+    boite.addEventListener("pointerenter", retenir(true));
+    boite.addEventListener("pointerleave", retenir(false));
+    boite.addEventListener("focusin", retenir(true));
+    boite.addEventListener("focusout", retenir(false));
+    piste.addEventListener("touchstart", retenir(true), { passive: true });
+    piste.addEventListener("touchend", () => setTimeout(retenir(false), 4000), { passive: true });
+    if (n < 2 || !doux) return;
+    im.minuterie = setInterval(() => {
+      if (etat.imPause || im.retenue || document.hidden || !document.body.contains(piste)) return;
+      im.aller((courant() + 1) % n, true);
+    }, DEFILEMENT_MS);
+  }
 
   function htmlLigneFemmes() {
     return (
@@ -1312,6 +1468,16 @@
         }
         rendreBarreCarte();
         break;
+      case "im-pause":
+        etat.imPause = !etat.imPause;
+        stock.ecrire("imPause", etat.imPause);
+        el.setAttribute("aria-pressed", String(etat.imPause));
+        el.setAttribute("aria-label", t(etat.imPause ? "im_lecture" : "im_pause"));
+        el.innerHTML = icone(etat.imPause ? "i-lecture" : "i-pause");
+        break;
+      case "im-aller":
+        if (im.aller) im.aller(Number(el.dataset.i), true);
+        break;
       case "tel-carte":
         etat.telCarteOuvert = !etat.telCarteOuvert;
         majTelCarte();
@@ -1451,6 +1617,7 @@
     }
     main.innerHTML = html;
     main.dataset.vue = h.vue;
+    demarrerDefilement();
     if (h.vue === "reglages") dessinerQrSite();
 
     if (opts.rafraichir) return;
@@ -1475,6 +1642,7 @@
 
   /* ---------- Démarrage ---------- */
   function demarrer() {
+    chargerMeteo();
     lirePositionQR();
     appliquerCoordonnees();
     appliquerReglages();

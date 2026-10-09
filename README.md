@@ -89,6 +89,21 @@ Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
   `vetements`, `bagagerie`, `droits`, `recharge`, `wifi`.
 - Pour changer de ville : modifier `ville` (centre de la carte) en haut du fichier.
 
+### Les infos du moment (bandeau qui défile sur l'accueil)
+
+Elles se mettent à jour toutes seules :
+
+- **selon la période de l'année** : la liste `infos` en haut de `data/lieux.js`. Chaque info a
+  une période `du` / `au` (mois-jour, par exemple `"11-01"` à `"03-31"` pour le plan hiver),
+  un texte en français, anglais et arabe, et un `lien` (`tel:115`, `#cat-dormir`…). Pour une
+  info ponctuelle (fermeture, distribution exceptionnelle), il suffit d'en ajouter une ;
+- **selon la météo de Lille** : nuit froide ou glaciale, forte chaleur, pluie ;
+- **selon les lieux** : ce qui est ouvert maintenant ou ouvre bientôt pour dormir et manger,
+  les douches ouvertes, un lieu pour les femmes ouvert.
+
+Le bandeau change d'info toutes les 6 secondes. On peut le mettre en pause, glisser du doigt
+ou toucher un point. Il ne défile pas tout seul si le téléphone demande moins d'animations.
+
 ## Positions GPS des lieux
 
 La carte et le tri par distance ont besoin de la position de chaque lieu. Tout est automatique :
@@ -189,6 +204,8 @@ Plus tard, pour la mettre dans les stores :
 - Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
   sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la
   position de la personne).
+- La météo vient d'[Open-Meteo](https://open-meteo.com/) (gratuit, sans compte) : le téléphone
+  demande la météo **de Lille** (jamais sa position) au plus une fois toutes les 3 heures.
 - Les traductions anglaise et arabe sont un premier jet, à faire relire.
 
 ## Crédits et licences

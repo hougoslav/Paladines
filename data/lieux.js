@@ -18,16 +18,35 @@ window.PALADINES_DATA = {
   // Centre de la carte si la position est inconnue
   ville: { nom: "Lille", lat: 50.6330, lng: 3.0580, zoom: 13 },
 
-  // Bandeau d'alerte saisonnière (mettre actif: false pour le masquer)
-  alerte: {
-    actif: true,
-    type: "froid",
-    texte: {
-      fr: "Plan hiver : du 1er novembre au 31 mars, des places d'hébergement en plus ouvrent. Appelez le 115.",
-      en: "Winter plan: from 1 November to 31 March, extra shelter beds open. Call 115.",
-      ar: "خطة الشتاء: من 1 نوفمبر إلى 31 مارس تُفتح أماكن إيواء إضافية. اتصلي بالرقم 115."
+  // Infos du moment selon la période de l'année (« du » et « au » : mois-jour, la période peut passer
+  // le nouvel an). Elles défilent sur l'accueil avec la météo et les lieux ouverts en ce moment.
+  // type « alerte » : en jaune, en premier. « lien » : où mène l'info (tel:115, #cat-dormir…).
+  infos: [
+    {
+      id: "plan-hiver-bientot", du: "10-01", au: "10-31", type: "alerte", lien: "tel:115",
+      texte: {
+        fr: "Le plan hiver commence le 1er novembre : des places d'hébergement en plus ouvrent. Appelez le 115.",
+        en: "The winter plan starts on 1 November: extra shelter beds open. Call 115.",
+        ar: "تبدأ خطة الشتاء في 1 نوفمبر: تُفتح أماكن إيواء إضافية. اتصلي بالرقم 115."
+      }
+    },
+    {
+      id: "plan-hiver", du: "11-01", au: "03-31", type: "alerte", lien: "tel:115",
+      texte: {
+        fr: "Plan hiver jusqu'au 31 mars : des places d'hébergement en plus. Appelez le 115.",
+        en: "Winter plan until 31 March: extra shelter beds. Call 115.",
+        ar: "خطة الشتاء حتى 31 مارس: أماكن إيواء إضافية. اتصلي بالرقم 115."
+      }
+    },
+    {
+      id: "ete", du: "07-01", au: "08-31", type: "info", lien: "#proche",
+      texte: {
+        fr: "Vacances d'été : beaucoup de lieux changent d'horaires. Appelez avant de vous déplacer.",
+        en: "Summer holidays: many places change their hours. Call before you go.",
+        ar: "العطلة الصيفية: كثير من الأماكن تغيّر مواعيدها. اتصلي قبل الذهاب."
+      }
     }
-  },
+  ],
 
   // Repères pour « Je suis près de… » quand le GPS est refusé (positions vérifiées en double)
   reperes: [
