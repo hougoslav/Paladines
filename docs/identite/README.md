@@ -16,3 +16,6 @@
   `logo-horizontal*.svg` avec le nom (texte vectorisé, sans police à charger).
 - `styles/` : chaque style est une feuille `theme.css` qui se charge **après** `css/style.css`,
   avec ses polices (licence SIL OFL).
+- `reseaux/` : la photo de profil Instagram (lanterne) et, dans `reseaux/instagram/`, les visuels
+  pour présenter le projet (6 posts, 8 stories, 4 couvertures « À la une ») avec la bio, les
+  légendes, les textes alternatifs et le calendrier dans `LISEZMOI.md`.
