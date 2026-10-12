@@ -888,6 +888,91 @@ h2 {
   animation-timing-function: ease-out;
 }
 
+/* Carte : repères noir et blanc. Noir = ouvert maintenant, blanc = fermé ou horaires inconnus ;
+   l'icône dit le besoin. Les lieux à adresse protégée gardent leur bord en pointillés. */
+.marqueur {
+  background: #111113;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 6px 14px -4px rgb(0 0 0 / 0.4);
+}
+.marqueur--ferme {
+  filter: none;
+  opacity: 1;
+  background: #ffffff;
+  color: #4a4a4f;
+  border-color: rgb(0 0 0 / 0.14);
+}
+.marqueur--protege {
+  border-style: dashed;
+  box-shadow: 0 0 0 3px rgb(17 17 19 / 0.35), 0 6px 14px -4px rgb(0 0 0 / 0.4);
+}
+
+/* Réglages : contrôles segmentés d'iOS (une capsule, l'option choisie en lentille) */
+.choix {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 2px;
+  width: 100%;
+  max-width: 26rem;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgb(118 118 128 / 0.12);
+}
+.choix .puce,
+.choix .puce:hover {
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--encre);
+  font-weight: 600;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.choix .puce[aria-pressed="true"] {
+  background: var(--verre-lentille);
+  background-image: none;
+  color: var(--encre);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.12), 0 1px 1px rgb(0 0 0 / 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .choix {
+    background: rgb(118 118 128 / 0.24);
+  }
+}
+:root[data-theme="dark"] .choix {
+  background: rgb(118 118 128 / 0.24);
+}
+
+/* « A+ » et « A++ » restent dans ce sens, même en arabe */
+.taille-0,
+.taille-1,
+.taille-2 {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* « Tout effacer » : action destructive, en rouge comme sur iPhone */
+.effacer > .btn--doux {
+  color: var(--urgent);
+}
+
+/* État vide : centré, sans cadre en pointillés */
+.vide {
+  padding: 40px 24px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  text-align: center;
+  color: var(--encre-douce);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
 /* Barre d'onglets : libellés 11 px, icônes 24 px, comme iOS */
 .onglets a {
   gap: 2px;
