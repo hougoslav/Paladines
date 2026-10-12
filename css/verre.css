@@ -1334,6 +1334,163 @@ body.en-guide .onglets,
   min-height: 48px;
 }
 
+/* ============ 12 sexies. Mon carnet ============ */
+.carnet h2 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.carnet h2 .ic {
+  color: var(--jaune);
+}
+.carnet-liste {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.carnet-ligne {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--verre-bord);
+  border-radius: var(--r-petit);
+  background: var(--verre) var(--reflet);
+}
+.carnet-quand {
+  flex-basis: 100%;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--jaune);
+}
+.carnet-txt {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.carnet-suppr {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -8px -10px -8px 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--gris);
+  cursor: pointer;
+}
+.form-carnet {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 12px;
+}
+.form-carnet label {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
+}
+.carnet-champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 10px;
+}
+.form-carnet input,
+.carnet-note {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--verre-bord);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.08);
+  color: var(--blanc);
+  font: inherit;
+  color-scheme: dark;
+}
+.form-carnet .btn {
+  justify-self: start;
+}
+.carnet-option {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 48px;
+  margin-bottom: 12px;
+  text-align: start;
+  white-space: normal;
+}
+.rappel-rdv {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0 0 14px;
+  color: var(--blanc);
+  text-decoration: none;
+}
+.rappel-rdv .ic:first-child {
+  flex: none;
+  color: var(--jaune);
+}
+.rappel-rdv span {
+  flex: 1;
+  font-weight: 600;
+}
+.lien-carnet {
+  margin-bottom: 14px;
+}
+.lien-carnet .ic:first-child {
+  color: var(--jaune);
+}
+
+/* ============ 12 septies. Lecture facile ============ */
+html[data-facile] body {
+  line-height: 1.6;
+}
+html[data-facile] .vue {
+  padding-bottom: calc(var(--h-onglets) + var(--marge-onglets) + 110px + env(safe-area-inset-bottom, 0px));
+}
+html[data-facile] .pastille:not(.pastille--grande) {
+  width: 52px;
+  height: 52px;
+}
+html[data-facile] .pastille:not(.pastille--grande) .ic {
+  width: 30px;
+  height: 30px;
+}
+html[data-facile] .tuile-nom {
+  font-size: 1.0625rem;
+}
+html[data-facile] .maj,
+html[data-facile] .hero-pour {
+  display: none;
+}
+.btn-lire-page {
+  position: fixed;
+  z-index: 700;
+  inset-inline-end: 14px;
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 14px + env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--jaune);
+  color: var(--sur-jaune);
+  font: inherit;
+  font-weight: 700;
+  box-shadow: var(--ombre-flottante);
+  cursor: pointer;
+}
+.btn-lire-page[aria-pressed="true"] {
+  background: var(--blanc);
+}
+
 /* ============ 13. Réglages ============ */
 /* Contrôles segmentés : une capsule, l'option choisie en jaune */
 .choix {

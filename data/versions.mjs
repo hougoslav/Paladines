@@ -8,6 +8,18 @@
  */
 export const VERSIONS = [
   {
+    v: 25,
+    date: "2026-10-12",
+    titre: "Mon carnet, lecture facile, guide pour les pros",
+    nouveautes: [
+      "« Mon carnet » (depuis « Gardés ») : rendez-vous, numéros utiles avec bouton « Appeler », et notes. Tout reste sur le téléphone, rien n'est envoyé.",
+      "Le rendez-vous du jour ou du lendemain s'affiche sur l'accueil.",
+      "Discrétion : le carnet peut s'effacer tout seul en appuyant sur « Quitter ».",
+      "Réglages → « Lecture facile » : textes et pictogrammes plus grands, et un bouton « Écouter la page » sur chaque écran.",
+      "Nouvelle page pour les travailleuses sociales et les maraudes (paladines.pages.dev/pro.html) : comment présenter l'appli, QR code, à imprimer."
+    ]
+  },
+  {
     v: 24,
     date: "2026-10-12",
     titre: "L'équipe corrige les lieux elle-même",
