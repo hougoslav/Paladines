@@ -1054,31 +1054,114 @@
     const carte = L.map("carte", { zoomControl: false }).setView([ref.lat, ref.lng], D.ville.zoom);
     L.control.zoom({ position: "bottomright" }).addTo(carte);
     carte.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
-    // Fond OpenStreetMap, sans clé ; couleurs adoucies dans css/verre.css (section Carte) pour que
-    // les repères ressortent. (CARTO demande désormais une clé : refusé sur le site.)
-    const fond = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      crossOrigin: "anonymous", // pour que le service worker puisse garder les tuiles hors ligne
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-    });
-    let erreurs = 0;
-    fond.on("tileerror", () => {
-      erreurs++;
-      if (erreurs >= 2 && !etat.fondEnErreur) {
-        etat.fondEnErreur = true;
-        majMsgCarte();
-      }
-    });
-    fond.on("tileload", () => {
-      erreurs = 0;
-      if (etat.fondEnErreur) {
-        etat.fondEnErreur = false;
-        majMsgCarte();
-      }
-    });
-    fond.addTo(carte);
+    ajouterFond(carte);
     etat.carte = carte;
     etat.coucheLieux = L.layerGroup().addTo(carte);
+  }
+
+  /* Fond de carte : OpenFreeMap « Positron » (gratuit, sans clé ni limite, données OpenStreetMap).
+   * Carte vectorielle nette et sobre, dessinée par MapLibre, chargé seulement à l'ouverture de la
+   * carte (800 Ko). Sans WebGL, sans internet ou si OpenFreeMap ne répond pas : tuiles
+   * OpenStreetMap à la place. (CARTO, Stadia… demandent une clé.) */
+  const STYLE_CARTE = "https://tiles.openfreemap.org/styles/positron";
+  const ATTRIB_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+  let promesseMaplibre = null;
+
+  function chargerScript(src) {
+    return new Promise((ok, ko) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = ok;
+      s.onerror = ko;
+      document.head.appendChild(s);
+    });
+  }
+
+  function chargerMaplibre() {
+    if (!promesseMaplibre) {
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = "vendor/maplibre/maplibre-gl.css";
+      document.head.appendChild(css);
+      promesseMaplibre = chargerScript("vendor/maplibre/maplibre-gl.js").then(() => chargerScript("vendor/maplibre/leaflet-maplibre-gl.js"));
+    }
+    return promesseMaplibre;
+  }
+
+  function webglPossible() {
+    try {
+      const c = document.createElement("canvas");
+      return !!(c.getContext("webgl2") || c.getContext("webgl"));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Deux erreurs de suite : message « fond indisponible » ; une réussite l'efface
+  function suiviErreurs() {
+    let erreurs = 0;
+    return {
+      erreur() {
+        erreurs++;
+        if (erreurs >= 2 && !etat.fondEnErreur) {
+          etat.fondEnErreur = true;
+          majMsgCarte();
+        }
+      },
+      ok() {
+        erreurs = 0;
+        if (etat.fondEnErreur) {
+          etat.fondEnErreur = false;
+          majMsgCarte();
+        }
+      }
+    };
+  }
+
+  function ajouterFond(carte) {
+    if (!webglPossible()) return fondTuiles(carte);
+    chargerMaplibre()
+      .then(() => {
+        if (!L.maplibreGL) throw new Error("MapLibre absent");
+        const couche = L.maplibreGL({
+          style: STYLE_CARTE,
+          // mention affichée par l'extension Leaflet (sinon elle reprend celle du style)
+          attributionControl: { customAttribution: '<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> ' + ATTRIB_OSM }
+        }).addTo(carte);
+        const gl = couche.getMaplibreMap();
+        const suivi = suiviErreurs();
+        let charge = false;
+        let abandon = false;
+        gl.on("load", () => {
+          charge = true;
+          suivi.ok();
+        });
+        gl.on("data", (e) => {
+          if (e.tile) suivi.ok();
+        });
+        gl.on("error", () => {
+          if (abandon) return;
+          if (charge) return suivi.erreur();
+          // le style n'a pas pu se charger : tuiles OpenStreetMap à la place
+          abandon = true;
+          carte.removeLayer(couche);
+          fondTuiles(carte);
+        });
+      })
+      .catch(() => fondTuiles(carte));
+  }
+
+  function fondTuiles(carte) {
+    const fond = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      className: "fond-tuiles", // couleurs adoucies dans css/verre.css
+      crossOrigin: "anonymous", // pour que le service worker puisse garder les tuiles hors ligne
+      attribution: ATTRIB_OSM
+    });
+    const suivi = suiviErreurs();
+    fond.on("tileerror", suivi.erreur);
+    fond.on("tileload", suivi.ok);
+    fond.addTo(carte);
   }
 
   // Au premier affichage : montrer tous les lieux (ou la personne si sa position est connue)

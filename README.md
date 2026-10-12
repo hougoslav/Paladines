@@ -44,7 +44,7 @@ functions/             page de l'équipe (/equipe), réception des signalements 
 data/versions.mjs      les versions de l'appli et leurs nouveautés (page de l'équipe)
 sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
-vendor/                Leaflet (carte) et qrcode-generator, copiés ici pour marcher hors ligne
+vendor/                Leaflet et MapLibre (carte), qrcode-generator, copiés ici pour marcher hors ligne
 fonts/                 polices Atkinson Hyperlegible et Bricolage Grotesque (licence OFL), plus utilisées par le style actuel
 icons/                 icônes de l'appli (logo « lanterne »)
 docs/IDEES.md          idées, feuille de route, questions pour le groupe
@@ -238,9 +238,11 @@ Plus tard, pour la mettre dans les stores :
 
 ## Points à connaître
 
-- Le fond de carte vient des serveurs d'OpenStreetMap (sans clé), couleurs adoucies en CSS.
-  Ils ne sont pas faits pour un usage intensif : pour un vrai lancement, passer par un
-  fournisseur de tuiles (CARTO, Stadia… demandent une clé liée au site).
+- Le fond de carte est « Positron » d'[OpenFreeMap](https://openfreemap.org) : gratuit, sans
+  clé ni limite, données OpenStreetMap. Il est dessiné par MapLibre (`vendor/maplibre/`,
+  chargé seulement à l'ouverture de la carte). Sans WebGL ou si OpenFreeMap ne répond pas,
+  l'appli prend les tuiles d'OpenStreetMap (couleurs adoucies en CSS). CARTO et Stadia
+  demandent une clé liée au site.
 - « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
 - Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
   sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la

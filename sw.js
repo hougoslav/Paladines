@@ -1,7 +1,7 @@
 /*
  * Service worker : permet à l'appli de marcher sans internet.
  * - Fichiers de l'appli : servis depuis le cache, puis mis à jour en arrière-plan.
- * - Fonds de carte (OpenStreetMap) : gardés au fur et à mesure (300 au plus).
+ * - Fonds de carte (OpenFreeMap, ou OpenStreetMap en secours) : gardés au fur et à mesure (300 au plus).
  * VERSION = « paladines-v<version>.<révision> » : changer la révision à chaque mise en
  * ligne force la mise à jour du cache ; la version affichée (et ses nouveautés) est en
  * haut de data/versions.mjs (montrée sur /equipe). Le nom doit être nouveau à chaque fois.
@@ -12,9 +12,9 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v21.1";
+const VERSION = "paladines-v21.2";
 const CACHE_TUILES = "paladines-tuiles-2"; // nouveau nom : efface les tuiles CARTO refusées gardées en cache
-const MAX_TUILES = 300;
+const MAX_TUILES = 600;
 
 const FICHIERS = [
   "./",
@@ -73,6 +73,12 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(tuile(req));
     return;
   }
+  // OpenFreeMap : tuiles, polices et pictos gardés ; le style et la liste des tuiles (qui
+  // changent chaque semaine) pris sur internet d'abord, la copie gardée servant hors ligne.
+  if (url.hostname === "tiles.openfreemap.org") {
+    e.respondWith(/\.pbf$|\/fonts\/|\/sprites\//.test(url.pathname) ? tuile(req) : reseauDabord(req));
+    return;
+  }
   if (url.origin !== self.location.origin) return;
   // Les signalements et la page de l'équipe (/equipe) ne passent jamais par le cache
   if (url.pathname.indexOf("/api/") === 0 || url.pathname === "/equipe") return;
@@ -94,6 +100,17 @@ self.addEventListener("fetch", (e) => {
     )
   );
 });
+
+async function reseauDabord(req) {
+  const cache = await caches.open(CACHE_TUILES);
+  try {
+    const rep = await fetch(req);
+    if (rep.ok) await cache.put(req, rep.clone());
+    return rep;
+  } catch (err) {
+    return (await cache.match(req)) || Response.error();
+  }
+}
 
 async function tuile(req) {
   const cache = await caches.open(CACHE_TUILES);
