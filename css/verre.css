@@ -334,9 +334,6 @@ body:has(.hero) .entete {
   width: 16px;
   background: var(--jaune);
 }
-.im-pause {
-  color: var(--gris);
-}
 
 /* Tuiles des besoins : verre, pictogramme jaune */
 .grille-cat {
@@ -837,10 +834,10 @@ body:has(.hero) .entete {
   bottom: calc(var(--h-onglets) + var(--marge-onglets) + 24px + env(safe-area-inset-bottom, 0px));
 }
 .btn-tel-carte {
-  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 88px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 84px + env(safe-area-inset-bottom, 0px));
 }
 .carte-tel {
-  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 146px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 128px + env(safe-area-inset-bottom, 0px));
 }
 /* La carte ne se retourne pas en arabe : le zoom reste à droite, ces boutons restent à gauche. */
 [dir="rtl"] .btn-localiser,
@@ -870,6 +867,23 @@ body:has(.hero) .entete {
 .btn-localiser,
 .btn-tel-carte {
   border-radius: 999px;
+}
+/* « Par téléphone » : petit bouton discret ; la zone à toucher garde 44 px */
+.btn-tel-carte {
+  min-height: 34px;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.btn-tel-carte .ic {
+  width: 15px;
+  height: 15px;
+}
+.btn-tel-carte::after {
+  content: "";
+  position: absolute;
+  inset: -5px 0;
 }
 .leaflet-bar {
   border: 0;
