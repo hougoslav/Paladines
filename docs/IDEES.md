@@ -40,8 +40,9 @@ ouverts maintenant, près d'elle**, pour dormir, manger, se laver, se soigner ou
 
 ### Accès pour toutes
 
-6. **Aucun compte, aucune donnée envoyée.** La position reste sur le téléphone. Pas d'outil de
-   statistiques, polices hébergées sur le site (pas d'appel à Google), `no-referrer`.
+6. **Aucun compte, aucune donnée personnelle.** La position reste sur le téléphone. Pas d'outil de
+   statistiques extérieur : seulement un compteur anonyme de visites par mois (page de l'équipe).
+   Polices hébergées sur le site (pas d'appel à Google), `no-referrer`.
 7. **Fonctionne sans internet** une fois ouverte (PWA) et **s'installe sans passer par un store**.
    Les forfaits et les batteries sont souvent limités.
 8. **Plusieurs langues**, dont l'arabe (écriture de droite à gauche), détectées

@@ -1037,7 +1037,7 @@
     ["QR codes qui savent où ils sont collés", "Chaque affiche contient sa position. Même si le GPS est refusé, la liste est triée depuis l'affiche. Voir la page « Créer une affiche »."],
     ["Affiche à languettes", "Le 115 et le 3919 sont imprimés sur des languettes à détacher, pour celles qui n'ont pas de smartphone ou plus de batterie."],
     ["Marche sans internet, s'installe sans store", "C'est une PWA : une fois ouverte, l'appli et les lieux gardés restent disponibles hors connexion."],
-    ["Aucun compte, aucune donnée envoyée", "Pas d'inscription, pas de nom. La position reste sur le téléphone et n'est jamais enregistrée."],
+    ["Aucun compte, aucune donnée personnelle", "Pas d'inscription, pas de nom. La position reste sur le téléphone et n'est jamais enregistrée. Seuls partent les signalements, anonymes, et un compteur de visites par mois."],
     ["Pour celles qui lisent peu ou pas le français", "Pictogrammes partout, arabe (écriture de droite à gauche) et anglais, bouton « Écouter » qui lit la fiche à voix haute."],
     ["Lisible par toutes", "Police Atkinson Hyperlegible, conçue pour les personnes malvoyantes. Taille du texte réglable. Mode sombre qui économise la batterie."],
     ["Statut en direct", "« Ouvert · ferme à 18 h », « Ferme bientôt », « Fermé · ouvre demain à 9 h », y compris pour les haltes de nuit qui passent minuit."],
@@ -1062,7 +1062,7 @@
       '<ol class="idees">' + IDEES.map((x) => "<li><strong>" + esc(x[0]) + "</strong><span>" + esc(x[1]) + "</span></li>").join("") + "</ol>" +
       "<h2>Outils</h2>" +
       '<p><a class="btn" href="affiche.html">' + icone("i-qr") + "Créer une affiche avec QR code</a></p>" +
-      '<p><a class="btn" href="/equipe" target="_blank" rel="noopener">' + icone("i-drapeau") + "Lire les signalements reçus</a></p>" +
+      '<p><a class="btn" href="/equipe" target="_blank" rel="noopener">' + icone("i-drapeau") + "Signalements et statistiques</a></p>" +
       "<p>Réservé à l'équipe : le mot de passe est demandé. Adresse directe : <code>paladines.pages.dev/equipe</code></p>" +
       "<p>Les questions à trancher, les sources de données possibles et la feuille de route sont dans <code>docs/IDEES.md</code>. La liste des lieux de Lille, leurs sources et ce qui reste à vérifier par téléphone sont dans <code>docs/LIEUX-LILLE.md</code>.</p>" +
       "</article>"
@@ -1613,6 +1613,19 @@
     msg.hidden = false;
   }
 
+  /* ---------- Compteur de visites ----------
+   * Au plus une fois par jour et par téléphone, avec internet : /api/visite ajoute 1 au
+   * compteur du mois. Rien n'est envoyé sur la personne ; seule la date du jour reste ici. */
+  function compterVisite() {
+    if (!/^https?:$/.test(location.protocol) || navigator.onLine === false) return;
+    const d = new Date();
+    const jour = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    if (stock.lire("visite", "") === jour) return;
+    fetch("/api/visite", { method: "POST", cache: "no-store", referrerPolicy: "no-referrer", keepalive: true })
+      .then((rep) => { if (rep.ok) stock.ecrire("visite", jour); })
+      .catch(() => { /* pas compté, ce n'est pas grave */ });
+  }
+
   /* ---------- Langue, réglages, chrome ---------- */
   function changerLangue(l) {
     if (LANGUES.indexOf(l) === -1) return;
@@ -1793,6 +1806,7 @@
     geocoderManquants();
     window.addEventListener("online", envoyerEnAttente);
     envoyerEnAttente();
+    compterVisite();
 
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();

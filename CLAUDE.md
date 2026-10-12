@@ -6,7 +6,8 @@ Appli web gratuite pour les femmes à la rue à Lille : les lieux ouverts mainte
 - `index.html` : en-tête, onglets, pictogrammes SVG. `js/app.js` : vues (routage par `#vue-param`), horaires, distances, carte, infos du moment. `js/i18n.js` : textes FR, EN, AR.
 - `css/style.css` puis `css/theme.css` (style « Nuit raffinée »). `fonts/`, `icons/`, `vendor/` (Leaflet, qrcode).
 - `data/lieux.js` : 56 lieux, 11 besoins, infos saisonnières, urgences. `data/coordonnees.js` : généré par `outils/geocoder.mjs` via `.github/workflows/positions.yml` (faire un pull avant de pousser).
-- `functions/api/signalement.js` : reçoit les signalements (Cloudflare Pages Functions, stockage KV `SIGNALEMENTS`, page de l'équipe sur `/equipe` protégée par `MOT_DE_PASSE`, voir README).
+- `functions/` (Cloudflare Pages Functions, stockage KV `SIGNALEMENTS`, voir README) : `equipe.js` = page de l'équipe `/equipe` protégée par `MOT_DE_PASSE` (onglets Signalements et Statistiques) ; `api/signalement.js` reçoit les signalements ; `api/visite.js` compte les visites par mois.
+- `data/versions.mjs` : historique des versions et de leurs nouveautés, montré sur `/equipe`.
 - `sw.js` (hors ligne), `manifest.webmanifest`, `_headers`, `affiche.html` (affiches QR), `docs/` (idées, lieux et sources, identité, kit Instagram).
 
 ## Technologies
@@ -15,13 +16,13 @@ HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service wor
 ## Choix importants (à respecter)
 - Discrétion : le nom et le titre de l'onglet restent « Paladines », bouton « Quitter » toujours visible, aucun mot sensible dans les adresses de pages.
 - Ne jamais montrer l'adresse d'un lieu protégé (`adresseMasquee`) ; ne jamais envoyer la position de la personne.
-- Aucun compte, aucune statistique, polices hébergées sur le site. Vouvoiement et langage respectueux.
+- Aucun compte, aucune statistique sur les personnes : seul un compteur anonyme de visites par mois (un téléphone une fois par jour, sans identifiant). Polices hébergées sur le site. Vouvoiement et langage respectueux.
 - Tout nouveau texte va dans `js/i18n.js` en FR, EN et AR (arabe de droite à gauche ; numéros et adresses en `dir="ltr"`).
-- Après toute modification d'un fichier mis en cache, augmenter `VERSION` dans `sw.js`.
+- Après toute modification d'un fichier mis en cache, augmenter `VERSION` dans `sw.js` et ajouter la version en haut de `data/versions.mjs` (titre et nouveautés en langage simple).
 - Lisibilité : police Atkinson Hyperlegible, pictogrammes, cibles tactiles d'au moins 44 px.
 
 ## Terminé
-Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les femmes », infos du moment (météo, plan hiver), listes et filtres, fiches, carte de tous les lieux, urgences, lieux gardés, réglages, signalements anonymes (fiche et « Signaler un problème », envoi différé sans internet), hors ligne, installation, affiches QR, identité (logo lanterne, style A), kit Instagram.
+Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les femmes », infos du moment (météo, plan hiver), listes et filtres, fiches, carte de tous les lieux, urgences, lieux gardés, réglages, signalements anonymes (fiche et « Signaler un problème », envoi différé sans internet), page de l'équipe (signalements, versions, visites par mois), hors ligne, installation, affiches QR, identité (logo lanterne, style A), kit Instagram.
 
 ## Reste à faire
 - Confirmer les 56 lieux par téléphone avant tout lancement (`docs/LIEUX-LILLE.md`).

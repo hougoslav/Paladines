@@ -2,7 +2,8 @@
  * Service worker : permet à l'appli de marcher sans internet.
  * - Fichiers de l'appli : servis depuis le cache, puis mis à jour en arrière-plan.
  * - Fonds de carte : gardés au fur et à mesure (300 au plus).
- * Changer VERSION à chaque mise en ligne force la mise à jour du cache.
+ * Changer VERSION à chaque mise en ligne force la mise à jour du cache, et décrire
+ * la nouvelle version en haut de data/versions.mjs (montrée sur /equipe).
  *
  * Certains hébergeurs (Cloudflare Pages) redirigent /index.html vers / et /affiche.html
  * vers /affiche. Une page gardée en cache après une redirection est refusée par les
@@ -10,7 +11,7 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v18";
+const VERSION = "paladines-v19";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 
