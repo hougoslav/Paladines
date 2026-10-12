@@ -9,14 +9,16 @@
 
   const D = window.PALADINES_DATA;
   const TR = window.PALADINES_I18N;
-  const LANGUES = ["fr", "en", "ar"];
+  const LANGUES = ["fr", "en", "ar", "es", "ro", "uk", "fa", "ps", "ti"];
+  const DROITE_A_GAUCHE = ["ar", "fa", "ps"]; // arabe, dari, pachto
   const JOURS = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"]; // index = Date#getDay()
   const SEMAINE = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"];
   const URL_SORTIE = "https://www.google.com/search?q=m%C3%A9t%C3%A9o";
   const FERME_BIENTOT_MIN = 30;
   const CRITERES = ["femmes", "enfants", "animaux", "inconditionnel", "sansRdv", "gratuit", "pmr"];
-  const LOCALES = { fr: "fr-FR", en: "en-GB", ar: "ar-u-nu-latn" };
-  const VOIX = { fr: "fr-FR", en: "en-GB", ar: "ar-SA" };
+  // Chiffres latins partout (numéros, heures, distances) : les mêmes que sur les affiches et les téléphones
+  const LOCALES = { fr: "fr-FR", en: "en-GB", ar: "ar-u-nu-latn", es: "es-ES", ro: "ro-RO", uk: "uk-UA", fa: "fa-AF-u-nu-latn", ps: "ps-AF-u-nu-latn", ti: "ti-ER" };
+  const VOIX = { fr: "fr-FR", en: "en-GB", ar: "ar-SA", es: "es-ES", ro: "ro-RO", uk: "uk-UA", fa: "fa-IR", ps: "ps-AF", ti: "ti-ER" };
 
   /* ---------- Stockage local (peut être indisponible : navigation privée…) ---------- */
   const stock = {
@@ -71,7 +73,8 @@
   function langueDuTelephone() {
     const prefs = navigator.languages || [navigator.language || "fr"];
     for (let i = 0; i < prefs.length; i++) {
-      const code = String(prefs[i]).slice(0, 2).toLowerCase();
+      const pref = String(prefs[i]).toLowerCase();
+      const code = /^prs/.test(pref) ? "fa" : pref.slice(0, 2); // « prs » : dari
       if (LANGUES.indexOf(code) !== -1) return code;
     }
     return "fr";
@@ -836,7 +839,7 @@
     const s = statut(l, new Date());
     const fav = etat.favoris.indexOf(l.id) !== -1;
     const aujourdhui = JOURS[new Date().getDay()];
-    const peutLire = "speechSynthesis" in window;
+    const peutLire = voixDispo();
 
     let horaires;
     if (l.horaires === "24/7") horaires = "<p>" + esc(t("h24")) + "</p>";
@@ -966,7 +969,7 @@
   };
 
   function vueInfos(ouvrir) {
-    const peutLire = "speechSynthesis" in window;
+    const peutLire = voixDispo();
     const actions = (f) => {
       const x = FICHES[f.id] || {};
       const liens = (x.tel || []).map((n) => '<a class="btn btn--appel" href="' + telLien(n) + '">' + icone("i-tel") + esc(t("appeler")) + ' <span dir="ltr">' + n + "</span></a>")
@@ -1083,8 +1086,8 @@
     return (
       htmlRetour() +
       "<h1>" + esc(t("reglages")) + "</h1>" +
-      '<section class="section"><h2>' + esc(t("langue")) + '</h2><div class="choix">' +
-      LANGUES.map((l) => choix("langue", l, etat.langue === l, esc(TR[l].nomLangue), ' lang="' + l + '"')).join("") +
+      '<section class="section"><h2>' + esc(t("langue")) + '</h2><div class="choix choix--langues">' +
+      LANGUES.map((l) => choix("langue", l, etat.langue === l, esc(TR[l].nomLangue), ' lang="' + l + '"' + (DROITE_A_GAUCHE.indexOf(l) !== -1 ? ' dir="rtl"' : ""))).join("") +
       "</div></section>" +
       '<section class="section"><h2>' + esc(t("tailleTexte")) + '</h2><div class="choix">' +
       [0, 1, 2].map((n) => choix("taille", n, etat.taille === n, '<span class="taille-' + n + '">A' + "+".repeat(n) + "</span>")).join("") +
@@ -1873,7 +1876,7 @@
     haut.className = "guide-haut" + (g.etat === "arrivee" ? " guide-haut--arrivee" : "") + (g.etat === "erreur" ? " guide-haut--erreur" : "");
     const boutonsBas = (fin) =>
       '<div class="guide-boutons">' +
-      ("speechSynthesis" in window && !fin
+      (voixDispo() && !fin
         ? '<button type="button" class="btn btn--doux guide-voix" data-action="guide-voix" aria-pressed="' + !!g.voix + '">' + icone("i-son") + esc(t("guideVoix")) + "</button>"
         : "") +
       '<button type="button" class="btn ' + (fin ? "" : "btn--doux ") + 'guide-arreter" data-action="guide-arreter">' + (fin ? "" : SVG_FERMER) + esc(t(fin ? "guideTerminer" : "guideArreter")) + "</button></div>";
@@ -2030,11 +2033,20 @@
     const b = document.getElementById("btn-lire-page");
     if (!b) return;
     const v = vueCourante().vue;
-    b.hidden = !etat.facile || !("speechSynthesis" in window) || v === "carte" || v === "guide";
+    b.hidden = !etat.facile || !voixDispo() || v === "carte" || v === "guide";
     b.querySelector("span").textContent = b.getAttribute("aria-pressed") === "true" ? t("arreter") : t("lirePage");
   }
 
   /* ---------- Lecture à voix haute ---------- */
+  // Le téléphone a-t-il une voix pour cette langue ? (souvent pas pour le pachto ou le tigrinya)
+  function voixDispo() {
+    if (!("speechSynthesis" in window)) return false;
+    const voix = speechSynthesis.getVoices();
+    if (!voix.length) return true; // liste pas encore chargée : on suppose que oui
+    const code = VOIX[etat.langue].slice(0, 2).toLowerCase();
+    return voix.some((v) => String(v.lang).toLowerCase().indexOf(code) === 0);
+  }
+
   function lire(texte, bouton) {
     if (!("speechSynthesis" in window)) return;
     const enCours = bouton.getAttribute("aria-pressed") === "true";
@@ -2448,7 +2460,8 @@
   function appliquerReglages() {
     const html = document.documentElement;
     html.lang = etat.langue;
-    html.dir = etat.langue === "ar" ? "rtl" : "ltr";
+    html.dir = DROITE_A_GAUCHE.indexOf(etat.langue) !== -1 ? "rtl" : "ltr";
+    remplirMenuLangue();
     html.style.fontSize = Math.round([100, 115, 132][etat.taille] * (etat.facile ? 1.1 : 1)) + "%";
     html.toggleAttribute("data-facile", !!etat.facile);
     // Un seul style : bleu nuit et jaune (« Paladines »)
@@ -2462,6 +2475,16 @@
     });
     document.getElementById("code-langue").textContent = etat.langue.toUpperCase();
     document.querySelectorAll("#menu-langue [data-valeur]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.valeur === etat.langue)));
+  }
+
+  function remplirMenuLangue() {
+    const menu = document.getElementById("menu-langue");
+    if (menu.childElementCount !== LANGUES.length) {
+      menu.innerHTML = LANGUES.map((l) =>
+        '<button type="button" role="menuitemradio" lang="' + l + '"' + (DROITE_A_GAUCHE.indexOf(l) !== -1 ? ' dir="rtl"' : "") +
+        ' data-action="langue" data-valeur="' + l + '" aria-checked="false">' + esc(TR[l].nomLangue) + "</button>"
+      ).join("");
+    }
   }
 
   function ouvrirMenuLangue() {
@@ -2631,6 +2654,8 @@
       if (!e.target.closest("#menu-langue") && !e.target.closest("#btn-langue")) fermerMenuLangue();
     });
 
+    // Les voix du téléphone arrivent après le chargement : montrer ou cacher « Écouter »
+    if ("speechSynthesis" in window && speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", () => { majBoutonLirePage(); rafraichir(); });
     window.addEventListener("online", majHorsLigne);
     window.addEventListener("offline", majHorsLigne);
     majHorsLigne();

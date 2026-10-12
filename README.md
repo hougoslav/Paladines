@@ -36,7 +36,7 @@ css/style.css          toute la mise en forme (thème clair et sombre)
 css/theme.css          le style choisi par le groupe (« Nuit raffinée »), chargé après style.css
 css/verre.css          le style de l'appli : « Liquid Glass » bleu nuit et jaune, chargé en dernier
 js/app.js              la logique : vues, horaires, distances, carte, réglages
-js/i18n.js             les textes en français, anglais et arabe
+js/i18n.js             les textes en 9 langues : français, anglais, arabe, espagnol, roumain, ukrainien, dari, pachto, tigrinya
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
 data/coordonnees.js    positions GPS des lieux (générées par outils/geocoder.mjs)
 outils/geocoder.mjs    calcule les positions GPS à partir des adresses
@@ -105,7 +105,7 @@ Elles se mettent à jour toutes seules :
 
 - **selon la période de l'année** : la liste `infos` en haut de `data/lieux.js`. Chaque info a
   une période `du` / `au` (mois-jour, par exemple `"11-01"` à `"03-31"` pour le plan hiver),
-  un texte en français, anglais et arabe, et un `lien` (`tel:115`, `#cat-dormir`…). Pour une
+  un texte dans les langues de l'appli (le français est montré à défaut), et un `lien` (`tel:115`, `#cat-dormir`…). Pour une
   info ponctuelle (fermeture, distribution exceptionnelle), il suffit d'en ajouter une ;
 - **selon la météo de Lille** : nuit froide ou glaciale, forte chaleur, pluie ;
 - **selon les lieux** : ce qui est ouvert maintenant ou ouvre bientôt pour dormir et manger,
@@ -268,7 +268,7 @@ Plus tard, pour la mettre dans les stores :
   position de la personne).
 - La météo vient d'[Open-Meteo](https://open-meteo.com/) (gratuit, sans compte) : le téléphone
   demande la météo **de Lille** (jamais sa position) au plus une fois toutes les 3 heures.
-- Les traductions anglaise et arabe sont un premier jet, à faire relire.
+- Les traductions (anglais, arabe, espagnol, roumain, ukrainien, dari, pachto, tigrinya) sont un premier jet, à faire relire par des personnes qui parlent ces langues. Les fiches des lieux restent en français.
 
 ## Crédits et licences
 
