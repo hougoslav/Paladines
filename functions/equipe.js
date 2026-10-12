@@ -1,6 +1,9 @@
 /*
  * Page de l'équipe (Cloudflare Pages Functions : /equipe), protégée par le mot de passe
- * MOT_DE_PASSE (le navigateur le demande ; n'importe quel nom d'utilisateur).
+ * MOT_DE_PASSE. On le tape une fois dans une page de connexion ; le téléphone reste ensuite
+ * connecté 90 jours (cookie signé). Changer MOT_DE_PASSE déconnecte tout le monde.
+ * Pas de fenêtre « Basic Auth » du navigateur : sur iPhone, ouverte depuis l'écran
+ * d'accueil, elle laissait un écran noir plusieurs secondes et redemandait le mot de passe.
  * - Onglet « Signalements » : messages envoyés depuis l'appli, à supprimer une fois traités.
  * - Onglet « Statistiques » : version en ligne, versions précédentes, visites par mois.
  * Les données sont dans l'espace KV « SIGNALEMENTS » : un signalement par clé (sa date),
@@ -22,7 +25,7 @@ const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", 
 const NB_MOIS = 12;
 
 export async function onRequestGet({ request, env }) {
-  if (!autorise(request, env)) return demanderMotDePasse();
+  if (!(await connecte(request, env))) return pageConnexion(env, "");
   if (!env.SIGNALEMENTS) return texte("Signalements non configurés : liez un espace KV nommé SIGNALEMENTS.", 503);
 
   const onglet = new URL(request.url).searchParams.get("onglet") === "statistiques" ? "statistiques" : "signalements";
@@ -32,15 +35,30 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPost({ request, env }) {
-  if (!autorise(request, env)) return demanderMotDePasse();
-  if (!env.SIGNALEMENTS) return texte("Signalements non configurés", 503);
-  // Seule la page de l'équipe, sur ce site, peut supprimer
+  // Seules les pages de ce site peuvent envoyer ces formulaires
   const origine = request.headers.get("origin");
   if (origine && origine !== new URL(request.url).origin) return texte("Interdit", 403);
   const f = await request.formData();
+  const action = f.get("action");
+
+  if (action === "connexion") {
+    const mdp = f.get("mot_de_passe");
+    if (!env.MOT_DE_PASSE || typeof mdp !== "string" || !egal(mdp, env.MOT_DE_PASSE)) return pageConnexion(env, "Mot de passe incorrect.");
+    return versEquipe(await cookieSession(env));
+  }
+  if (action === "deconnexion") return versEquipe(NOM_COOKIE + "=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax");
+
+  if (!(await connecte(request, env))) return pageConnexion(env, "");
+  if (!env.SIGNALEMENTS) return texte("Signalements non configurés", 503);
   const cle = f.get("cle");
-  if (f.get("action") === "supprimer" && typeof cle === "string" && cle.indexOf("visites:") !== 0) await env.SIGNALEMENTS.delete(cle);
-  return new Response(null, { status: 303, headers: { Location: "/equipe", "Cache-Control": "no-store" } });
+  if (action === "supprimer" && typeof cle === "string" && cle.indexOf("visites:") !== 0) await env.SIGNALEMENTS.delete(cle);
+  return versEquipe();
+}
+
+function versEquipe(cookie) {
+  const h = { Location: "/equipe", "Cache-Control": "no-store" };
+  if (cookie) h["Set-Cookie"] = cookie;
+  return new Response(null, { status: 303, headers: h });
 }
 
 /* ---------- Lecture des données ---------- */
@@ -151,15 +169,35 @@ function dateCourte(iso) {
 function page(onglet, nbSignalements, corps) {
   const lien = (id, libelle) =>
     '<a href="/equipe' + (id === "statistiques" ? "?onglet=statistiques" : "") + '"' + (onglet === id ? ' aria-current="page"' : "") + ">" + libelle + "</a>";
-  return "<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
-    "<meta name=\"robots\" content=\"noindex\"><title>Paladines</title>" +
-    '<link rel="icon" href="/icons/equipe.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/equipe-180.png">' +
-    "<style>" + CSS + "</style></head><body>" +
-    '<header class="entete">' + LOGO + "<h1>Paladines · équipe</h1></header>" +
+  return debut() +
     '<nav class="onglets" aria-label="Rubriques">' +
     lien("signalements", "Signalements" + (nbSignalements ? " (" + nbSignalements + ")" : "")) +
     lien("statistiques", "Statistiques") +
-    "</nav><main>" + corps + "</main></body></html>";
+    "</nav><main>" + corps + "</main>" +
+    '<form method="post" class="sortie"><input type="hidden" name="action" value="deconnexion"><button type="submit">Se déconnecter</button></form>' +
+    "</body></html>";
+}
+
+function debut() {
+  return "<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">" +
+    "<meta name=\"robots\" content=\"noindex\"><title>Paladines</title>" +
+    '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">' +
+    '<meta name="theme-color" content="#14233a">' +
+    '<link rel="icon" href="/icons/equipe.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/equipe-180.png">' +
+    "<style>" + CSS + "</style></head><body>" +
+    '<header class="entete">' + LOGO + "<h1>Paladines · équipe</h1></header>";
+}
+
+function pageConnexion(env, erreur) {
+  const corps = !env.MOT_DE_PASSE
+    ? "<p>Le mot de passe de l'équipe n'est pas encore réglé : ajoutez le secret MOT_DE_PASSE dans Cloudflare.</p>"
+    : '<form method="post" class="connexion"><input type="hidden" name="action" value="connexion">' +
+      '<label for="mdp">Mot de passe de l\'équipe</label>' +
+      '<input id="mdp" type="password" name="mot_de_passe" autocomplete="current-password" required autofocus>' +
+      (erreur ? '<p class="erreur" role="alert">' + esc(erreur) + "</p>" : "") +
+      '<button type="submit" class="principal">Entrer</button>' +
+      '<p class="discret">Ce téléphone restera connecté 90 jours.</p></form>';
+  return reponse(debut() + "<main>" + corps + "</main></body></html>", erreur ? 401 : 200, "text/html; charset=utf-8");
 }
 
 // Logo engrenage (même dessin que icons/equipe.svg), en haut à gauche comme la lanterne de l'appli
@@ -191,20 +229,37 @@ const CSS =
   ".barre-zone{flex:1;height:12px;background:var(--rail);border-radius:4px;overflow:hidden}" +
   ".barre{display:block;height:100%;background:var(--barre);border-radius:0 4px 4px 0}" +
   ".nb{min-width:3ch;text-align:right;font-variant-numeric:tabular-nums}" +
+  ".connexion{display:grid;gap:10px;max-width:360px;background:var(--surface);border:1px solid var(--trait);border-radius:12px;padding:16px}" +
+  ".connexion label{font-weight:600}" +
+  ".connexion input{width:100%;min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--trait);border-radius:8px;background:var(--fond);color:var(--encre);font:inherit}" +
+  ".principal{background:#14233a;border-color:#14233a;color:#fff;font-weight:600}" +
+  "@media (prefers-color-scheme:dark){.principal{background:#f4b63f;border-color:#f4b63f;color:#1d1606}}" +
+  ".erreur{color:#b42318;margin:0;font-weight:600}@media (prefers-color-scheme:dark){.erreur{color:#ff8a80}}" +
+  ".sortie{margin:32px 0 8px}" +
   "@media (forced-colors:active){.barre{background:CanvasText}}";
 
-/* ---------- Mot de passe de l'équipe ---------- */
-function autorise(request, env) {
+/* ---------- Connexion de l'équipe ----------
+ * Cookie « expiration.signature » : la signature HMAC-SHA256 de l'expiration, avec le mot
+ * de passe comme clé. Rien n'est stocké côté serveur. */
+const NOM_COOKIE = "paladines_equipe";
+const DUREE_SESSION = 60 * 60 * 24 * 90; // 90 jours
+
+async function signer(env, texte) {
+  const cle = await crypto.subtle.importKey("raw", new TextEncoder().encode(env.MOT_DE_PASSE), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", cle, new TextEncoder().encode("equipe:" + texte));
+  return [...new Uint8Array(sig)].map((o) => o.toString(16).padStart(2, "0")).join("");
+}
+
+async function cookieSession(env) {
+  const fin = String(Math.floor(Date.now() / 1000) + DUREE_SESSION);
+  return NOM_COOKIE + "=" + fin + "." + (await signer(env, fin)) + "; Path=/; Max-Age=" + DUREE_SESSION + "; HttpOnly; Secure; SameSite=Lax";
+}
+
+async function connecte(request, env) {
   if (!env.MOT_DE_PASSE) return false;
-  const entete = request.headers.get("authorization") || "";
-  if (entete.indexOf("Basic ") !== 0) return false;
-  let decode;
-  try {
-    decode = atob(entete.slice(6));
-  } catch (e) {
-    return false;
-  }
-  return egal(decode.slice(decode.indexOf(":") + 1), env.MOT_DE_PASSE);
+  const m = (request.headers.get("cookie") || "").match(new RegExp("(?:^|;\\s*)" + NOM_COOKIE + "=(\\d+)\\.([0-9a-f]{64})"));
+  if (!m || Number(m[1]) < Date.now() / 1000) return false;
+  return egal(m[2], await signer(env, m[1]));
 }
 
 // Comparaison en temps constant
@@ -214,13 +269,6 @@ function egal(a, b) {
   let diff = x.length ^ y.length;
   for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] || 0) ^ (y[i] || 0);
   return diff === 0;
-}
-
-function demanderMotDePasse() {
-  return new Response("Mot de passe requis", {
-    status: 401,
-    headers: { "WWW-Authenticate": 'Basic realm="Paladines équipe", charset="UTF-8"', "Cache-Control": "no-store" }
-  });
 }
 
 /* ---------- Réponses ---------- */
