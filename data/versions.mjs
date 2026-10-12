@@ -7,6 +7,16 @@
  */
 export const VERSIONS = [
   {
+    v: 25,
+    date: "2026-10-12",
+    titre: "Vert et rouge plus élégants",
+    nouveautes: [
+      "Vert émeraude profond pour « Ouvert » et « Appeler », à la place du vert sapin.",
+      "Rouge framboise pour « Quitter » et les numéros d'urgence, à la place du rouge orangé.",
+      "Mêmes teintes sur la page de l'équipe ; tous les textes restent bien lisibles, en clair et en sombre."
+    ]
+  },
+  {
     v: 24,
     date: "2026-10-12",
     titre: "Finitions plus professionnelles",
