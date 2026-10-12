@@ -40,6 +40,9 @@ js/i18n.js             les textes en français, anglais et arabe
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
 data/coordonnees.js    positions GPS des lieux (générées par outils/geocoder.mjs)
 outils/geocoder.mjs    calcule les positions GPS à partir des adresses
+data/chemins.json      rues et chemins à pied de Lille, pour le guidage sans internet
+outils/chemins.mjs     fabrique data/chemins.json (OpenStreetMap)
+js/chemins.js          calcule l'itinéraire et les consignes sur le téléphone
 functions/             page de l'équipe (/equipe), réception des signalements et des visites
 data/versions.mjs      les versions de l'appli et leurs nouveautés (page de l'équipe)
 sw.js                  service worker : fonctionnement sans internet
@@ -243,7 +246,12 @@ Plus tard, pour la mettre dans les stores :
   chargé seulement à l'ouverture de la carte). Sans WebGL ou si OpenFreeMap ne répond pas,
   l'appli prend les tuiles d'OpenStreetMap (couleurs adoucies en CSS). CARTO et Stadia
   demandent une clé liée au site.
-- « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
+- « Itinéraire » et « Y aller » guident pas à pas dans l'appli, comme une appli GPS, même sans
+  internet : le chemin est calculé sur le téléphone avec `data/chemins.json` (rues de Lille,
+  OpenStreetMap), refait chaque mois par GitHub (`.github/workflows/chemins.yml` : extrait
+  Geofabrik découpé avec osmium, puis `outils/chemins.mjs`). La position reste sur le téléphone.
+  Voix coupée par défaut (discrétion), une vibration avant chaque virage. Le plan (≈ 0,5 Mo
+  compressé) est gardé dans un cache à part du service worker, revérifié à chaque version.
 - Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
   sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la
   position de la personne).

@@ -104,6 +104,9 @@
   <button type="button" id="btn-tel-carte" class="btn-tel-carte" data-action="tel-carte" aria-expanded="false" aria-controls="carte-tel" hidden><svg class="ic" aria-hidden="true"><use href="#i-tel"></use></svg><span></span></button>
   <div id="carte-tel" class="carte-tel" hidden></div>
   <p class="carte-msg" role="status" data-action="masquer-msg-carte" hidden></p>
+  <div id="carte-fiche" class="carte-fiche" role="region" aria-live="polite" hidden></div>
+  <div id="guide-haut" class="guide-haut" role="status" aria-live="polite" hidden></div>
+  <div id="guide-bas" class="guide-bas" hidden></div>
 </section>
 
 <nav class="onglets" aria-label="Menu">
@@ -117,6 +120,7 @@
 <noscript><p class="noscript">Cette page a besoin de JavaScript. En cas d'urgence : 115 (dormir ce soir), 3919 (violences), 17 (police), 112.</p></noscript>
 
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="js/chemins.js"></script>
 <script src="data/lieux.js"></script>
 <script src="data/coordonnees.js"></script>
 <script src="js/i18n.js"></script>

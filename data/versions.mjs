@@ -8,6 +8,18 @@
  */
 export const VERSIONS = [
   {
+    v: 22,
+    date: "2026-10-12",
+    titre: "Guidage à pied, même sans réseau",
+    nouveautes: [
+      "« Itinéraire » guide pas à pas dans l'appli, comme une appli GPS : flèche, distance avant le virage, nom de la rue, temps restant et heure d'arrivée.",
+      "Marche sans internet : le plan des rues de Lille est gardé sur le téléphone et le chemin est calculé dessus ; la position n'est jamais envoyée.",
+      "Nouveau chemin calculé tout seul si l'on s'écarte ; petite vibration avant chaque virage ; voix possible (coupée par défaut, par discrétion).",
+      "Sur la carte, toucher un lieu ouvre une carte simple en bas de l'écran : ouvert ou non, distance, et les boutons « Y aller », « Appeler », « Voir la fiche ».",
+      "Correction : les boutons secondaires (Copier, Voir la fiche…) sont de nouveau en verre et non en jaune."
+    ]
+  },
+  {
     v: 21,
     date: "2026-10-12",
     titre: "Refonte : plus simple, bleu nuit et jaune",

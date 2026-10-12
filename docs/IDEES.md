@@ -152,8 +152,8 @@ nuit dehors.
 3. **Qui met à jour les données**, à quelle fréquence, et comment ?
 4. **Quelles langues** en priorité, selon les publics rencontrés ?
 5. **Nom de l'appli** : « Paladines » est-il assez discret sur un écran d'accueil ?
-6. **Itinéraire** : Google Maps (installé partout) ou une solution plus respectueuse de la vie
-   privée ?
+6. **Itinéraire** : tranché (v22) : guidage dans l'appli, calculé sur le téléphone, sans
+   internet et sans envoyer la position. À tester sur le terrain : clarté des consignes.
 7. **Hébergement du site** : Cloudflare Pages pour l'instant (gratuit,
    <https://paladines.pages.dev>). Passer plus tard à un hébergeur en Europe ?
 8. **Avec qui tester ?** L'idéal est de construire l'appli **avec** des femmes concernées et

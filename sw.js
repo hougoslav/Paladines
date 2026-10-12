@@ -1,6 +1,7 @@
 /*
  * Service worker : permet à l'appli de marcher sans internet.
  * - Fichiers de l'appli : servis depuis le cache, puis mis à jour en arrière-plan.
+ * - Plan des rues pour le guidage (data/chemins.json) : cache à part, revérifié à chaque version.
  * - Fonds de carte (OpenFreeMap, ou OpenStreetMap en secours) : gardés au fur et à mesure (300 au plus).
  * VERSION = « paladines-v<version>.<révision> » : changer la révision à chaque mise en
  * ligne force la mise à jour du cache ; la version affichée (et ses nouveautés) est en
@@ -12,9 +13,13 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v21.2";
+const VERSION = "paladines-v22.0";
 const CACHE_TUILES = "paladines-tuiles-2"; // nouveau nom : efface les tuiles CARTO refusées gardées en cache
 const MAX_TUILES = 600;
+// Plan des rues pour le guidage (≈ 1 Mo) : gardé à part, pour ne pas le retélécharger à chaque
+// mise à jour de l'appli ; revérifié à chaque nouvelle version (sans le retélécharger s'il n'a pas changé).
+const CACHE_PLAN = "paladines-plan";
+const PLAN = "data/chemins.json";
 
 const FICHIERS = [
   "./",
@@ -25,6 +30,7 @@ const FICHIERS = [
   "css/verre.css",
   "js/app.js",
   "js/i18n.js",
+  "js/chemins.js",
   "data/lieux.js",
   "data/coordonnees.js",
   "vendor/leaflet/leaflet.js",
@@ -39,6 +45,8 @@ const FICHIERS = [
 
 self.addEventListener("install", (e) => {
   e.waitUntil(precharger().then(() => self.skipWaiting()));
+  // Le plan ne bloque pas l'installation : sans lui, l'appli marche, seul le guidage attend
+  garderPlan();
 });
 
 async function precharger() {
@@ -50,6 +58,15 @@ async function precharger() {
   }));
 }
 
+async function garderPlan() {
+  try {
+    const rep = await fetch(PLAN, { cache: "no-cache" });
+    if (rep.ok) await (await caches.open(CACHE_PLAN)).put(PLAN, rep);
+  } catch (e) {
+    /* hors ligne : on garde l'ancien plan */
+  }
+}
+
 // Une réponse arrivée après une redirection, recopiée telle quelle mais sans la redirection
 async function sansRedirection(rep) {
   if (!rep.redirected) return rep;
@@ -59,7 +76,7 @@ async function sansRedirection(rep) {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((cles) => Promise.all(cles.filter((k) => k !== VERSION && k !== CACHE_TUILES).map((k) => caches.delete(k))))
+      .then((cles) => Promise.all(cles.filter((k) => k !== VERSION && k !== CACHE_TUILES && k !== CACHE_PLAN).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -80,6 +97,17 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.endsWith("/" + PLAN)) {
+    e.respondWith(
+      caches.open(CACHE_PLAN).then((cache) =>
+        cache.match(PLAN).then((enCache) => enCache || fetch(req).then((rep) => {
+          if (rep.ok) cache.put(PLAN, rep.clone());
+          return rep;
+        }))
+      )
+    );
+    return;
+  }
   // Les signalements et la page de l'équipe (/equipe) ne passent jamais par le cache
   if (url.pathname.indexOf("/api/") === 0 || url.pathname === "/equipe") return;
 
