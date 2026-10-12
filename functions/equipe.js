@@ -4,7 +4,9 @@
  * connecté 90 jours (cookie signé). Changer MOT_DE_PASSE déconnecte tout le monde.
  * Pas de fenêtre « Basic Auth » du navigateur : sur iPhone, ouverte depuis l'écran
  * d'accueil, elle laissait un écran noir plusieurs secondes et redemandait le mot de passe.
- * - Onglet « Signalements » : messages envoyés depuis l'appli, à supprimer une fois traités.
+ * - Onglet « À traiter » : signalements envoyés depuis l'appli, à marquer « traité » une fois réglés.
+ * - Onglet « Historique » : les signalements traités (date de réception et de traitement),
+ *   à remettre à traiter ou à supprimer définitivement.
  * - Onglet « Statistiques » : version en ligne, versions précédentes, visites par mois.
  * Les données sont dans l'espace KV « SIGNALEMENTS » : un signalement par clé (sa date),
  * et un compteur par mois sous « visites:AAAA-MM » (voir api/visite.js).
@@ -23,15 +25,22 @@ const LIBELLES = {
 };
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const NB_MOIS = 12;
+const ONGLETS = ["signalements", "historique", "statistiques"];
+const DUREE_GARDE = 60 * 60 * 24 * 365; // comme api/signalement.js : un signalement s'efface un an après sa réception
 
 export async function onRequestGet({ request, env }) {
   if (!(await connecte(request, env))) return pageConnexion(env, "");
   if (!env.SIGNALEMENTS) return texte("Signalements non configurés : liez un espace KV nommé SIGNALEMENTS.", 503);
 
-  const onglet = new URL(request.url).searchParams.get("onglet") === "statistiques" ? "statistiques" : "signalements";
+  const demande = new URL(request.url).searchParams.get("onglet");
+  const onglet = ONGLETS.indexOf(demande) !== -1 ? demande : "signalements";
   const { signalements, visites } = await toutLire(env.SIGNALEMENTS);
-  const corps = onglet === "statistiques" ? htmlStatistiques(visites) : htmlSignalements(signalements);
-  return reponse(page(onglet, signalements.length, corps), 200, "text/html; charset=utf-8");
+  const aTraiter = signalements.filter((x) => !x.s.traite);
+  const traites = signalements.filter((x) => x.s.traite).sort((a, b) => (a.s.traite < b.s.traite ? 1 : -1));
+  const corps = onglet === "statistiques" ? htmlStatistiques(visites)
+    : onglet === "historique" ? htmlHistorique(traites, signalements.length)
+    : htmlSignalements(aTraiter);
+  return reponse(page(onglet, aTraiter.length, corps), 200, "text/html; charset=utf-8");
 }
 
 export async function onRequestPost({ request, env }) {
@@ -51,12 +60,29 @@ export async function onRequestPost({ request, env }) {
   if (!(await connecte(request, env))) return pageConnexion(env, "");
   if (!env.SIGNALEMENTS) return texte("Signalements non configurés", 503);
   const cle = f.get("cle");
-  if (action === "supprimer" && typeof cle === "string" && cle.indexOf("visites:") !== 0) await env.SIGNALEMENTS.delete(cle);
+  if (typeof cle !== "string" || cle.indexOf("visites:") === 0) return versEquipe();
+  if (action === "supprimer") {
+    await env.SIGNALEMENTS.delete(cle);
+    return versEquipe(null, "historique");
+  }
+  if (action === "traite" || action === "retablir") {
+    const v = await env.SIGNALEMENTS.get(cle);
+    if (v) {
+      const s = JSON.parse(v);
+      if (action === "traite") s.traite = new Date().toISOString();
+      else delete s.traite;
+      // Garder la même date d'effacement (un an après la réception)
+      const fin = Math.floor(Date.parse(s.date) / 1000) + DUREE_GARDE;
+      if (fin > Date.now() / 1000 + 60) await env.SIGNALEMENTS.put(cle, JSON.stringify(s), { expiration: fin });
+      else await env.SIGNALEMENTS.delete(cle);
+    }
+    return versEquipe(null, action === "traite" ? "signalements" : "historique");
+  }
   return versEquipe();
 }
 
-function versEquipe(cookie) {
-  const h = { Location: "/equipe", "Cache-Control": "no-store" };
+function versEquipe(cookie, onglet) {
+  const h = { Location: "/equipe" + (onglet && onglet !== "signalements" ? "?onglet=" + onglet : ""), "Cache-Control": "no-store" };
   if (cookie) h["Set-Cookie"] = cookie;
   return new Response(null, { status: 303, headers: h });
 }
@@ -92,17 +118,56 @@ async function toutLire(kv) {
 
 /* ---------- Onglet « Signalements » ---------- */
 function htmlSignalements(items) {
-  const date = (iso) => new Date(iso).toLocaleString("fr-FR", { timeZone: "Europe/Paris", dateStyle: "medium", timeStyle: "short" });
-  if (!items.length) return "<p>Aucun signalement pour l'instant.</p>";
-  return "<p>" + items.length + " signalement" + (items.length > 1 ? "s" : "") + ". Ils s'effacent seuls au bout d'un an.</p><ul class=\"cartes\">" +
+  if (!items.length) return "<p>Aucun signalement à traiter. Les signalements déjà traités sont dans l'onglet « Historique ».</p>";
+  return "<p>" + items.length + " signalement" + (items.length > 1 ? "s" : "") + " à traiter.</p><ul class=\"cartes\">" +
     items.map(({ cle, s }) =>
-      "<li><p class=\"discret\">" + esc(date(s.date)) + (s.langue ? " · " + esc(s.langue.toUpperCase()) : "") + "</p>" +
-      "<p><strong>" + esc(LIBELLES[s.raison] || s.raison) + "</strong>" +
-      (s.lieu ? ' — <a href="/#lieu-' + esc(s.lieu) + '" target="_blank" rel="noopener">' + esc(s.lieu) + "</a>" : " — <em>en général</em>") + "</p>" +
-      (s.message ? "<blockquote>" + esc(s.message) + "</blockquote>" : "") +
-      '<form method="post"><input type="hidden" name="action" value="supprimer"><input type="hidden" name="cle" value="' + esc(cle) + '">' +
-      '<button type="submit">Traité : supprimer</button></form></li>'
+      "<li>" + htmlUnSignalement(s) +
+      bouton("traite", cle, "Marquer comme traité", "principal") + "</li>"
     ).join("") + "</ul>";
+}
+
+/* ---------- Onglet « Historique » ---------- */
+function htmlHistorique(items, total) {
+  const intro = '<p class="discret">' + total + " signalement" + (total > 1 ? "s" : "") + " reçu" + (total > 1 ? "s" : "") +
+    " en tout, dont " + items.length + " traité" + (items.length > 1 ? "s" : "") + ". Chaque signalement s'efface seul un an après sa réception.</p>";
+  if (!items.length) return intro + "<p>Aucun signalement traité pour l'instant.</p>";
+  // Regroupés par mois de traitement
+  let mois = "";
+  let html = intro;
+  items.forEach(({ cle, s }) => {
+    const m = nomMois(s.traite);
+    if (m !== mois) {
+      html += (mois ? "</ul>" : "") + "<h2>" + esc(m) + '</h2><ul class="cartes">';
+      mois = m;
+    }
+    html += '<li class="traite"><p class="statut">Traité le ' + esc(dateHeure(s.traite)) + "</p>" + htmlUnSignalement(s) +
+      '<div class="actions">' + bouton("retablir", cle, "Remettre à traiter") +
+      bouton("supprimer", cle, "Supprimer définitivement", "danger", "Supprimer définitivement ce signalement ?") + "</div></li>";
+  });
+  return html + "</ul>";
+}
+
+function htmlUnSignalement(s) {
+  return "<p class=\"discret\">Reçu le " + esc(dateHeure(s.date)) + (s.langue ? " · " + esc(s.langue.toUpperCase()) : "") + "</p>" +
+    "<p><strong>" + esc(LIBELLES[s.raison] || s.raison) + "</strong>" +
+    (s.lieu ? ' — <a href="/#lieu-' + esc(s.lieu) + '" target="_blank" rel="noopener">' + esc(s.lieu) + "</a>" : " — <em>en général</em>") + "</p>" +
+    (s.message ? "<blockquote>" + esc(s.message) + "</blockquote>" : "");
+}
+
+function bouton(action, cle, libelle, classe, confirmer) {
+  return '<form method="post"' + (confirmer ? " onsubmit=\"return confirm('" + confirmer.replace(/'/g, "\\'") + "')\"" : "") + ">" +
+    '<input type="hidden" name="action" value="' + action + '"><input type="hidden" name="cle" value="' + esc(cle) + '">' +
+    '<button type="submit"' + (classe ? ' class="' + classe + '"' : "") + ">" + esc(libelle) + "</button></form>";
+}
+
+function dateHeure(iso) {
+  return new Date(iso).toLocaleString("fr-FR", { timeZone: "Europe/Paris", dateStyle: "medium", timeStyle: "short" });
+}
+
+function nomMois(iso) {
+  const [a, m] = moisParis(new Date(iso)).split("-").map(Number);
+  const nom = MOIS[m - 1] + " " + a;
+  return nom.charAt(0).toUpperCase() + nom.slice(1);
 }
 
 /* ---------- Onglet « Statistiques » ---------- */
@@ -168,10 +233,11 @@ function dateCourte(iso) {
 /* ---------- Mise en page ---------- */
 function page(onglet, nbSignalements, corps) {
   const lien = (id, libelle) =>
-    '<a href="/equipe' + (id === "statistiques" ? "?onglet=statistiques" : "") + '"' + (onglet === id ? ' aria-current="page"' : "") + ">" + libelle + "</a>";
+    '<a href="/equipe' + (id !== "signalements" ? "?onglet=" + id : "") + '"' + (onglet === id ? ' aria-current="page"' : "") + ">" + libelle + "</a>";
   return debut() +
     '<nav class="onglets" aria-label="Rubriques">' +
-    lien("signalements", "Signalements" + (nbSignalements ? " (" + nbSignalements + ")" : "")) +
+    lien("signalements", "À traiter" + (nbSignalements ? ' <span class="compte" aria-label="' + nbSignalements + ' à traiter">' + nbSignalements + "</span>" : "")) +
+    lien("historique", "Historique") +
     lien("statistiques", "Statistiques") +
     "</nav><main>" + corps + "</main>" +
     '<form method="post" class="sortie"><input type="hidden" name="action" value="deconnexion"><button type="submit">Se déconnecter</button></form>' +
@@ -236,6 +302,13 @@ const CSS =
   "@media (prefers-color-scheme:dark){.principal{background:#f4b63f;border-color:#f4b63f;color:#1d1606}}" +
   ".erreur{color:#b42318;margin:0;font-weight:600}@media (prefers-color-scheme:dark){.erreur{color:#ff8a80}}" +
   ".sortie{margin:32px 0 8px}" +
+  ".onglets{gap:0;overflow-x:auto}.onglets a{flex:none;padding:0 10px}" +
+  ".compte{display:inline-block;min-width:20px;margin-left:4px;padding:0 6px;border-radius:10px;background:var(--accent);color:var(--surface);font-size:.75rem;line-height:20px;text-align:center}" +
+  "@media (max-width:360px){body{padding:12px}.onglets a{padding:0 5px;font-size:.875rem}}" +
+  ".statut{margin:0 0 4px;font-weight:600;color:#146c45}@media (prefers-color-scheme:dark){.statut{color:#63d49c}}" +
+  ".traite{border-left:4px solid #146c45}@media (prefers-color-scheme:dark){.traite{border-left-color:#63d49c}}" +
+  ".actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}" +
+  ".danger{color:#b42318;border-color:#b42318}@media (prefers-color-scheme:dark){.danger{color:#ff8a80;border-color:#ff8a80}}" +
   "@media (forced-colors:active){.barre{background:CanvasText}}";
 
 /* ---------- Connexion de l'équipe ----------
