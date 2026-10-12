@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Paladines</title>
+<meta name="theme-color" content="#0b1b36">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<!--
+  Guide pour les professionnelles (travailleuses sociales, maraudes, accueils de jour, soignantes) :
+  présenter Paladines aux femmes accompagnées. Page à part, en français, imprimable (A4).
+  Adresse neutre (/pro.html) : rien de sensible dans l'historique d'un téléphone partagé.
+-->
+<style>
+  :root {
+    --fond: #0b1b36;
+    --carte: #14284a;
+    --jaune: #ffc400;
+    --vert: #2e7d32;
+    --rouge: #d32f2f;
+    --texte: #fff;
+    --doux: #c3cddd;
+    --bord: rgb(255 255 255 / 0.12);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--fond); }
+  body {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    color: var(--texte);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+  header img { width: 52px; height: 52px; border-radius: 12px; }
+  h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.02em; }
+  .sous { margin: 4px 0 0; color: var(--doux); }
+  h2 { margin: 32px 0 10px; font-size: 1.25rem; color: var(--jaune); }
+  p, li { margin: 0 0 8px; }
+  ul, ol { padding-left: 1.3em; }
+  a { color: var(--jaune); }
+  .bloc {
+    padding: 16px 18px;
+    border: 1px solid var(--bord);
+    border-radius: 18px;
+    background: var(--carte);
+  }
+  .grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 10px; padding: 0; list-style: none; }
+  .grille li { margin: 0; padding: 12px 14px; border: 1px solid var(--bord); border-radius: 14px; background: var(--carte); }
+  .grille strong { display: block; }
+  .qr { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+  .qr canvas, .qr img { width: 150px; height: 150px; padding: 8px; border-radius: 12px; background: #fff; }
+  .adresse { font-size: 1.25rem; font-weight: 700; }
+  .boutons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .bouton {
+    display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px;
+    border-radius: 999px; background: var(--jaune); color: var(--fond); font-weight: 700; text-decoration: none;
+  }
+  .bouton--doux { background: transparent; border: 1px solid var(--bord); color: var(--texte); }
+  .attention { border-color: rgb(211 47 47 / 0.6); background: rgb(211 47 47 / 0.12); }
+  .discret { color: var(--doux); font-size: 0.9375rem; }
+  @media print {
+    :root { --fond: #fff; --carte: #fff; --texte: #111; --doux: #444; --jaune: #0b1b36; --bord: #bbb; color-scheme: light; }
+    body { font-size: 11.5pt; padding: 0; }
+    .boutons, .pas-imprime { display: none; }
+    h2 { break-after: avoid; }
+    .bloc, .grille li { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <img src="icons/icon-192.png" alt="">
+  <div>
+    <h1>Paladines : guide pour les professionnelles</h1>
+    <p class="sous">Pour présenter l'appli aux femmes que vous accompagnez, à Lille.</p>
+  </div>
+</header>
+
+<h2>En une phrase</h2>
+<p class="bloc">Paladines montre aux femmes à la rue <strong>les lieux ouverts maintenant, près d'elles</strong> : dormir, manger, se laver, se soigner, se poser, être écoutée en cas de violences. Gratuite, sans compte, elle marche aussi <strong>sans internet</strong> une fois ouverte.</p>
+
+<h2>Comment la donner</h2>
+<div class="bloc qr">
+  <canvas id="qr" width="150" height="150" aria-label="QR code vers paladines.pages.dev"></canvas>
+  <div>
+    <p class="adresse">paladines.pages.dev</p>
+    <p>Faites scanner ce QR code avec l'appareil photo, ou tapez l'adresse.</p>
+    <p class="discret">Proposez de l'ajouter à l'écran d'accueil (Réglages de l'appli → « Installer »). Elle s'ouvre alors comme une appli, même sans réseau.</p>
+  </div>
+</div>
+<div class="boutons">
+  <a class="bouton" href="affiche.html">Imprimer des affiches avec QR code</a>
+  <a class="bouton bouton--doux" href="./" target="_blank" rel="noopener">Ouvrir l'appli</a>
+  <button class="bouton bouton--doux" type="button" onclick="print()">Imprimer ce guide</button>
+</div>
+
+<h2>Ce qu'elle trouve dedans</h2>
+<ul class="grille">
+  <li><strong>Ouvert maintenant, près de moi</strong>56 lieux de Lille, triés par distance, avec « ouvert », « ferme bientôt » ou « fermé ».</li>
+  <li><strong>Pour les femmes</strong>Lieux réservés, créneaux femmes, santé, protections périodiques.</li>
+  <li><strong>Guidage à pied</strong>Comme une appli GPS, flèche et rue à prendre, <em>même sans réseau</em>.</li>
+  <li><strong>Toilettes et eau potable</strong>Sur la carte, avec le chemin pour y aller.</li>
+  <li><strong>« Je ne me sens pas en sécurité »</strong>17, SMS au 114 déjà écrit, lieu sûr le plus proche, 3919.</li>
+  <li><strong>Mon carnet</strong>Rendez-vous, numéros utiles et notes, gardés seulement sur son téléphone.</li>
+  <li><strong>Infos pratiques</strong>115, droits, adresse pour le courrier, papiers (coffre-fort Reconnect), santé gratuite.</li>
+  <li><strong>Langues</strong>Français, anglais, arabe ; « Lecture facile » : grands pictogrammes et pages lues à voix haute.</li>
+</ul>
+
+<h2>Sécurité et discrétion</h2>
+<div class="bloc">
+  <ul>
+    <li>Aucun compte, aucun nom demandé. Sa position <strong>ne quitte jamais son téléphone</strong>.</li>
+    <li>Le bouton rouge <strong>« Quitter »</strong>, toujours en haut, ferme l'appli d'un coup et ouvre la météo.</li>
+    <li>Le nom « Paladines » et les adresses de pages ne disent rien de sensible.</li>
+    <li>Les adresses des hébergements protégés ne sont jamais montrées : l'appli guide vers un lieu public où demander.</li>
+    <li>Le carnet peut s'effacer tout seul en appuyant sur « Quitter » (case dans le carnet).</li>
+  </ul>
+</div>
+
+<h2>Bon à dire en la présentant</h2>
+<ol class="bloc">
+  <li>« Appuyez sur <em>Ouvert maintenant, près de moi</em> et acceptez la position : les lieux les plus proches viennent en premier. »</li>
+  <li>« Sur un lieu, <em>Itinéraire</em> vous guide à pied, même sans internet. »</li>
+  <li>« En danger, le bouton rouge <em>Je ne me sens pas en sécurité</em> est sur l'accueil. »</li>
+  <li>« Si quelqu'un regarde votre téléphone, appuyez sur <em>Quitter</em>. »</li>
+</ol>
+
+<h2>Une info est fausse ? Un lieu manque ?</h2>
+<p class="bloc">Dans l'appli : « Signaler une erreur » sur chaque fiche, ou Infos → « Signaler un problème ». C'est anonyme ; l'équipe corrige en quelques minutes pour tous les téléphones. Les femmes peuvent aussi répondre « Ce lieu vous a aidée ? » sur chaque fiche.</p>
+
+<p class="bloc attention pas-imprime"><strong>Prototype</strong> : les lieux ont été relevés sur internet en octobre 2026 et sont en cours de vérification par téléphone. Conseillez d'appeler avant de se déplacer quand c'est possible.</p>
+
+<script src="vendor/qrcode/qrcode.js"></script>
+<script>
+  // QR code vers l'appli, dessiné sur place (rien n'est chargé ailleurs)
+  (function () {
+    var toile = document.getElementById("qr");
+    if (!window.qrcode || !toile) return;
+    var q = qrcode(0, "M");
+    q.addData("https://paladines.pages.dev/");
+    q.make();
+    var n = q.getModuleCount(), marge = 2, taille = toile.width / (n + 2 * marge), c = toile.getContext("2d");
+    c.fillStyle = "#fff";
+    c.fillRect(0, 0, toile.width, toile.height);
+    c.fillStyle = "#0b1b36";
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (q.isDark(y, x)) c.fillRect((x + marge) * taille, (y + marge) * taille, Math.ceil(taille), Math.ceil(taille));
+  })();
+</script>
+</body>
+</html>

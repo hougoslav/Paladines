@@ -47,6 +47,7 @@ data/equipements.js    toilettes, eau potable et lieux sûrs (OpenStreetMap, cha
 outils/equipements.mjs fabrique data/equipements.js
 functions/             page de l'équipe (/equipe), signalements, visites, corrections des lieux, avis
 js/equipe.js           formulaires de l'onglet « Lieux » de /equipe (dessinés dans le navigateur)
+pro.html               guide pour les travailleuses sociales et les maraudes (à imprimer)
 data/versions.mjs      les versions de l'appli et leurs nouveautés (page de l'équipe)
 sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil

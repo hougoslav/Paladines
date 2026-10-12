@@ -49,6 +49,7 @@
   const etat = {
     langue: stock.lire("langue", null) || langueDuTelephone(),
     taille: stock.lire("taille", 0),
+    facile: stock.lire("facile", false),
     favoris: stock.lire("favoris", []),
     filtres: new Set(),
     position: null, // { lat, lng, source: "gps" | "qr", nom }
@@ -594,6 +595,7 @@
       '<span class="cta-txt"><strong>' + esc(t("procheCta")) + "</strong><small>" + esc(t("procheSous")) + "</small></span>" +
       icone("i-chevron", "chevron") + "</a>" +
       "</section>" +
+      htmlRappelRdv() +
       htmlBandeauInstallation() +
       htmlInfosMoment(maintenant) +
       '<section class="bloc" aria-labelledby="h-cherche">' +
@@ -1003,6 +1005,7 @@
       htmlRetour() +
       '<header class="tete tete--favoris"><span class="pastille pastille--grande">' + icone("i-etoile") + "</span>" +
       "<div><h1>" + esc(t("favorisTitre")) + "</h1></div></header>" +
+      '<a class="rappel rappel-rdv lien-carnet" href="#carnet">' + icone("i-papier") + "<span>" + esc(t("carnetLien")) + "</span>" + icone("i-chevron", "chevron") + "</a>" +
       (liste.length ? htmlListe(preparer(liste), true) : '<p class="vide">' + esc(t("favorisVide")) + "</p>")
     );
   }
@@ -1086,6 +1089,9 @@
       '<section class="section"><h2>' + esc(t("tailleTexte")) + '</h2><div class="choix">' +
       [0, 1, 2].map((n) => choix("taille", n, etat.taille === n, '<span class="taille-' + n + '">A' + "+".repeat(n) + "</span>")).join("") +
       "</div></section>" +
+      '<section class="section"><h2>' + esc(t("facileTitre")) + '</h2><p class="aide">' + esc(t("facileAide")) + '</p><div class="choix">' +
+      choix("facile", "0", !etat.facile, esc(t("facileNon"))) + choix("facile", "1", !!etat.facile, esc(t("facileOui"))) +
+      "</div></section>" +
       '<section class="section" id="installer"><h2>' + esc(t("installer")) + '</h2><p class="aide">' + esc(t("installerAide")) + "</p>" + htmlInstallation() + "</section>" +
       htmlOuvrirTelephone() +
       '<section class="section"><h2>' + esc(t("effacer")) + '</h2><p class="aide">' + esc(t("effacerAide")) + "</p>" +
@@ -1133,6 +1139,7 @@
       '<ol class="idees">' + IDEES.map((x) => "<li><strong>" + esc(x[0]) + "</strong><span>" + esc(x[1]) + "</span></li>").join("") + "</ol>" +
       "<h2>Outils</h2>" +
       '<p><a class="btn" href="affiche.html">' + icone("i-qr") + "Créer une affiche avec QR code</a></p>" +
+      '<p><a class="btn" href="pro.html">' + icone("i-info") + "Guide pour les professionnelles (à imprimer)</a></p>" +
       '<p><a class="btn" href="/equipe" target="_blank" rel="noopener">' + icone("i-drapeau") + "Signalements et statistiques</a></p>" +
       "<p>Réservé à l'équipe : le mot de passe est demandé. Adresse directe : <code>paladines.pages.dev/equipe</code></p>" +
       "<p>Les questions à trancher, les sources de données possibles et la feuille de route sont dans <code>docs/IDEES.md</code>. La liste des lieux de Lille, leurs sources et ce qui reste à vérifier par téléphone sont dans <code>docs/LIEUX-LILLE.md</code>.</p>" +
@@ -1925,6 +1932,108 @@
     document.getElementById("btn-localiser").classList.toggle("btn-localiser--visible", !g.suivre);
   }
 
+  /* ---------- Mon carnet : rendez-vous, numéros utiles, notes ----------
+   * Gardé seulement sur ce téléphone (localStorage), jamais envoyé. Peut s'effacer tout seul
+   * à l'appui sur « Quitter » (case dans le carnet). */
+  function carnet() {
+    const c = stock.lire("carnet", null) || {};
+    return { rdv: Array.isArray(c.rdv) ? c.rdv : [], numeros: Array.isArray(c.numeros) ? c.numeros : [], note: typeof c.note === "string" ? c.note : "" };
+  }
+
+  function isoJour(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function triRdv(a, b) {
+    return (a.date + (a.heure || "")).localeCompare(b.date + (b.heure || ""));
+  }
+
+  function htmlRdv(r) {
+    return (
+      '<li class="carnet-ligne"><span class="carnet-quand">' + esc(formatDate(r.date)) + (r.heure ? ' · <span dir="ltr">' + esc(formatHeure(r.heure)) + "</span>" : "") + "</span>" +
+      '<span class="carnet-txt" dir="auto">' + esc(r.texte) + "</span>" +
+      '<button type="button" class="carnet-suppr" data-action="carnet-suppr" data-type="rdv" data-id="' + esc(r.id) + '" aria-label="' + esc(t("supprimer")) + '">' + SVG_FERMER + "</button></li>"
+    );
+  }
+
+  function vueCarnet() {
+    const c = carnet();
+    const auj = isoJour(new Date());
+    const avenir = c.rdv.filter((r) => r.date >= auj).sort(triRdv);
+    const passes = c.rdv.filter((r) => r.date < auj).sort(triRdv).reverse();
+    return (
+      htmlRetour() +
+      '<header class="tete"><span class="pastille pastille--grande">' + icone("i-papier") + "</span>" +
+      "<div><h1>" + esc(t("carnetTitre")) + '</h1><p class="sous-titre">' + esc(t("carnetSous")) + "</p></div></header>" +
+      '<section class="section carnet"><h2>' + icone("i-horloge") + esc(t("rdvTitre")) + "</h2>" +
+      (avenir.length ? '<ul class="carnet-liste">' + avenir.map(htmlRdv).join("") + "</ul>" : '<p class="aide">' + esc(t("rdvVide")) + "</p>") +
+      '<form class="form-carnet" data-type="rdv">' +
+      '<div class="carnet-champs"><label>' + esc(t("rdvDate")) + '<input type="date" name="date" required min="' + auj + '" value="' + auj + '"></label>' +
+      "<label>" + esc(t("rdvHeure")) + '<input type="time" name="heure"></label></div>' +
+      "<label>" + esc(t("rdvQuoi")) + '<input name="texte" dir="auto" required maxlength="120" placeholder="' + esc(t("rdvQuoiExemple")) + '"></label>' +
+      '<button type="submit" class="btn">' + esc(t("ajouter")) + "</button></form>" +
+      (passes.length ? '<details class="carnet-passes"><summary>' + esc(t("rdvPasses", { n: passes.length })) + '</summary><ul class="carnet-liste">' + passes.map(htmlRdv).join("") + "</ul></details>" : "") +
+      "</section>" +
+      '<section class="section carnet"><h2>' + icone("i-tel") + esc(t("numerosTitre")) + "</h2>" +
+      (c.numeros.length
+        ? '<ul class="carnet-liste">' + c.numeros.map((n) =>
+            '<li class="carnet-ligne"><span class="carnet-txt"><strong dir="auto">' + esc(n.nom) + '</strong><br><span dir="ltr">' + esc(n.tel) + "</span></span>" +
+            '<a class="btn btn--appel btn--mini" href="' + telLien(n.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" +
+            '<button type="button" class="carnet-suppr" data-action="carnet-suppr" data-type="numeros" data-id="' + esc(n.id) + '" aria-label="' + esc(t("supprimer")) + '">' + SVG_FERMER + "</button></li>"
+          ).join("") + "</ul>"
+        : '<p class="aide">' + esc(t("numerosVide")) + "</p>") +
+      '<form class="form-carnet" data-type="numeros">' +
+      "<label>" + esc(t("numNom")) + '<input name="nom" dir="auto" required maxlength="60" placeholder="' + esc(t("numNomExemple")) + '"></label>' +
+      "<label>" + esc(t("numTel")) + '<input name="tel" type="tel" required maxlength="25" dir="ltr"></label>' +
+      '<button type="submit" class="btn">' + esc(t("ajouter")) + "</button></form></section>" +
+      '<section class="section carnet"><h2>' + icone("i-papier") + esc(t("notesTitre")) + "</h2>" +
+      '<label class="aide" for="carnet-note">' + esc(t("notesAide")) + "</label>" +
+      '<textarea id="carnet-note" class="carnet-note" dir="auto" maxlength="3000" rows="6">' + esc(c.note) + "</textarea></section>" +
+      '<section class="section carnet"><h2>' + icone("i-bouclier") + esc(t("discretionTitre")) + "</h2>" +
+      '<button type="button" class="puce carnet-option" data-action="carnet-quitter" aria-pressed="' + !!stock.lire("carnetQuitter", false) + '">' + esc(t("carnetQuitter")) + "</button>" +
+      '<div class="effacer"><button type="button" class="btn btn--doux" data-action="carnet-effacer">' + esc(t("carnetEffacer")) + "</button>" +
+      '<div class="effacer-confirmer" hidden><button type="button" class="btn btn--danger" data-action="carnet-effacer-oui">' + esc(t("confirmerEffacer")) + '</button><button type="button" class="btn btn--doux" data-action="effacer-non">' + esc(t("annuler")) + "</button></div></div>" +
+      "</section>"
+    );
+  }
+
+  function ecrireCarnet(c) {
+    stock.ecrire("carnet", c);
+  }
+
+  // Sur l'accueil : le prochain rendez-vous d'aujourd'hui ou de demain
+  function htmlRappelRdv() {
+    const auj = new Date();
+    const demain = new Date(auj.getTime() + 864e5);
+    const r = carnet().rdv.filter((x) => x.date === isoJour(auj) || x.date === isoJour(demain)).sort(triRdv)[0];
+    if (!r) return "";
+    const cle = (r.date === isoJour(auj) ? "rdvAujourdhui" : "rdvDemain") + (r.heure ? "" : "SansHeure");
+    return '<a class="rappel rappel-rdv" href="#carnet">' + icone("i-horloge") + "<span>" + esc(t(cle, { h: r.heure ? formatHeure(r.heure) : "", texte: "\u0001" })).replace("\u0001", "<bdi>" + esc(r.texte) + "</bdi>") + "</span>" + icone("i-chevron", "chevron") + "</a>";
+  }
+
+  /* ---------- Lecture facile : écouter la page ---------- */
+  function texteDeLaPage() {
+    const vue = document.getElementById("vue");
+    const copie = vue.cloneNode(true);
+    copie.querySelectorAll("button, form, nav, svg, .liens-bas, .badge-fictif, .sources, .signaler, .retour, details:not([open]) > :not(summary)").forEach((x) => x.remove());
+    // innerText a besoin d'un élément affiché pour garder les retours à la ligne entre les blocs
+    copie.removeAttribute("id");
+    copie.style.cssText = "position:absolute;left:-10000px;top:0;width:" + vue.clientWidth + "px";
+    copie.setAttribute("aria-hidden", "true");
+    document.body.appendChild(copie);
+    const texte = copie.innerText;
+    copie.remove();
+    return texte.replace(/[ \t]+\n/g, "\n").replace(/\n{2,}/g, "\n").trim().slice(0, 3000);
+  }
+
+  function majBoutonLirePage() {
+    const b = document.getElementById("btn-lire-page");
+    if (!b) return;
+    const v = vueCourante().vue;
+    b.hidden = !etat.facile || !("speechSynthesis" in window) || v === "carte" || v === "guide";
+    b.querySelector("span").textContent = b.getAttribute("aria-pressed") === "true" ? t("arreter") : t("lirePage");
+  }
+
   /* ---------- Lecture à voix haute ---------- */
   function lire(texte, bouton) {
     if (!("speechSynthesis" in window)) return;
@@ -1942,7 +2051,7 @@
 
   function majBoutonLecture(b, actif) {
     b.setAttribute("aria-pressed", String(actif));
-    b.querySelector("span").textContent = actif ? t("arreter") : t("ecouter");
+    b.querySelector("span").textContent = actif ? t("arreter") : t(b.dataset.libelle || "ecouter");
   }
 
   function texteLieu(l) {
@@ -2001,6 +2110,7 @@
   }
 
   function quitter() {
+    if (stock.lire("carnetQuitter", false)) stock.ecrire("carnet", null);
     try {
       sessionStorage.clear();
     } catch (e) {
@@ -2067,6 +2177,36 @@
         break;
       case "langue":
         changerLangue(el.dataset.valeur);
+        break;
+      case "facile":
+        etat.facile = el.dataset.valeur === "1";
+        stock.ecrire("facile", etat.facile);
+        appliquerReglages();
+        rafraichir();
+        break;
+      case "lire-page":
+        lire(texteDeLaPage(), el);
+        majBoutonLirePage();
+        break;
+      case "carnet-suppr": {
+        const c = carnet();
+        c[el.dataset.type] = c[el.dataset.type].filter((x) => x.id !== el.dataset.id);
+        ecrireCarnet(c);
+        rafraichir();
+        break;
+      }
+      case "carnet-quitter": {
+        const oui = el.getAttribute("aria-pressed") !== "true";
+        stock.ecrire("carnetQuitter", oui);
+        el.setAttribute("aria-pressed", String(oui));
+        break;
+      }
+      case "carnet-effacer":
+        el.closest(".effacer").querySelector(".effacer-confirmer").hidden = false;
+        break;
+      case "carnet-effacer-oui":
+        stock.ecrire("carnet", null);
+        rafraichir();
         break;
       case "taille":
         etat.taille = Number(el.dataset.valeur);
@@ -2236,6 +2376,17 @@
 
   async function surEnvoi(e) {
     const form = e.target;
+    if (form.classList && form.classList.contains("form-carnet")) {
+      e.preventDefault();
+      const c = carnet();
+      const f = form.elements;
+      const id = Date.now().toString(36);
+      if (form.dataset.type === "rdv") c.rdv.push({ id: id, date: f.date.value, heure: f.heure.value, texte: f.texte.value.trim().slice(0, 120) });
+      else c.numeros.push({ id: id, nom: f.nom.value.trim().slice(0, 60), tel: f.tel.value.trim().slice(0, 25) });
+      ecrireCarnet(c);
+      rafraichir();
+      return;
+    }
     if (!form.classList || !form.classList.contains("form-signaler")) return;
     e.preventDefault();
     const champs = form.querySelector("fieldset");
@@ -2298,7 +2449,8 @@
     const html = document.documentElement;
     html.lang = etat.langue;
     html.dir = etat.langue === "ar" ? "rtl" : "ltr";
-    html.style.fontSize = [100, 115, 132][etat.taille] + "%";
+    html.style.fontSize = Math.round([100, 115, 132][etat.taille] * (etat.facile ? 1.1 : 1)) + "%";
+    html.toggleAttribute("data-facile", !!etat.facile);
     // Un seul style : bleu nuit et jaune (« Paladines »)
     html.setAttribute("data-theme", "paladines");
     document.querySelectorAll("[data-t]").forEach((el) => {
@@ -2325,7 +2477,7 @@
   }
 
   function majNav(vue) {
-    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", aide: "urgences", infos: "infos", favoris: "favoris" };
+    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", aide: "urgences", carnet: "favoris", infos: "infos", favoris: "favoris" };
     const actif = correspond[vue];
     document.querySelectorAll(".onglets a").forEach((a) => {
       if (a.dataset.onglet === actif) a.setAttribute("aria-current", "page");
@@ -2350,12 +2502,17 @@
 
   function route(options) {
     const opts = options || {};
-    if (!opts.rafraichir && "speechSynthesis" in window) speechSynthesis.cancel();
+    if (!opts.rafraichir && "speechSynthesis" in window) {
+      speechSynthesis.cancel();
+      const b = document.getElementById("btn-lire-page");
+      if (b) b.setAttribute("aria-pressed", "false");
+    }
     const h = vueCourante();
     const main = document.getElementById("vue");
     majNav(h.vue);
 
     if (h.vue === "carte" || h.vue === "guide") {
+      majBoutonLirePage();
       if (h.vue === "carte") {
         arreterGuide();
         // « #carte-toilettes » : la carte avec les toilettes et l'eau potable
@@ -2384,11 +2541,13 @@
       case "signaler": html = vueSignaler(); break;
       case "pourvous": html = vuePourVous(h.param); break;
       case "aide": html = vueAide(); break;
+      case "carnet": html = vueCarnet(); break;
       default: html = vueAccueil();
     }
     const afficher = () => {
       main.innerHTML = html;
       main.dataset.vue = h.vue;
+      majBoutonLirePage();
       demarrerDefilement();
       if (h.vue === "reglages") dessinerQrSite();
 
@@ -2432,6 +2591,17 @@
       route();
     });
     document.addEventListener("click", surClic);
+    let minuterieNote = null;
+    document.addEventListener("input", (e) => {
+      if (e.target.id !== "carnet-note") return;
+      clearTimeout(minuterieNote);
+      const texte = e.target.value;
+      minuterieNote = setTimeout(() => {
+        const c = carnet();
+        c.note = texte;
+        ecrireCarnet(c);
+      }, 400);
+    });
     document.addEventListener("submit", surEnvoi);
 
     document.getElementById("btn-quitter").addEventListener("click", quitter);
