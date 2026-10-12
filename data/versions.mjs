@@ -7,6 +7,18 @@
  */
 export const VERSIONS = [
   {
+    v: 23,
+    date: "2026-10-12",
+    titre: "Finitions selon les règles de design d'Apple",
+    nouveautes: [
+      "Une seule police, celle du téléphone (SF Pro sur iPhone), avec une échelle de tailles claire.",
+      "Accueil plus aéré : le grand titre est posé sur le fond, le bouton « Ouvert maintenant » porte l'action.",
+      "Titres de section en gras (« Je cherche… ») au lieu de petites capitales espacées.",
+      "Listes de lieux façon iPhone : séparateurs fins, statut en texte coloré, bouton d'appel rond et vert.",
+      "« Appeler » est vert partout, y compris sur la page des urgences ; ombres plus légères ; barre d'onglets plus fine."
+    ]
+  },
+  {
     v: 22,
     date: "2026-10-12",
     titre: "Liquid Glass en noir et blanc",

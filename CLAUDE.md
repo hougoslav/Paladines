@@ -19,7 +19,7 @@ HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service wor
 - Aucun compte, aucune statistique sur les personnes : seul un compteur anonyme de visites par mois (un téléphone une fois par jour, sans identifiant). Polices hébergées sur le site. Vouvoiement et langage respectueux.
 - Tout nouveau texte va dans `js/i18n.js` en FR, EN et AR (arabe de droite à gauche ; numéros et adresses en `dir="ltr"`).
 - Après toute modification d'un fichier mis en cache, augmenter `VERSION` dans `sw.js` et ajouter la version en haut de `data/versions.mjs` (titre et nouveautés en langage simple).
-- Lisibilité : texte en Atkinson Hyperlegible (titres en police système), pictogrammes, cibles tactiles d'au moins 44 px, contraste AA même sur le verre.
+- Lisibilité : police système du téléphone (SF Pro sur iPhone, Roboto sur Android), échelle de tailles d'Apple (34/28/20/17/15/13/11), pictogrammes, cibles tactiles d'au moins 44 px, contraste AA même sur le verre. Même action = même apparence (« Appeler » toujours vert).
 
 ## Terminé
 Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les femmes », infos du moment (météo, plan hiver), listes et filtres, fiches, carte de tous les lieux, urgences, lieux gardés, réglages, signalements anonymes (fiche et « Signaler un problème », envoi différé sans internet), page de l'équipe (signalements à traiter et historique, versions, visites par mois), hors ligne, installation, affiches QR, identité (logo lanterne, style « Liquid Glass »), kit Instagram.

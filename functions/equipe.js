@@ -276,14 +276,14 @@ const CSS =
   "--verre:rgb(255 255 255/.3);--verre-barre:rgb(255 255 255/.42);--lentille:rgb(255 255 255/.66);--bord:rgb(255 255 255/.55);" +
   "--reflet:linear-gradient(135deg,rgb(255 255 255/.5),rgb(255 255 255/.1) 38%,rgb(255 255 255/0) 60%,rgb(255 255 255/.14));" +
   "--liseré:inset 0 1px 0 rgb(255 255 255/.85),inset 0 -1px 0 rgb(255 255 255/.28),inset 0 0 0 1px rgb(255 255 255/.16);" +
-  "--ombre:0 1px 2px rgb(0 0 0/.06),0 12px 32px -14px rgb(0 0 0/.22);--flou:blur(22px) saturate(120%) brightness(1.04);" +
+  "--ombre:0 1px 1px rgb(0 0 0/.03),0 6px 18px -10px rgb(0 0 0/.16);--flou:blur(22px) saturate(120%) brightness(1.04);" +
   "--segment:rgb(255 255 255/.22);--encre:#111113;--douce:#4a4a4f;--accent:#111113;--lien:#111113;--barre:#111113;--rail:rgb(0 0 0/.08);" +
   "--trait:rgb(0 0 0/.12);--ok:#17692d;--danger:#c0000e;--sur-accent:#fff;--actuelle:rgb(0 0 0/.06);color-scheme:light}" +
   "@media (prefers-color-scheme:dark){:root{--fond-base:#000;--t1:rgb(255 255 255/.13);--t2:rgb(255 255 255/.06);--t3:rgb(255 255 255/.1);--t4:rgb(255 255 255/.05);--t5:rgb(255 255 255/.08);" +
   "--verre:rgb(255 255 255/.08);--verre-barre:rgb(28 28 36/.42);--lentille:rgb(255 255 255/.2);--bord:rgb(255 255 255/.16);" +
   "--reflet:linear-gradient(135deg,rgb(255 255 255/.16),rgb(255 255 255/.03) 38%,rgb(255 255 255/0) 60%,rgb(255 255 255/.06));" +
   "--liseré:inset 0 1px 0 rgb(255 255 255/.24),inset 0 -1px 0 rgb(255 255 255/.06),inset 0 0 0 1px rgb(255 255 255/.06);" +
-  "--ombre:0 1px 2px rgb(0 0 0/.3),0 14px 36px -14px rgb(0 0 0/.7);--flou:blur(22px) saturate(120%) brightness(.9);" +
+  "--ombre:0 1px 1px rgb(0 0 0/.3),0 8px 22px -12px rgb(0 0 0/.6);--flou:blur(22px) saturate(120%) brightness(.9);" +
   "--segment:rgb(255 255 255/.08);--encre:#f5f5f7;--douce:#c4c4cc;--accent:#f5f5f7;--lien:#f5f5f7;--barre:#f5f5f7;--rail:rgb(255 255 255/.1);" +
   "--trait:rgb(255 255 255/.12);--ok:#4ade80;--danger:#ffa39d;--sur-accent:#111113;--actuelle:rgb(255 255 255/.1);color-scheme:dark}}" +
   "*{box-sizing:border-box}html{background:var(--fond-base)}" +

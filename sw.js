@@ -11,7 +11,7 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v22";
+const VERSION = "paladines-v23";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 
@@ -29,9 +29,6 @@ const FICHIERS = [
   "vendor/leaflet/leaflet.js",
   "vendor/leaflet/leaflet.css",
   "vendor/qrcode/qrcode.js",
-  "fonts/atkinson-400.woff2",
-  "fonts/atkinson-700.woff2",
-  "fonts/bricolage-var.woff2",
   "icons/icon.svg",
   "icons/icon-192.png",
   "icons/icon-512.png",
