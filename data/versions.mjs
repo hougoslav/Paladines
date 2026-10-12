@@ -8,6 +8,18 @@
  */
 export const VERSIONS = [
   {
+    v: 24,
+    date: "2026-10-12",
+    titre: "L'équipe corrige les lieux elle-même",
+    nouveautes: [
+      "Page de l'équipe : nouvel onglet « Lieux » pour fermer un lieu quelques jours, changer ses horaires ou son numéro, ou afficher un court message sur sa fiche, sans toucher au code.",
+      "On peut aussi y ajouter un lieu : sa position est trouvée toute seule à partir de l'adresse.",
+      "Les téléphones reçoivent les corrections en quelques minutes et les gardent sans internet ; un lieu fermé apparaît « Fermé en ce moment ».",
+      "Chaque signalement a un lien « Corriger ce lieu ».",
+      "Sur chaque fiche : « Ce lieu vous a aidée ? » Oui / Non, sans rien écrire, un avis par lieu et par mois. Les réponses sont dans « Statistiques », les lieux avec le plus de « Non » en premier."
+    ]
+  },
+  {
     v: 23,
     date: "2026-10-12",
     titre: "Toilettes, eau potable et lieux sûrs",
