@@ -746,8 +746,8 @@
     const actions = [];
     const principales = [];
     if (!l.adresseMasquee && (l.adresse || aCoord(l))) {
-      // L'adresse écrite est plus fiable que des coordonnées approchées pour guider jusqu'à la porte
-      principales.push('<a class="action action--principale" target="_blank" rel="noopener noreferrer" href="' + esc(lienItineraire(l)) + '">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
+      // Guidage pas à pas dans l'appli, même sans internet (voir « Guidage à pied »)
+      principales.push('<a class="action action--principale" href="#guide-' + l.id + '">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
     }
     if (l.tel) principales.push('<a class="action action--principale action--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>");
     actions.push('<button type="button" class="action" data-action="partager" data-id="' + l.id + '">' + icone("i-partager") + "<span>" + esc(t("partager")) + "</span></button>");
@@ -1055,6 +1055,13 @@
     L.control.zoom({ position: "bottomright" }).addTo(carte);
     carte.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
     ajouterFond(carte);
+    carte.on("click", fermerFicheCarte);
+    // Pendant le guidage, déplacer la carte arrête de suivre la marche (bouton pour recentrer)
+    carte.on("dragstart", () => {
+      if (!etat.guide) return;
+      etat.guide.suivre = false;
+      rendreGuide();
+    });
     etat.carte = carte;
     etat.coucheLieux = L.layerGroup().addTo(carte);
   }
@@ -1242,11 +1249,13 @@
     cadrerCarte();
     const points = [];
     D.lieux
-      .filter((l) => etat.carteCat === "toutes" || dansCat(l, etat.carteCat))
+      .filter((l) => etat.guide || etat.carteCat === "toutes" || dansCat(l, etat.carteCat))
       .forEach((l) => {
         const pt = pointCarte(l);
         const s = statut(l, maintenant);
-        if (!pt || (etat.carteOuvert && s.ouvert !== true) || (etat.carteFemmes && !pourFemmes(l))) return;
+        if (!pt) return;
+        // Pendant le guidage : seulement le lieu où l'on va
+        if (etat.guide ? l.id !== etat.guide.id || pt.acces : (etat.carteOuvert && s.ouvert !== true) || (etat.carteFemmes && !pourFemmes(l))) return;
         points.push({ l: l, s: s, acces: pt.acces, lat: pt.lat, lng: pt.lng, dx: 0, dy: 0 });
       });
     ecarter(points);
@@ -1254,32 +1263,14 @@
       const cat = categorie(p.l.cat);
       const ic = L.divIcon({
         className: "marqueur-boite",
-        html: '<span class="marqueur' + (p.s.ouvert === true ? "" : " marqueur--ferme") + (p.acces ? " marqueur--protege" : "") + '" style="--c:' + cat.couleur + '">' + icone(cat.icone) + "</span>",
+        html: '<span class="marqueur' + (p.s.ouvert === true ? "" : " marqueur--ferme") + (p.acces ? " marqueur--protege" : "") + (etat.ficheCarte === p.l.id ? " marqueur--choisi" : "") + '" data-id="' + p.l.id + '" style="--c:' + cat.couleur + '">' + icone(cat.icone) + "</span>",
         iconSize: [38, 38],
-        iconAnchor: [19 - p.dx, 19 - p.dy],
-        popupAnchor: [p.dx, p.dy - 20]
+        iconAnchor: [19 - p.dx, 19 - p.dy]
       });
-      L.marker([p.lat, p.lng], { icon: ic, title: p.l.nom, alt: p.l.nom })
-        .bindPopup(() => htmlPopup(p.l, p.acces))
+      L.marker([p.lat, p.lng], { icon: ic, title: p.l.nom, alt: p.l.nom, interactive: !etat.guide })
+        .on("click", () => ouvrirFicheCarte(p.l, p.acces))
         .addTo(etat.coucheLieux);
     });
-  }
-
-  function htmlPopup(l, acces) {
-    const s = statut(l, new Date());
-    const ici = acces || l;
-    return (
-      '<p class="popup-cat">' + esc(t("cat_" + l.cat)) + '</p><p class="popup-nom">' + esc(l.nom) + "</p>" +
-      '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
-      badgeFemmes(l) +
-      (acces ? '<p class="popup-protege">' + icone("i-bouclier") + esc(t("accesProtege", { lieu: acces.nom })) + "</p>" : "") +
-      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, ici))) + "</p>" : "") +
-      '<div class="popup-actions">' +
-      '<a class="btn btn--mini" href="#lieu-' + l.id + '">' + esc(t("voirFiche")) + "</a>" +
-      (l.tel ? '<a class="btn btn--mini btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
-      '<a class="btn btn--mini btn--doux" target="_blank" rel="noopener noreferrer" href="' + lienItineraire(ici) + '">' + icone("i-itineraire") + esc(t("itineraire")) + "</a>" +
-      "</div>"
-    );
   }
 
   // Les services sans adresse (115, équipe mobile…) se joignent de partout : un bouton sur la carte les rappelle
@@ -1320,6 +1311,378 @@
       etat.marqueurMoi.setLatLng(ll);
     }
     if (centrer && !document.getElementById("vue-carte").hidden) etat.carte.setView(ll, Math.max(etat.carte.getZoom(), 15));
+  }
+
+  /* ---------- Fiche d'un lieu sur la carte ----------
+   * Toucher un repère ouvre une carte simple en bas de l'écran : nom, ouvert ou non,
+   * distance, et trois boutons (Y aller, Appeler, Fiche). Toucher la carte la referme. */
+  function ouvrirFicheCarte(l, acces) {
+    const boite = document.getElementById("carte-fiche");
+    const s = statut(l, new Date());
+    const cat = categorie(l.cat);
+    const ici = acces || l;
+    const allerA = acces ? acces.id : l.id;
+    etat.ficheCarte = l.id;
+    boite.style.setProperty("--c", cat.couleur);
+    boite.innerHTML =
+      '<div class="cf-tete"><span class="pastille">' + icone(cat.icone) + "</span>" +
+      '<div class="cf-titre"><p class="cf-cat">' + esc(t("cat_" + l.cat)) + '</p><h2 class="cf-nom">' + esc(l.nom) + "</h2></div>" +
+      '<button type="button" class="cf-fermer" data-action="fermer-fiche-carte" aria-label="' + esc(t("fermer")) + '">' + SVG_FERMER + "</button></div>" +
+      '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
+      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, ici))) + "</p>" : "") +
+      badgeFemmes(l) +
+      (acces ? '<p class="popup-protege">' + icone("i-bouclier") + esc(t("accesProtege", { lieu: acces.nom })) + "</p>" : "") +
+      '<div class="cf-actions">' +
+      '<a class="btn btn--itin" href="#guide-' + allerA + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" +
+      (l.tel ? '<a class="btn btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+      '<a class="btn btn--doux" href="#lieu-' + l.id + '">' + esc(t("voirFiche")) + "</a>" +
+      "</div>";
+    boite.hidden = false;
+    document.getElementById("vue-carte").classList.add("fiche-ouverte");
+    etat.telCarteOuvert = false;
+    majTelCarte();
+    majMarqueurChoisi();
+  }
+
+  function fermerFicheCarte() {
+    const boite = document.getElementById("carte-fiche");
+    if (!boite || boite.hidden) return;
+    boite.hidden = true;
+    etat.ficheCarte = null;
+    document.getElementById("vue-carte").classList.remove("fiche-ouverte");
+    majMarqueurChoisi();
+  }
+
+  function majMarqueurChoisi() {
+    document.querySelectorAll(".marqueur--choisi").forEach((m) => m.classList.remove("marqueur--choisi"));
+    if (!etat.ficheCarte) return;
+    const m = document.querySelector('.marqueur[data-id="' + etat.ficheCarte + '"]');
+    if (m) m.classList.add("marqueur--choisi");
+  }
+
+  const SVG_FERMER = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+
+  /* ---------- Guidage à pied, comme une appli GPS, sans internet ----------
+   * Le chemin est calculé sur le téléphone (js/chemins.js) avec le plan des rues de Lille
+   * (data/chemins.json, gardé par le service worker). La position GPS reste sur le téléphone.
+   * Voix coupée par défaut (discrétion) ; une petite vibration avant chaque virage. */
+  let promessePlan = null;
+
+  function chargerPlan() {
+    if (!promessePlan) {
+      promessePlan = fetch("data/chemins.json")
+        .then((r) => {
+          if (!r.ok) throw new Error("plan absent");
+          return r.json();
+        })
+        .then((j) => window.PaladinesChemins.lire(j))
+        .catch((e) => {
+          promessePlan = null; // on réessaiera
+          throw e;
+        });
+    }
+    return promessePlan;
+  }
+
+  const FLECHES = {
+    "tout-droit": '<path d="M12 21V4M5 11l7-7 7 7"/>',
+    depart: '<path d="M12 21V4M5 11l7-7 7 7"/>',
+    droite: '<path d="M6 21v-8a4 4 0 0 1 4-4h10M14 3l6 6-6 6"/>',
+    gauche: '<path d="M18 21v-8a4 4 0 0 0-4-4H4M10 3L4 9l6 6"/>',
+    "leg-droite": '<path d="M8 21v-7l9-9M10 5h7v7"/>',
+    "leg-gauche": '<path d="M16 21v-7L7 5M14 5H7v7"/>',
+    "demi-tour": '<path d="M16 21V9a5 5 0 0 0-10 0v6M2 11l4 4 4-4"/>',
+    escalier: '<path d="M3 20h5v-5h5v-5h5V5h3"/>',
+    traversee: '<path d="M5 3v18M19 3v18M9 6h6M9 12h6M9 18h6"/>',
+    arrivee: '<path d="M6 22V3M6 4h12l-3 4.5L18 13H6"/>'
+  };
+
+  function fleche(type) {
+    return '<svg class="guide-fleche" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + (FLECHES[type] || FLECHES["tout-droit"]) + "</svg>";
+  }
+
+  function vraiNom(nom) {
+    return nom && nom.charAt(0) !== "#";
+  }
+
+  // Texte d'une consigne ; html : nom de rue isolé pour le sens de lecture (arabe)
+  function consigne(e, html) {
+    const rue = (n) => (html ? "<bdi>" + esc(n) + "</bdi>" : n);
+    const txt = (cle, vars) => (html ? esc(t(cle, vars)) : t(cle, vars));
+    if (e.type === "arrivee") return html ? esc(t("g_arrivee", { lieu: "\u0001" })).replace("\u0001", rue(etat.guide.nomLieu)) : t("g_arrivee", { lieu: etat.guide.nomLieu });
+    if (e.type === "escalier" || e.type === "traversee") return txt("g_" + e.type);
+    if (e.type === "depart") {
+      if (!vraiNom(e.nom)) return txt("g_suivre");
+      return html ? esc(t("g_depart", { rue: "\u0001" })).replace("\u0001", rue(e.nom)) : t("g_depart", { rue: e.nom });
+    }
+    let s = txt("g_" + e.type);
+    if (vraiNom(e.nom)) s += " " + (html ? esc(t("g_sur", { rue: "\u0001" })).replace("\u0001", rue(e.nom)) : t("g_sur", { rue: e.nom }));
+    else if (e.nom === "#chemin") s += " " + txt("g_surChemin");
+    return s;
+  }
+
+  function distanceCourte(m) {
+    if (m < 1000) return Math.max(5, Math.round(m / (m < 100 ? 5 : 10)) * (m < 100 ? 5 : 10)) + " m";
+    return new Intl.NumberFormat(LOCALES[etat.langue], { maximumFractionDigits: 1 }).format(m / 1000) + " km";
+  }
+
+  function demarrerGuide(id) {
+    if (etat.guide && etat.guide.id === id) return;
+    arreterGuide();
+    const l = lieu(id);
+    const pt = l ? pointCarte(l) : null;
+    const zone = document.getElementById("vue-carte");
+    zone.classList.add("en-guide");
+    document.body.classList.add("en-guide");
+    fermerFicheCarte();
+    const g = (etat.guide = {
+      id: id,
+      nomLieu: l ? l.nom : "",
+      dest: pt ? { lat: pt.lat, lng: pt.lng } : null,
+      etat: pt ? "position" : "erreur",
+      erreur: pt ? null : "guideSansLieu",
+      trajet: null,
+      i: 1,
+      dist: 0,
+      hors: 0,
+      annonces: {},
+      suivre: true,
+      voix: stock.lire("guideVoix", false),
+      couches: L.layerGroup().addTo(etat.carte)
+    });
+    majMarqueurs();
+    etat.carteCadree = true;
+    if (pt) etat.carte.setView([pt.lat, pt.lng], 16);
+    rendreGuide();
+    if (!pt) return;
+    chargerPlan().catch(() => {});
+    garderEcranAllume(true);
+    if (!gpsPossible()) return erreurGuide("guideSansGps");
+    g.suivi = navigator.geolocation.watchPosition(
+      (pos) => surPositionGuide(pos),
+      (err) => {
+        if (etat.guide !== g) return;
+        if (!g.trajet || (err && err.code === 1)) erreurGuide("guideSansGps");
+      },
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 }
+    );
+  }
+
+  function erreurGuide(cle) {
+    const g = etat.guide;
+    if (!g) return;
+    g.etat = "erreur";
+    g.erreur = cle;
+    rendreGuide();
+  }
+
+  function arreterGuide() {
+    const g = etat.guide;
+    if (!g) return;
+    if (g.suivi != null) navigator.geolocation.clearWatch(g.suivi);
+    if (g.couches) g.couches.remove();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    garderEcranAllume(false);
+    etat.guide = null;
+    document.getElementById("vue-carte").classList.remove("en-guide");
+    document.body.classList.remove("en-guide");
+    document.getElementById("guide-haut").hidden = true;
+    document.getElementById("guide-bas").hidden = true;
+    if (etat.coucheLieux) majMarqueurs();
+  }
+
+  // L'écran reste allumé pendant le guidage (navigateurs qui le permettent)
+  let verrouEcran = null;
+  function garderEcranAllume(oui) {
+    if (!("wakeLock" in navigator)) return;
+    if (!oui) {
+      if (verrouEcran) verrouEcran.release().catch(() => {});
+      verrouEcran = null;
+      return;
+    }
+    navigator.wakeLock.request("screen").then((v) => { verrouEcran = v; }).catch(() => {});
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && etat.guide && !verrouEcran) garderEcranAllume(true);
+  });
+
+  function surPositionGuide(pos) {
+    const g = etat.guide;
+    if (!g) return;
+    const ici = { lat: pos.coords.latitude, lng: pos.coords.longitude, source: "gps" };
+    const precision = pos.coords.accuracy || 20;
+    etat.position = ici;
+    majMoiSurCarte(false);
+    if (!g.trajet) {
+      if (g.etat === "calcul") return;
+      g.etat = "calcul";
+      rendreGuide();
+      calculerTrajet(ici);
+      return;
+    }
+    if (g.etat === "arrivee") return;
+    const s = window.PaladinesChemins.suivre(g.trajet, ici, g.i);
+    if (!s || s.ecart > Math.max(30, precision * 1.2)) {
+      // Écartée du chemin deux fois de suite : nouveau chemin depuis ici
+      g.hors++;
+      if (g.hors >= 2 && Date.now() - (g.dernierCalcul || 0) > 6000) {
+        g.etat = "recalcul";
+        rendreGuide();
+        calculerTrajet(ici);
+        return;
+      }
+    } else {
+      g.hors = 0;
+      g.i = s.i;
+      g.dist = Math.max(g.dist, s.dist);
+    }
+    const reste = g.trajet.longueur - g.dist;
+    if (reste < 15 || window.PaladinesChemins.metres([ici.lat, ici.lng], [g.dest.lat, g.dest.lng]) < 20) {
+      g.etat = "arrivee";
+      annoncer("arrivee", consigne({ type: "arrivee" }, false));
+      if (navigator.vibrate) navigator.vibrate([150, 80, 150]);
+      g.couches.clearLayers();
+      g.ligne = null;
+    } else dessinerTrajet();
+    if (g.suivre && Date.now() > (g.suivreApres || 0)) etat.carte.setView([ici.lat, ici.lng], Math.max(etat.carte.getZoom(), 17), { animate: true });
+    rendreGuide();
+  }
+
+  function calculerTrajet(depart) {
+    const g = etat.guide;
+    chargerPlan()
+      .then((plan) => {
+        if (etat.guide !== g) return;
+        const tr = window.PaladinesChemins.itineraire(plan, depart, g.dest);
+        g.dernierCalcul = Date.now();
+        if (!tr) return erreurGuide("guideHorsZone");
+        const premier = !g.trajet;
+        g.trajet = tr;
+        g.i = 1;
+        g.dist = 0;
+        g.hors = 0;
+        g.annonces = {};
+        g.etat = "actif";
+        dessinerTrajet();
+        if (premier) {
+          // D'abord tout le chemin, puis la carte suit la marche
+          etat.carte.fitBounds(tr.points, { paddingTopLeft: [30, 150], paddingBottomRight: [30, 170], maxZoom: 17 });
+          g.suivreApres = Date.now() + 3500;
+        }
+        rendreGuide();
+      })
+      .catch(() => {
+        if (etat.guide === g) erreurGuide("guideSansPlan");
+      });
+  }
+
+  function dessinerTrajet() {
+    const g = etat.guide;
+    if (!g || !g.trajet) return;
+    const tr = g.trajet;
+    // Partie qui reste à faire : depuis la position sur le chemin
+    const k = Math.max(1, g.i);
+    const debut = tr.cumul[k] - tr.cumul[k - 1] > 0 ? (g.dist - tr.cumul[k - 1]) / (tr.cumul[k] - tr.cumul[k - 1]) : 0;
+    const a = tr.points[k - 1], b = tr.points[k];
+    const reste = [[a[0] + (b[0] - a[0]) * debut, a[1] + (b[1] - a[1]) * debut]].concat(tr.points.slice(k));
+    if (!g.ligne) {
+      g.bord = L.polyline(reste, { color: "#ffffff", weight: 11, opacity: 0.95, interactive: false }).addTo(g.couches);
+      g.ligne = L.polyline(reste, { color: "#1e63d6", weight: 7, opacity: 1, interactive: false }).addTo(g.couches);
+    } else {
+      g.bord.setLatLngs(reste);
+      g.ligne.setLatLngs(reste);
+    }
+  }
+
+  function prochaineEtape(g) {
+    const liste = g.trajet.etapes;
+    for (let n = 0; n < liste.length; n++) {
+      if (liste[n].type === "depart" && g.dist < 10) return n;
+      if (liste[n].type !== "depart" && liste[n].dist > g.dist + 3) return n;
+    }
+    return liste.length - 1;
+  }
+
+  function annoncer(cle, texte) {
+    const g = etat.guide;
+    if (!g || g.annonces[cle]) return;
+    g.annonces[cle] = true;
+    if (!g.voix || !("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(texte);
+    u.lang = VOIX[etat.langue];
+    u.rate = 0.95;
+    speechSynthesis.speak(u);
+  }
+
+  function rendreGuide() {
+    const g = etat.guide;
+    const haut = document.getElementById("guide-haut");
+    const bas = document.getElementById("guide-bas");
+    if (!g) return;
+    haut.hidden = false;
+    bas.hidden = false;
+    haut.className = "guide-haut" + (g.etat === "arrivee" ? " guide-haut--arrivee" : "") + (g.etat === "erreur" ? " guide-haut--erreur" : "");
+    const boutonsBas = (fin) =>
+      '<div class="guide-boutons">' +
+      ("speechSynthesis" in window && !fin
+        ? '<button type="button" class="btn btn--doux guide-voix" data-action="guide-voix" aria-pressed="' + !!g.voix + '">' + icone("i-son") + esc(t("guideVoix")) + "</button>"
+        : "") +
+      '<button type="button" class="btn ' + (fin ? "" : "btn--doux ") + 'guide-arreter" data-action="guide-arreter">' + (fin ? "" : SVG_FERMER) + esc(t(fin ? "guideTerminer" : "guideArreter")) + "</button></div>";
+
+    if (g.etat === "erreur") {
+      haut.innerHTML = '<p class="guide-msg">' + icone("i-alerte") + esc(t(g.erreur)) + "</p>";
+      const l = lieu(g.id);
+      bas.innerHTML =
+        '<p class="guide-dest">' + esc(g.nomLieu) + "</p>" +
+        '<div class="guide-boutons">' +
+        (g.erreur !== "guideSansLieu" ? '<button type="button" class="btn" data-action="guide-reessayer">' + esc(t("guideReessayer")) + "</button>" : "") +
+        (l && l.tel ? '<a class="btn btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+        '<button type="button" class="btn btn--doux" data-action="guide-arreter">' + esc(t("guideArreter")) + "</button></div>" +
+        (g.dest && g.erreur !== "guideSansPlan" ? '<a class="guide-autre" target="_blank" rel="noopener noreferrer" href="' + esc(lienItineraire(g.dest)) + '">' + esc(t("guideAutreAppli")) + "</a>" : "");
+      return;
+    }
+    if (g.etat === "position" || g.etat === "calcul" || (g.etat === "recalcul" && !g.trajet)) {
+      haut.innerHTML = '<p class="guide-msg"><span class="guide-attente" aria-hidden="true"></span>' + esc(t(g.etat === "position" ? "guidePosition" : "guideCalcul")) + "</p>";
+      bas.innerHTML = '<p class="guide-dest">' + esc(g.nomLieu) + "</p>" + boutonsBas(false);
+      return;
+    }
+    if (g.etat === "arrivee") {
+      haut.innerHTML = fleche("arrivee") + '<div class="guide-texte"><p class="guide-dist">' + esc(t("guideArrivee")) + '</p><p class="guide-consigne">' + esc(g.nomLieu) + "</p></div>";
+      bas.innerHTML = '<a class="btn btn--doux" href="#lieu-' + g.id + '">' + esc(t("voirFiche")) + "</a>" + boutonsBas(true);
+      return;
+    }
+    const tr = g.trajet;
+    const n = prochaineEtape(g);
+    const e = tr.etapes[n];
+    const d = Math.max(0, e.dist - g.dist);
+    const texte = consigne(e, false);
+    if (e.type !== "depart") {
+      if (d <= 40) {
+        annoncer("pres" + n, texte);
+        if (navigator.vibrate && !g.annonces["vib" + n]) {
+          g.annonces["vib" + n] = true;
+          navigator.vibrate(120);
+        }
+      } else if (d <= 200 && d > 120) annoncer("loin" + n, t("guideDans", { dist: distanceCourte(d), consigne: texte }));
+    } else annoncer("depart", texte);
+    const suite = tr.etapes[n + 1];
+    const reste = tr.longueur - g.dist;
+    const min = Math.max(1, Math.round(reste / 75)); // 4,5 km/h
+    const arrivee = new Date(Date.now() + min * 60000).toLocaleTimeString(LOCALES[etat.langue], { hour: "2-digit", minute: "2-digit" });
+    haut.innerHTML =
+      fleche(e.type) +
+      '<div class="guide-texte">' +
+      (e.type === "depart" ? "" : '<p class="guide-dist" dir="ltr">' + esc(distanceCourte(d)) + "</p>") +
+      '<p class="guide-consigne">' + consigne(e, true) + "</p>" +
+      (suite && e.type !== "depart" && suite.dist - e.dist < 60 ? '<p class="guide-puis">' + esc(t("guidePuis")) + " : " + consigne(suite, true) + "</p>" : "") +
+      "</div>";
+    bas.innerHTML =
+      '<div class="guide-resume"><p class="guide-temps">' + esc(t("guideResteMin", { min: min })) + "</p>" +
+      '<p class="guide-detail"><span dir="ltr">' + esc(distanceCourte(reste)) + "</span> · " + esc(t("guideArriveeA", { h: arrivee })) + "</p>" +
+      '<p class="guide-dest">' + esc(g.nomLieu) + "</p></div>" +
+      boutonsBas(false);
+    document.getElementById("btn-localiser").classList.toggle("btn-localiser--visible", !g.suivre);
   }
 
   /* ---------- Lecture à voix haute ---------- */
@@ -1502,6 +1865,28 @@
         boite.querySelector(".ok").hidden = false;
         break;
       }
+      case "fermer-fiche-carte":
+        fermerFicheCarte();
+        break;
+      case "guide-arreter":
+        arreterGuide();
+        if (etat.navInterne) history.back();
+        else location.hash = "#carte";
+        break;
+      case "guide-voix":
+        if (!etat.guide) break;
+        etat.guide.voix = !etat.guide.voix;
+        stock.ecrire("guideVoix", etat.guide.voix);
+        if (!etat.guide.voix && "speechSynthesis" in window) speechSynthesis.cancel();
+        etat.guide.annonces = {};
+        rendreGuide();
+        break;
+      case "guide-reessayer": {
+        const id = etat.guide && etat.guide.id;
+        arreterGuide();
+        if (id) demarrerGuide(id);
+        break;
+      }
       case "carte-cat":
         etat.carteCat = el.dataset.valeur;
         rendreBarreCarte();
@@ -1518,7 +1903,12 @@
         majMarqueurs();
         break;
       case "localiser":
-        if (etat.position && etat.position.source === "gps") majMoiSurCarte(true);
+        if (etat.guide) {
+          etat.guide.suivre = true;
+          etat.guide.suivreApres = 0;
+          if (etat.position) etat.carte.setView([etat.position.lat, etat.position.lng], Math.max(etat.carte.getZoom(), 17));
+          rendreGuide();
+        } else if (etat.position && etat.position.source === "gps") majMoiSurCarte(true);
         else demanderPosition();
         break;
       case "im-pause":
@@ -1690,7 +2080,7 @@
   }
 
   function majNav(vue) {
-    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", urgences: "urgences", infos: "infos", favoris: "favoris" };
+    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", infos: "infos", favoris: "favoris" };
     const actif = correspond[vue];
     document.querySelectorAll(".onglets a").forEach((a) => {
       if (a.dataset.onglet === actif) a.setAttribute("aria-current", "page");
@@ -1720,10 +2110,14 @@
     const main = document.getElementById("vue");
     majNav(h.vue);
 
-    if (h.vue === "carte") {
+    if (h.vue === "carte" || h.vue === "guide") {
+      if (h.vue === "carte") arreterGuide();
       afficherCarte();
+      if (h.vue === "guide" && etat.carte) demarrerGuide(h.param);
       return;
     }
+    arreterGuide();
+    fermerFicheCarte();
     document.getElementById("vue-carte").hidden = true;
     main.hidden = false;
 
@@ -1769,7 +2163,7 @@
 
   // Re-dessine la vue courante sans remonter en haut (après un réglage, la position…)
   function rafraichir() {
-    if (vueCourante().vue === "carte") return;
+    if (["carte", "guide"].indexOf(vueCourante().vue) !== -1) return;
     route({ rafraichir: true });
   }
 
@@ -1792,6 +2186,10 @@
     let dernierEchap = 0;
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
+      if (!document.getElementById("carte-fiche").hidden) {
+        fermerFicheCarte();
+        return;
+      }
       if (!document.getElementById("menu-langue").hidden) {
         fermerMenuLangue();
         document.getElementById("btn-langue").focus();
@@ -1834,7 +2232,7 @@
     setInterval(() => {
       const v = vueCourante().vue;
       if (["accueil", "cat", "proche", "favoris"].indexOf(v) !== -1 && !document.activeElement.closest("#vue .filtres")) rafraichir();
-      if (v === "carte") majMarqueurs();
+      if (v === "carte" || v === "guide") majMarqueurs();
     }, 60000);
 
     if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {

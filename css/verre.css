@@ -418,11 +418,16 @@ body:has(.hero) .entete {
   background: var(--jaune);
   filter: brightness(1.05);
 }
-/* Secondaire : verre */
-.btn--doux,
-.btn--doux:hover {
+/* Secondaire : verre (redit ici, sinon le jaune de .btn passe dessus) */
+.btn--doux {
   border: 1px solid var(--verre-bord);
+  background: var(--verre) var(--reflet);
   color: var(--blanc);
+  box-shadow: var(--liseré), var(--ombre-verre);
+  filter: none;
+}
+.btn--doux:hover {
+  background-color: var(--verre-survol);
   filter: none;
 }
 /* Appeler : vert ; supprimer, quitter : rouge ; itinéraire : bleu */
@@ -913,6 +918,249 @@ body:has(.hero) .entete {
 }
 .moi {
   background: var(--bleu);
+}
+
+/* ============ 12 bis. Lieu touché sur la carte : carte simple en bas de l'écran ============ */
+.marqueur--choisi {
+  transform: scale(1.22);
+  box-shadow: 0 0 0 4px var(--jaune), 0 6px 16px -4px rgb(0 0 0 / 0.7);
+}
+.carte-fiche {
+  position: absolute;
+  z-index: 650;
+  inset-inline: 12px;
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 12px + env(safe-area-inset-bottom, 0px));
+  max-width: 30rem;
+  margin-inline: auto;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--verre-bord);
+  border-radius: 24px;
+  background: var(--verre-barre) var(--reflet);
+  color: var(--blanc);
+  box-shadow: var(--liseré), var(--ombre-flottante);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+}
+.cf-tete {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.cf-tete .pastille {
+  flex: none;
+}
+.cf-titre {
+  flex: 1;
+  min-width: 0;
+}
+.cf-cat {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--gris);
+}
+.cf-nom {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.cf-fermer {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin: -6px -8px 0 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.1);
+  color: var(--blanc);
+  cursor: pointer;
+}
+[dir="rtl"] .cf-fermer {
+  margin: -6px 0 0 -8px;
+}
+.carte-fiche .statut,
+.carte-fiche .lieu-meta,
+.carte-fiche .popup-protege {
+  margin: 8px 0 0;
+}
+.carte-fiche .popup-protege {
+  color: var(--gris);
+}
+.cf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.cf-actions .btn {
+  flex: 1 1 0;
+  min-width: max-content;
+  min-height: 48px;
+  justify-content: center;
+}
+.btn--itin,
+.btn--itin:hover {
+  border-color: var(--bleu);
+  background: var(--bleu);
+  color: #fff;
+}
+.vue-carte.fiche-ouverte .btn-localiser,
+.vue-carte.fiche-ouverte .btn-tel-carte,
+.vue-carte.fiche-ouverte .carte-tel,
+.vue-carte.fiche-ouverte .leaflet-control-zoom {
+  display: none;
+}
+
+/* ============ 12 ter. Guidage à pied ============ */
+body.en-guide .onglets,
+.vue-carte.en-guide .barre-carte,
+.vue-carte.en-guide .btn-tel-carte,
+.vue-carte.en-guide .carte-tel,
+.vue-carte.en-guide .carte-msg,
+.vue-carte.en-guide .leaflet-control-zoom,
+.vue-carte.en-guide .btn-localiser:not(.btn-localiser--visible) {
+  display: none;
+}
+.vue-carte.en-guide .leaflet-bottom {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+.vue-carte.en-guide .btn-localiser {
+  top: auto;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 150px);
+}
+.guide-haut,
+.guide-bas {
+  position: absolute;
+  z-index: 650;
+  inset-inline: 10px;
+  max-width: 34rem;
+  margin-inline: auto;
+  border-radius: 22px;
+  color: #fff;
+  box-shadow: var(--ombre-flottante);
+}
+.guide-haut {
+  top: 10px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-height: 84px;
+  padding: 14px 16px;
+  background: var(--bleu);
+}
+.guide-haut--arrivee {
+  background: var(--vert);
+}
+.guide-haut--erreur {
+  border: 1px solid var(--verre-bord);
+  background: var(--verre-barre);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+}
+.guide-fleche {
+  flex: none;
+  width: 48px;
+  height: 48px;
+}
+.guide-texte {
+  min-width: 0;
+}
+.guide-dist {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.guide-consigne {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.guide-puis {
+  margin: 6px 0 0;
+  font-size: 0.9375rem;
+  opacity: 0.92;
+}
+.guide-msg {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.guide-msg .ic {
+  flex: none;
+  color: var(--jaune);
+}
+.guide-attente {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgb(255 255 255 / 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: tourne 0.9s linear infinite;
+}
+@keyframes tourne {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.guide-bas {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 26px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 1px solid var(--verre-bord);
+  background: var(--verre-barre) var(--reflet);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+}
+.guide-resume {
+  min-width: 0;
+}
+.guide-temps {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--vert-texte);
+}
+.guide-detail,
+.guide-dest {
+  margin: 2px 0 0;
+  font-size: 0.9375rem;
+  color: var(--gris);
+}
+.guide-dest {
+  overflow-wrap: anywhere;
+}
+.guide-boutons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.guide-boutons .btn {
+  min-height: 48px;
+}
+.guide-voix[aria-pressed="true"] {
+  border-color: var(--jaune);
+  background: var(--jaune);
+  color: var(--sur-jaune);
+}
+.guide-autre {
+  flex-basis: 100%;
+  font-size: 0.9375rem;
+  color: var(--gris);
 }
 
 /* ============ 13. Réglages ============ */
