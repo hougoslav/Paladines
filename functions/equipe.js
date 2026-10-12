@@ -7,9 +7,14 @@
  * - Onglet « À traiter » : signalements envoyés depuis l'appli, à marquer « traité » une fois réglés.
  * - Onglet « Historique » : les signalements traités (date de réception et de traitement),
  *   à remettre à traiter ou à supprimer définitivement.
- * - Onglet « Statistiques » : version en ligne, versions précédentes, visites par mois.
+ * - Onglet « Lieux » : corriger un lieu sans toucher au code (fermeture temporaire, horaires,
+ *   téléphone, message sur la fiche) et ajouter un lieu. Lu par l'appli via /api/corrections.
+ * - Onglet « Statistiques » : version en ligne, avis « Ce lieu vous a aidée ? », versions, visites.
  * Les données sont dans l'espace KV « SIGNALEMENTS » : un signalement par clé (sa date),
- * et un compteur par mois sous « visites:AAAA-MM » (voir api/visite.js).
+ * un compteur par mois sous « visites:AAAA-MM » (voir api/visite.js), les avis sous
+ * « avis:<lieu>:AAAA-MM » (api/avis.js), les corrections sous « correction:<id> » et les lieux
+ * ajoutés sous « ajout:<id> » (api/corrections.js).
+ * Les noms des lieux viennent de /data/lieux.js, lu dans le navigateur par /js/equipe.js.
  */
 import { VERSIONS } from "../data/versions.mjs";
 
@@ -25,7 +30,10 @@ const LIBELLES = {
 };
 const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 const NB_MOIS = 12;
-const ONGLETS = ["signalements", "historique", "statistiques"];
+const ONGLETS = ["signalements", "historique", "lieux", "statistiques"];
+const SEMAINE = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"];
+const PREFIXES = ["visites:", "avis:", "correction:", "ajout:"];
+const CATEGORIES = ["dormir", "manger", "hygiene", "sante", "ecoute", "pause", "vetements", "bagagerie", "droits", "recharge", "wifi"];
 const DUREE_GARDE = 60 * 60 * 24 * 365; // comme api/signalement.js : un signalement s'efface un an après sa réception
 
 export async function onRequestGet({ request, env }) {
@@ -34,10 +42,11 @@ export async function onRequestGet({ request, env }) {
 
   const demande = new URL(request.url).searchParams.get("onglet");
   const onglet = ONGLETS.indexOf(demande) !== -1 ? demande : "signalements";
-  const { signalements, visites } = await toutLire(env.SIGNALEMENTS);
+  const { signalements, visites, avis, corrections, ajouts } = await toutLire(env.SIGNALEMENTS);
   const aTraiter = signalements.filter((x) => !x.s.traite);
   const traites = signalements.filter((x) => x.s.traite).sort((a, b) => (a.s.traite < b.s.traite ? 1 : -1));
-  const corps = onglet === "statistiques" ? htmlStatistiques(visites, aTraiter.length, traites.length)
+  const corps = onglet === "statistiques" ? htmlStatistiques(visites, aTraiter.length, traites.length, avis)
+    : onglet === "lieux" ? htmlLieux(corrections, ajouts, new URL(request.url).searchParams.get("ok"))
     : onglet === "historique" ? htmlHistorique(traites, signalements.length)
     : htmlSignalements(aTraiter);
   return reponse(page(onglet, aTraiter.length, corps), 200, "text/html; charset=utf-8");
@@ -59,8 +68,23 @@ export async function onRequestPost({ request, env }) {
 
   if (!(await connecte(request, env))) return pageConnexion(env, "");
   if (!env.SIGNALEMENTS) return texte("Signalements non configurés", 503);
+
+  // Onglet « Lieux » : corrections et lieux ajoutés
+  if (action === "corriger" || action === "ajouter") {
+    const res = action === "corriger" ? lireCorrection(f) : lireAjout(f);
+    if (res.erreur) return texte(res.erreur + " Revenez en arrière pour corriger.", 400);
+    if (res.supprimer) await env.SIGNALEMENTS.delete(res.cle);
+    else await env.SIGNALEMENTS.put(res.cle, JSON.stringify(res.valeur));
+    return versEquipe(null, "lieux", res.id);
+  }
+  if (action === "annuler-correction" || action === "supprimer-ajout") {
+    const id = f.get("id");
+    if (typeof id === "string" && /^[a-z0-9]{1,20}$/.test(id)) await env.SIGNALEMENTS.delete((action === "supprimer-ajout" ? "ajout:" : "correction:") + id);
+    return versEquipe(null, "lieux", id);
+  }
+
   const cle = f.get("cle");
-  if (typeof cle !== "string" || cle.indexOf("visites:") === 0) return versEquipe();
+  if (typeof cle !== "string" || PREFIXES.some((x) => cle.indexOf(x) === 0)) return versEquipe();
   if (action === "supprimer") {
     await env.SIGNALEMENTS.delete(cle);
     return versEquipe(null, "historique");
@@ -81,8 +105,11 @@ export async function onRequestPost({ request, env }) {
   return versEquipe();
 }
 
-function versEquipe(cookie, onglet) {
-  const h = { Location: "/equipe" + (onglet && onglet !== "signalements" ? "?onglet=" + onglet : ""), "Cache-Control": "no-store" };
+function versEquipe(cookie, onglet, id) {
+  const h = {
+    Location: "/equipe" + (onglet && onglet !== "signalements" ? "?onglet=" + onglet + (id ? "&ok=" + encodeURIComponent(id) + "#lieu-" + encodeURIComponent(id) : "") : ""),
+    "Cache-Control": "no-store"
+  };
   if (cookie) h["Set-Cookie"] = cookie;
   return new Response(null, { status: 303, headers: h });
 }
@@ -99,6 +126,10 @@ async function toutLire(kv) {
 
   const visites = {};
   const signalements = [];
+  const avis = {};
+  const corrections = {};
+  const ajouts = [];
+  const limiteAvis = moisParis(new Date(Date.now() - 365 * 864e5));
   await Promise.all(cles.map(async (k) => {
     const v = await kv.get(k);
     if (v === null) return;
@@ -107,13 +138,22 @@ async function toutLire(kv) {
       return;
     }
     try {
-      signalements.push({ cle: k, s: JSON.parse(v) });
+      const j = JSON.parse(v);
+      if (k.indexOf("avis:") === 0) {
+        const [, lieu, mois] = k.split(":");
+        if (mois < limiteAvis) return;
+        const a = (avis[lieu] = avis[lieu] || { oui: 0, non: 0 });
+        a.oui += j.oui || 0;
+        a.non += j.non || 0;
+      } else if (k.indexOf("correction:") === 0) corrections[k.slice(11)] = j;
+      else if (k.indexOf("ajout:") === 0) ajouts.push(j);
+      else signalements.push({ cle: k, s: j });
     } catch (e) {
       /* entrée illisible : ignorée */
     }
   }));
   signalements.sort((a, b) => (a.cle < b.cle ? 1 : -1));
-  return { signalements, visites };
+  return { signalements, visites, avis, corrections, ajouts };
 }
 
 /* ---------- Onglet « Signalements » ---------- */
@@ -150,8 +190,9 @@ function htmlHistorique(items, total) {
 function htmlUnSignalement(s) {
   return "<p class=\"discret\">Reçu le " + esc(dateHeure(s.date)) + (s.langue ? " · " + esc(s.langue.toUpperCase()) : "") + "</p>" +
     "<p><strong>" + esc(LIBELLES[s.raison] || s.raison) + "</strong>" +
-    (s.lieu ? ' — <a href="/#lieu-' + esc(s.lieu) + '" target="_blank" rel="noopener">' + esc(s.lieu) + "</a>" : " — <em>en général</em>") + "</p>" +
-    (s.message ? "<blockquote>" + esc(s.message) + "</blockquote>" : "");
+    (s.lieu ? ' — <a href="/#lieu-' + esc(s.lieu) + '" target="_blank" rel="noopener" data-nom-lieu="' + esc(s.lieu) + '">' + esc(s.lieu) + "</a>" : " — <em>en général</em>") + "</p>" +
+    (s.message ? "<blockquote>" + esc(s.message) + "</blockquote>" : "") +
+    (s.lieu ? '<p><a class="lien-corriger" href="/equipe?onglet=lieux#lieu-' + esc(s.lieu) + '">Corriger ce lieu</a></p>' : "");
 }
 
 function bouton(action, cle, libelle, classe, confirmer) {
@@ -170,11 +211,103 @@ function nomMois(iso) {
   return nom.charAt(0).toUpperCase() + nom.slice(1);
 }
 
+/* ---------- Onglet « Lieux » ----------
+ * Le serveur ne connaît pas la liste des lieux (data/lieux.js est un script pour le navigateur) :
+ * il envoie les corrections et les lieux ajoutés, et /js/equipe.js dessine les formulaires. */
+function htmlLieux(corrections, ajouts, ok) {
+  const donnees = JSON.stringify({ corrections: corrections, ajouts: ajouts, ok: ok || "" }).replace(/</g, "\\u003c");
+  return (
+    '<p class="discret">Corrigez un lieu sans toucher au code : fermeture pour quelques jours, nouveaux horaires, autre numéro, ' +
+    "ou un court message affiché sur sa fiche. Les téléphones reçoivent les corrections en quelques minutes, et les gardent sans internet.</p>" +
+    '<script type="application/json" id="donnees-lieux">' + donnees + "</script>" +
+    '<div id="lieux-equipe"><p class="discret">Chargement des lieux…</p></div>'
+  );
+}
+
+// « 9h-12h, 14h30-17h » ou « 09:00-12:00 » → [["09:00","12:00"], ["14:30","17:00"]] ; null si illisible
+function lirePlages(texte) {
+  const t = (texte || "").trim();
+  if (!t) return [];
+  const heure = (x) => {
+    const m = /^(\d{1,2})(?:[h:.](\d{2})?)?$/i.exec(x.trim());
+    if (!m || +m[1] > 24 || +(m[2] || 0) > 59) return null;
+    return String(+m[1] % 24).padStart(2, "0") + ":" + (m[2] || "00");
+  };
+  const plages = [];
+  for (const morceau of t.split(/[,;]|\bet\b/)) {
+    if (!morceau.trim()) continue;
+    const [a, b] = morceau.split(/[-–àa]/).map((x) => x && x.trim()).filter(Boolean);
+    const d = a && heure(a), f = b && heure(b);
+    if (!d || !f) return null;
+    plages.push([d, f]);
+  }
+  return plages;
+}
+
+function lireHoraires(f) {
+  if (f.get("h24")) return { horaires: "24/7" };
+  const h = {};
+  let vide = true;
+  for (const j of SEMAINE) {
+    const p = lirePlages(f.get("h_" + j));
+    if (p === null) return { erreur: "Horaires illisibles pour « " + j + " » : écrivez par exemple 9h-12h, 14h-17h30." };
+    if (p.length) { h[j] = p; vide = false; }
+  }
+  return { horaires: vide ? null : h };
+}
+
+function champ(f, nom, max) {
+  const v = f.get(nom);
+  return typeof v === "string" ? v.trim().slice(0, max) : "";
+}
+
+function lireCorrection(f) {
+  const id = f.get("id");
+  if (typeof id !== "string" || !/^[a-z0-9]{1,20}$/.test(id)) return { erreur: "Lieu inconnu." };
+  const h = lireHoraires(f);
+  if (h.erreur) return h;
+  const c = {};
+  if (f.get("ferme")) {
+    const jusqu = champ(f, "jusqu", 10);
+    c.ferme = { jusqu: /^\d{4}-\d{2}-\d{2}$/.test(jusqu) ? jusqu : "", texte: champ(f, "raison", 120) };
+  }
+  // On ne garde que ce qui a changé par rapport aux infos d'origine
+  if (JSON.stringify(h.horaires) !== champ(f, "horaires_origine", 2000)) c.horaires = h.horaires;
+  const tel = champ(f, "tel", 30);
+  if (tel !== champ(f, "tel_origine", 30)) c.tel = tel;
+  const note = champ(f, "note", 200);
+  if (note) c.note = note;
+  if (!Object.keys(c).length) return { cle: "correction:" + id, supprimer: true, id: id };
+  c.maj = new Date().toISOString();
+  return { cle: "correction:" + id, valeur: c, id: id };
+}
+
+function lireAjout(f) {
+  const nom = champ(f, "nom", 120);
+  const cat = champ(f, "cat", 20);
+  if (!nom || CATEGORIES.indexOf(cat) === -1) return { erreur: "Il faut un nom et un besoin." };
+  const h = lireHoraires(f);
+  if (h.erreur) return h;
+  const id = "n" + crypto.randomUUID().replace(/-/g, "").slice(0, 8);
+  const aujourdhui = new Date().toISOString().slice(0, 10);
+  const lieu = {
+    id: id, cat: cat, autresCats: [], nom: nom,
+    adresse: champ(f, "adresse", 160), lat: null, lng: null,
+    tel: champ(f, "tel", 30), horaires: h.horaires,
+    services: champ(f, "services", 600).split("\n").map((x) => x.trim()).filter(Boolean),
+    conditions: champ(f, "conditions", 400),
+    criteres: f.get("femmes") ? { femmes: true } : {},
+    langues: [], adresseMasquee: false, verifie: aujourdhui, sources: [], ajoutEquipe: aujourdhui
+  };
+  return { cle: "ajout:" + id, valeur: lieu, id: id };
+}
+
 /* ---------- Onglet « Statistiques » ---------- */
-function htmlStatistiques(visites, nbATraiter, nbTraites) {
+function htmlStatistiques(visites, nbATraiter, nbTraites, avis) {
   const actuelle = VERSIONS[0];
   return (
     htmlChiffresCles(visites, nbATraiter, nbTraites, actuelle) +
+    "<h2>Ce lieu vous a aidée ?</h2>" + htmlAvis(avis) +
     "<h2>Ce que la v" + actuelle.v + " apporte</h2>" +
     '<div class="carte carte--actuelle">' + htmlVersion(actuelle, true) + "</div>" +
     "<h2>Visites par mois</h2>" + htmlVisites(visites) +
@@ -203,6 +336,16 @@ function htmlChiffresCles(visites, nbATraiter, nbTraites, actuelle) {
     tuile("Signalements à traiter", String(nbATraiter), nbTraites + " déjà traité" + (nbTraites > 1 ? "s" : ""), "/equipe") +
     tuile("Version en ligne", "v" + actuelle.v, dateCourte(actuelle.date)) +
     "</section>";
+}
+
+// Avis des 12 derniers mois, les lieux avec le plus de « non » en premier (à vérifier d'abord)
+function htmlAvis(avis) {
+  const lignes = Object.keys(avis).map((id) => ({ id: id, ...avis[id] })).sort((a, b) => b.non - a.non || b.oui - a.oui);
+  if (!lignes.length) return '<p class="discret">Pas encore d\'avis. Sur chaque fiche, la personne peut répondre « Oui » ou « Non », une fois par mois et par lieu, sans rien écrire.</p>';
+  return '<p class="discret">12 derniers mois. Un avis par téléphone, par lieu et par mois, sans rien sur la personne. Beaucoup de « Non » : lieu à appeler pour vérifier.</p>' +
+    '<table class="visites avis"><thead><tr><th scope="col">Lieu</th><th scope="col">Oui</th><th scope="col">Non</th></tr></thead><tbody>' +
+    lignes.map((x) => '<tr><th scope="row"><a href="/equipe?onglet=lieux#lieu-' + esc(x.id) + '" data-nom-lieu="' + esc(x.id) + '">' + esc(x.id) + '</a></th><td class="oui">' + x.oui + '</td><td class="' + (x.non > x.oui ? "danger" : "") + '">' + x.non + "</td></tr>").join("") +
+    "</tbody></table>";
 }
 
 function resumeVersion(v) {
@@ -261,8 +404,11 @@ function page(onglet, nbSignalements, corps) {
     '<nav class="onglets" aria-label="Rubriques">' +
     lien("signalements", "À traiter" + (nbSignalements ? ' <span class="compte" aria-label="' + nbSignalements + ' à traiter">' + nbSignalements + "</span>" : "")) +
     lien("historique", "Historique") +
+    lien("lieux", "Lieux") +
     lien("statistiques", "Statistiques") +
     "</nav><main>" + corps + "</main>" +
+    // Noms des lieux et formulaires de l'onglet « Lieux » : dessinés dans le navigateur avec /data/lieux.js
+    '<script src="/data/lieux.js"></script><script src="/js/i18n.js"></script><script src="/js/equipe.js"></script>' +
     '<form method="post" class="sortie"><input type="hidden" name="action" value="deconnexion"><button type="submit">Se déconnecter</button></form>' +
     "</body></html>";
 }
@@ -308,7 +454,7 @@ const CSS =
   ".logo{width:40px;height:40px;flex:none;filter:drop-shadow(0 6px 12px rgb(0 0 0/.3))}.entete h1{margin:0;font-size:1.25rem;font-weight:700}" +
   "h1{font-size:1.5rem;margin:8px 0 16px}h2{font-size:1.375rem;font-weight:700;margin:28px 4px 10px}a{color:var(--lien)}" +
   ".onglets,.cartes>li,.carte,.visites,.connexion,button{-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou)}" +
-  ".onglets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:4px;margin-bottom:16px;border:1px solid var(--bord);border-radius:999px;" +
+  ".onglets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:4px;margin-bottom:16px;border:1px solid var(--bord);border-radius:999px;" +
   "background:var(--segment) var(--reflet);box-shadow:var(--liseré),var(--ombre)}" +
   ".onglets a{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:0 6px;border-radius:999px;text-decoration:none;" +
   "color:var(--encre);font-weight:600;font-size:.875rem;white-space:nowrap;transition:background-color .25s ease,box-shadow .25s ease}" +
@@ -347,6 +493,16 @@ const CSS =
   ".erreur{color:var(--danger);margin:0;font-weight:600}" +
   ".sortie{margin:32px 0 8px}" +
   ".compte{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--sur-accent);font-size:.75rem;line-height:20px;text-align:center}" +
+  ".form-lieu{display:grid;gap:12px;margin-top:8px}.form-lieu fieldset{display:grid;gap:8px;margin:0;padding:12px;border:1px solid var(--bord);border-radius:16px}" +
+  ".form-lieu legend{padding:0 6px;font-weight:600}.form-lieu label{display:grid;gap:4px;font-weight:600;font-size:.9375rem}" +
+  ".form-lieu .case{display:flex;gap:10px;align-items:center;min-height:44px}.form-lieu .case input{width:22px;height:22px;accent-color:var(--accent)}" +
+  ".form-lieu input:not([type=checkbox]),.form-lieu select,.form-lieu textarea,.chercher{width:100%;min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--bord);border-radius:12px;background:var(--rail);color:var(--encre);font:inherit;font-weight:400}" +
+  ".form-lieu textarea{min-height:70px}.jours{display:grid;grid-template-columns:3.2em 1fr;gap:6px 8px;align-items:center}.jours span{font-weight:600}" +
+  ".badges{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:6px}.badge{padding:1px 8px;border-radius:999px;font-size:.75rem;font-weight:700;background:var(--accent);color:var(--sur-accent)}" +
+  ".badge--ferme{background:var(--danger);color:#0b1b36}.ok-msg{margin:0 0 8px;color:var(--ok);font-weight:700}.lien-corriger{font-weight:600}" +
+  ".chercher{margin:0 0 8px}.avis tbody th{white-space:normal;width:auto;overflow-wrap:anywhere}.avis td{display:table-cell;width:3.5em;text-align:right;font-variant-numeric:tabular-nums}.avis td.oui{color:var(--ok)}" +
+  "summary.lieu-titre{font-weight:600}" +
+  "@media (max-width:420px){.onglets a{font-size:.8125rem;padding:0 2px}}" +
   "@media (max-width:360px){body{padding:0 12px 24px}.entete{margin:0 -12px 16px;padding-inline:12px}.onglets a{font-size:.8125rem;padding:0 3px}}" +
   ".statut{margin:0 0 4px;font-weight:600;color:var(--ok)}" +
   ".traite{box-shadow:inset 4px 0 0 var(--ok),var(--liseré),var(--ombre)!important}" +

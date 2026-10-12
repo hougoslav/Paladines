@@ -45,7 +45,8 @@ outils/chemins.mjs     fabrique data/chemins.json (OpenStreetMap)
 js/chemins.js          calcule l'itinéraire et les consignes sur le téléphone
 data/equipements.js    toilettes, eau potable et lieux sûrs (OpenStreetMap, chaque mois)
 outils/equipements.mjs fabrique data/equipements.js
-functions/             page de l'équipe (/equipe), réception des signalements et des visites
+functions/             page de l'équipe (/equipe), signalements, visites, corrections des lieux, avis
+js/equipe.js           formulaires de l'onglet « Lieux » de /equipe (dessinés dans le navigateur)
 data/versions.mjs      les versions de l'appli et leurs nouveautés (page de l'équipe)
 sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
@@ -197,15 +198,22 @@ un stockage privé de Cloudflare. Pour l'activer, dans le tableau de bord Cloudf
 
 **La page de l'équipe** : ouvrir <https://paladines.pages.dev/equipe> (bouton aussi dans la
 page « À propos ») et taper le mot de passe. Le téléphone reste connecté 90 jours (bouton
-« Se déconnecter » en bas) ; changer `MOT_DE_PASSE` déconnecte tout le monde. Trois onglets :
+« Se déconnecter » en bas) ; changer `MOT_DE_PASSE` déconnecte tout le monde. Quatre onglets :
 
 - **À traiter** : les messages reçus, avec un bouton « Marquer comme traité ».
 - **Historique** : les messages traités, rangés par mois, avec la date de réception et de
   traitement ; « Remettre à traiter » ou « Supprimer définitivement ». Tant que l'étape 2
   n'est pas faite, les messages restent en attente sur les téléphones (dix au plus) et
   partiront une fois le stockage branché.
-- **Statistiques** : la version en ligne et ce qu'elle apporte, les versions précédentes, et
-  les visites par mois. Une visite = un téléphone qui ouvre l'appli avec internet, compté une
+- **Lieux** : corriger un lieu sans toucher au code (fermé pour quelques jours, horaires,
+  téléphone, court message sur la fiche) ou ajouter un lieu (sa position est trouvée à partir
+  de l'adresse). Gardé dans le même stockage (`correction:<id>`, `ajout:<id>`) ; l'appli le lit
+  sur `/api/corrections` (`functions/api/corrections.js`) et le garde pour marcher sans internet.
+  Pour une correction durable, la reporter ensuite dans `data/lieux.js` puis « Revenir aux
+  infos d'origine ».
+- **Statistiques** : la version en ligne et ce qu'elle apporte, les avis « Ce lieu vous a
+  aidée ? » (Oui/Non, un par téléphone, par lieu et par mois, `functions/api/avis.js`), les
+  versions précédentes, et les visites par mois. Une visite = un téléphone qui ouvre l'appli avec internet, compté une
   fois par jour au plus (`functions/api/visite.js`). Rien n'est envoyé sur la personne : seul
   le compteur du mois augmente, dans le même stockage. Les chiffres sont approximatifs (une
   ouverture sans internet n'est pas comptée).

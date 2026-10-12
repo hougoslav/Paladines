@@ -173,6 +173,9 @@
 
   /* Statut à un instant donné. Gère les plages qui passent minuit (ex. 19:00 → 08:00). */
   function statut(l, maintenant) {
+    if (fermeEnCeMoment(l)) {
+      return { ouvert: false, classe: "ferme", texte: t("fermeTemp") + (l.fermeTemp.jusqu ? " · " + t("jusquau", { date: formatDate(l.fermeTemp.jusqu) }) : "") };
+    }
     if (l.horaires === "24/7") return { ouvert: true, classe: "ouvert", texte: t("h24") };
     if (!l.horaires) return { ouvert: null, classe: "inconnu", texte: t("horairesInconnus") };
 
@@ -343,6 +346,109 @@
       if (["accueil", "cat", "proche", "favoris", "lieu"].indexOf(v) !== -1) rafraichir();
       majMarqueurs();
     });
+  }
+
+  /* ---------- Corrections de l'équipe (onglet « Lieux » de /equipe, via /api/corrections) ----------
+   * Fermeture temporaire, horaires, téléphone, message sur la fiche, lieux ajoutés. Gardées sur
+   * le téléphone pour marcher sans internet ; les infos d'origine sont gardées pour pouvoir revenir. */
+  const ORIGINES = {};
+
+  function appliquerCorrections(donnees) {
+    if (!donnees || typeof donnees !== "object") return;
+    // Revenir aux infos d'origine, puis appliquer les corrections reçues
+    Object.keys(ORIGINES).forEach((id) => {
+      const l = lieu(id);
+      if (l) Object.assign(l, ORIGINES[id]);
+    });
+    D.lieux = D.lieux.filter((l) => !l.ajoutEquipe);
+    (donnees.ajouts || []).forEach((a) => {
+      if (a && /^n[a-z0-9]{8}$/.test(a.id) && categorie(a.cat) && !lieu(a.id)) D.lieux.push(Object.assign({ services: [], criteres: {}, langues: [], sources: [], autresCats: [] }, a));
+    });
+    const corr = donnees.corrections || {};
+    Object.keys(corr).forEach((id) => {
+      const l = lieu(id);
+      const c = corr[id];
+      if (!l || !c) return;
+      if (!ORIGINES[id]) ORIGINES[id] = { horaires: l.horaires, tel: l.tel, fermeTemp: l.fermeTemp, noteEquipe: l.noteEquipe };
+      if ("horaires" in c) l.horaires = c.horaires;
+      if ("tel" in c) l.tel = c.tel;
+      l.noteEquipe = c.note || "";
+      l.fermeTemp = c.ferme || null;
+    });
+  }
+
+  function chargerCorrections() {
+    appliquerCorrections(stock.lire("corrections", null));
+    if (!window.fetch || navigator.onLine === false || location.protocol === "file:") return;
+    fetch("/api/corrections")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!j || JSON.stringify(j) === JSON.stringify(stock.lire("corrections", null))) return;
+        stock.ecrire("corrections", j);
+        appliquerCorrections(j);
+        geocoderManquants();
+        const v = vueCourante().vue;
+        if (["accueil", "cat", "proche", "favoris", "lieu", "pourvous"].indexOf(v) !== -1) rafraichir();
+        majMarqueurs();
+      })
+      .catch(() => { /* hors ligne : on garde les corrections déjà reçues */ });
+  }
+
+  // Fermé temporairement : jusqu'à la date donnée (incluse), ou tant que l'équipe ne l'a pas rouvert
+  function fermeEnCeMoment(l) {
+    const f = l.fermeTemp;
+    if (!f) return false;
+    if (!f.jusqu) return true;
+    const auj = new Date();
+    const iso = auj.getFullYear() + "-" + String(auj.getMonth() + 1).padStart(2, "0") + "-" + String(auj.getDate()).padStart(2, "0");
+    return iso <= f.jusqu;
+  }
+
+  /* ---------- « Ce lieu vous a aidée ? » ----------
+   * Un avis par lieu tous les 30 jours, gardé sur le téléphone ; seul « oui » ou « non » est envoyé. */
+  const AVIS_JOURS = 30;
+
+  function avisDonne(id) {
+    const date = stock.lire("avis", {})[id];
+    return date && Date.now() - date < AVIS_JOURS * 864e5;
+  }
+
+  function htmlAvis(l) {
+    if (avisDonne(l.id)) return '<section class="avis-lieu"><p>' + icone("i-check") + esc(t("avisMerci")) + "</p></section>";
+    return (
+      '<section class="avis-lieu"><h2>' + esc(t("avisQuestion")) + "</h2>" +
+      '<div class="avis-boutons">' +
+      '<button type="button" class="btn btn--doux" data-action="avis" data-id="' + l.id + '" data-valeur="oui">👍 ' + esc(t("avisOui")) + "</button>" +
+      '<button type="button" class="btn btn--doux" data-action="avis" data-id="' + l.id + '" data-valeur="non">👎 ' + esc(t("avisNon")) + "</button>" +
+      "</div></section>"
+    );
+  }
+
+  function donnerAvis(id, avis) {
+    const deja = stock.lire("avis", {});
+    deja[id] = Date.now();
+    stock.ecrire("avis", deja);
+    stock.ecrire("avisAttente", stock.lire("avisAttente", []).concat([{ lieu: id, avis: avis }]).slice(-50));
+    envoyerAvis();
+  }
+
+  let avisEnCours = false;
+  async function envoyerAvis() {
+    if (avisEnCours || navigator.onLine === false || !window.fetch) return;
+    const liste = stock.lire("avisAttente", []);
+    if (!liste.length) return;
+    avisEnCours = true;
+    const restent = [];
+    for (const a of liste) {
+      try {
+        const r = await fetch("/api/avis", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(a), referrerPolicy: "no-referrer" });
+        if (r.status >= 500) restent.push(a);
+      } catch (e) {
+        restent.push(a);
+      }
+    }
+    stock.ecrire("avisAttente", restent.concat(stock.lire("avisAttente", []).slice(liste.length)));
+    avisEnCours = false;
   }
 
   /* ---------- Listes de lieux ---------- */
@@ -768,6 +874,8 @@
       '<div><p class="lieu-cat">' + esc(t("cat_" + l.cat)) + "</p><h1>" + esc(l.nom) + "</h1>" +
       '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p></div>" +
       "</header>" +
+      (fermeEnCeMoment(l) && l.fermeTemp.texte ? '<p class="note-equipe note-equipe--ferme">' + icone("i-alerte") + '<span lang="fr">' + esc(l.fermeTemp.texte) + "</span></p>" : "") +
+      (l.noteEquipe ? '<p class="note-equipe">' + icone("i-info") + '<span><strong>' + esc(t("noteEquipe")) + '</strong> <span lang="fr">' + esc(l.noteEquipe) + "</span></span></p>" : "") +
       '<div class="adresse">' +
       (l.adresseMasquee
         ? '<p class="adresse-masquee">' + icone("i-bouclier") + esc(t("adresseMasquee")) + "</p>" +
@@ -787,6 +895,7 @@
       '<section class="section"><h2>' + esc(t("conditions")) + "</h2><p>" + esc(l.conditions) + "</p></section>" +
       (criteres.length ? '<section class="section"><h2>' + esc(t("bonASavoir")) + '</h2><ul class="criteres">' + criteres.map((c) => "<li>" + icone("i-check") + esc(t("f_" + c)) + "</li>").join("") + "</ul></section>" : "") +
       (langues.length ? '<section class="section"><h2>' + esc(t("languesParlees")) + "</h2><p>" + esc(langues.join(", ")) + "</p></section>" : "") +
+      htmlAvis(l) +
       '<div class="verifie"><p>' + icone("i-info") + esc(t("verifie", { date: formatDate(l.verifie) })) + "</p>" +
       "<p>" + esc(t("appelerAvant")) + "</p>" +
       (l.sources && l.sources.length
@@ -2004,6 +2113,10 @@
       case "proche-aide":
         demanderPosition();
         break;
+      case "avis":
+        donnerAvis(id, el.dataset.valeur);
+        el.closest(".avis-lieu").innerHTML = "<p>" + icone("i-check") + esc(t("avisMerci")) + "</p>";
+        break;
       case "fermer-fiche-carte":
         fermerFicheCarte();
         break;
@@ -2309,6 +2422,7 @@
   function demarrer() {
     chargerMeteo();
     lirePositionQR();
+    chargerCorrections();
     appliquerCoordonnees();
     appliquerReglages();
     route();
@@ -2354,6 +2468,9 @@
     geocoderManquants();
     window.addEventListener("online", envoyerEnAttente);
     envoyerEnAttente();
+    window.addEventListener("online", envoyerAvis);
+    window.addEventListener("online", chargerCorrections);
+    envoyerAvis();
     compterVisite();
 
     window.addEventListener("beforeinstallprompt", (e) => {
