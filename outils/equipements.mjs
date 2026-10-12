@@ -1,5 +1,5 @@
 // Fabrique data/equipements.js : toilettes publiques, fontaines d'eau potable et lieux sûrs
-// ouverts jour et nuit (commissariats, urgences des hôpitaux) autour de Lille, d'après OpenStreetMap.
+// (commissariats de police nationale, gendarmerie, urgences des hôpitaux ouvertes jour et nuit) autour de Lille, d'après OpenStreetMap.
 //
 // Utilisation (Node 18 ou plus), depuis le dossier du projet, à partir d'un extrait converti
 // par osmium au format OPL (voir .github/workflows/chemins.yml, qui le refait chaque mois) :
@@ -22,6 +22,7 @@ function centre(el, noeuds) {
   return [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
 }
 
+const tel = (v) => (v || "").split(";")[0].trim();
 const prive = (t) => ["private", "no", "customers", "permit"].includes(t.access);
 
 const osm = lireOpl(await readFile(process.argv[2], "utf8"));
@@ -43,10 +44,11 @@ for (const el of osm.elements) {
     t.push([...p, (g.fee === "yes" ? "p" : "") + (g.wheelchair === "yes" ? "f" : "")]);
   } else if ((g.amenity === "drinking_water" || (g.amenity === "water_point" && g.drinking_water !== "no")) && !prive(g)) {
     e.push(p);
-  } else if (g.amenity === "police" && !prive(g)) {
-    s.push([...p, "police", g.name || "", g.phone || g["contact:phone"] || ""]);
+  } else if (g.amenity === "police" && !prive(g) && g.police !== "municipal" && !/municipale|UK/i.test(g.name || "")) {
+    // Police nationale et gendarmerie seulement (la police municipale ferme la nuit)
+    s.push([...p, "police", g.name || "", tel(g.phone || g["contact:phone"])]);
   } else if ((g.amenity === "hospital" || g.healthcare === "hospital") && g.emergency === "yes") {
-    s.push([...p, "urgences", g.name || "", g["emergency:phone"] || g.phone || g["contact:phone"] || ""]);
+    s.push([...p, "urgences", g.name || "", tel(g["emergency:phone"] || g.phone || g["contact:phone"])]);
   }
 }
 
