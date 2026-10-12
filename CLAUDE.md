@@ -11,7 +11,7 @@ Appli web gratuite pour les femmes à la rue à Lille : les lieux ouverts mainte
 - `sw.js` (hors ligne), `manifest.webmanifest`, `_headers`, `affiche.html` (affiches QR), `docs/` (idées, lieux et sources, identité, kit Instagram).
 
 ## Technologies
-HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service worker), Leaflet + fond de carte CARTO « Dark Matter » (données OpenStreetMap, gratuit sans usage commercial, mention obligatoire), Base Adresse Nationale (positions des lieux), Open-Meteo (météo de Lille). Pas de tests dans le dépôt : vérifier dans un navigateur à 320 px et en arabe.
+HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service worker), Leaflet + tuiles OpenStreetMap (sans clé, couleurs adoucies en CSS ; CARTO demande une clé), Base Adresse Nationale (positions des lieux), Open-Meteo (météo de Lille). Pas de tests dans le dépôt : vérifier dans un navigateur à 320 px et en arabe.
 
 ## Choix importants (à respecter)
 - Aller droit au but : listes avec « Près de moi » (tri par distance, GPS seulement), « Ouvert maintenant » et le reste dans « Plus de filtres ». Pas de repères « Je suis près de… » ni de position posée sur la carte.
@@ -23,7 +23,7 @@ HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service wor
 - Lisibilité : police système du téléphone (SF Pro sur iPhone, Roboto sur Android), échelle de tailles d'Apple (34/28/20/17/15/13/11), pictogrammes, cibles tactiles d'au moins 44 px, contraste AA même sur le verre. Même action = même apparence (« Appeler » toujours vert).
 
 ## Terminé
-Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les femmes », infos du moment (météo, plan hiver), listes et filtres, fiches, carte de tous les lieux, urgences, lieux gardés, réglages, signalements anonymes (fiche et « Signaler un problème », envoi différé sans internet), page de l'équipe (signalements à traiter et historique, versions, visites par mois), hors ligne, installation, affiches QR, identité (logo lanterne, style « Liquid Glass » bleu nuit et jaune), refonte v21 (listes épurées, infos en fiches, carte CARTO), kit Instagram.
+Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les femmes », infos du moment (météo, plan hiver), listes et filtres, fiches, carte de tous les lieux, urgences, lieux gardés, réglages, signalements anonymes (fiche et « Signaler un problème », envoi différé sans internet), page de l'équipe (signalements à traiter et historique, versions, visites par mois), hors ligne, installation, affiches QR, identité (logo lanterne, style « Liquid Glass » bleu nuit et jaune), refonte v21 (listes épurées, infos en fiches, carte épurée), kit Instagram.
 
 ## Reste à faire
 - Confirmer les 56 lieux par téléphone avant tout lancement (`docs/LIEUX-LILLE.md`).

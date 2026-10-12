@@ -238,9 +238,9 @@ Plus tard, pour la mettre dans les stores :
 
 ## Points à connaître
 
-- Le fond de carte est « Dark Matter » de CARTO (données OpenStreetMap) : gratuit pour un
-  usage non commercial, avec la mention « © OpenStreetMap © CARTO » affichée sur la carte.
-  Pour un très grand nombre de visites, demander une clé à CARTO ou changer de fournisseur.
+- Le fond de carte vient des serveurs d'OpenStreetMap (sans clé), couleurs adoucies en CSS.
+  Ils ne sont pas faits pour un usage intensif : pour un vrai lancement, passer par un
+  fournisseur de tuiles (CARTO, Stadia… demandent une clé liée au site).
 - « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
 - Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
   sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la

@@ -814,7 +814,16 @@ body:has(.hero) .entete {
   background: var(--fond);
 }
 .carte {
-  background: #1b1b1b;
+  background: #e9e7e2;
+}
+/* Sur le fond clair de la carte, le verre est plus foncé pour que le texte blanc reste lisible */
+.vue-carte {
+  --verre: rgb(11 27 54 / 0.9);
+  --verre-barre: rgb(11 27 54 / 0.9);
+}
+/* Fond de carte clair et peu coloré : rues et noms lisibles, repères jaunes et bleu nuit bien visibles */
+.carte .leaflet-tile-pane {
+  filter: saturate(0.45) contrast(0.95);
 }
 .vue-carte .leaflet-bottom {
   bottom: calc(var(--h-onglets) + var(--marge-onglets) + 8px + env(safe-area-inset-bottom, 0px));
