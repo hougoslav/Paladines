@@ -7,7 +7,7 @@
  */
 
 const RAISONS = ["ferme", "horaires", "adresse", "accueil", "manque", "bug", "traduction", "autre"];
-const LANGUES = ["fr", "en", "ar"];
+const LANGUES = ["fr", "en", "ar", "es", "ro", "uk", "fa", "ps", "ti"];
 const MAX_MESSAGE = 500;
 const DUREE_GARDE = 60 * 60 * 24 * 365; // un an, puis effacé tout seul
 

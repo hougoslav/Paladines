@@ -244,6 +244,9 @@ body:has(.hero) .entete {
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 4px 12px -6px rgb(211 47 47 / 0.8);
 }
 .menu-langue {
+  max-height: calc(100vh - 90px);
+  max-height: calc(100dvh - 90px);
+  overflow-y: auto;
   background-color: var(--verre-barre);
   box-shadow: var(--ombre-flottante);
 }
@@ -336,6 +339,17 @@ body:has(.hero) .entete {
 }
 
 /* Tuiles des besoins : verre, pictogramme jaune */
+.grille-cat > li,
+.grille-cat .tuile {
+  min-width: 0;
+}
+/* Mots longs (ukrainien, roumain…) : ils passent à la ligne au lieu d'élargir la tuile */
+.tuile-nom,
+.tuile-nb {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
 .grille-cat {
   gap: 10px;
 }
@@ -1493,6 +1507,14 @@ html[data-facile] .hero-pour {
 
 /* ============ 13. Réglages ============ */
 /* Contrôles segmentés : une capsule, l'option choisie en jaune */
+.choix--langues {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  max-width: none !important;
+}
+.choix--langues .puce {
+  min-width: 0 !important;
+}
 .choix {
   display: flex;
   flex-wrap: wrap;

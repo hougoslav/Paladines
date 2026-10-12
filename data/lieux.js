@@ -27,7 +27,13 @@ window.PALADINES_DATA = {
       texte: {
         fr: "Le plan hiver commence le 1er novembre : des places d'hébergement en plus ouvrent. Appelez le 115.",
         en: "The winter plan starts on 1 November: extra shelter beds open. Call 115.",
-        ar: "تبدأ خطة الشتاء في 1 نوفمبر: تُفتح أماكن إيواء إضافية. اتصلي بالرقم 115."
+        ar: "تبدأ خطة الشتاء في 1 نوفمبر: تُفتح أماكن إيواء إضافية. اتصلي بالرقم 115.",
+        ti: "ናይ ቁሪ ወቕቲ መደብ (plan hiver) ብ 1 ሕዳር ይጅምር: ተወሳኺ መደቀሲ ቦታታት ይኽፈቱ። ናብ 115 ደውሊ።",
+        ps: "د ژمي پلان د نومبر په 1 پیلېږي: د استوګنې نور ځایونه خلاصېږي. 115 ته زنګ ووهئ.",
+        fa: "پلان زمستانی از 1 نوامبر شروع می‌شود: جاهای خواب بیشتر باز می‌شوند. به 115 زنگ بزنید.",
+        ro: "Planul de iarnă începe pe 1 noiembrie: se deschid locuri de cazare în plus. Sunați la 115.",
+        uk: "Зимовий план починається 1 листопада: відкриваються додаткові місця для ночівлі. Телефонуйте 115.",
+        es: "El plan de invierno empieza el 1 de noviembre: se abren más plazas de alojamiento. Llame al 115."
       }
     },
     {
@@ -35,7 +41,13 @@ window.PALADINES_DATA = {
       texte: {
         fr: "Plan hiver jusqu'au 31 mars : des places d'hébergement en plus. Appelez le 115.",
         en: "Winter plan until 31 March: extra shelter beds. Call 115.",
-        ar: "خطة الشتاء حتى 31 مارس: أماكن إيواء إضافية. اتصلي بالرقم 115."
+        ar: "خطة الشتاء حتى 31 مارس: أماكن إيواء إضافية. اتصلي بالرقم 115.",
+        ti: "ናይ ቁሪ ወቕቲ መደብ ክሳብ 31 መጋቢት: ተወሳኺ መደቀሲ ቦታታት። ናብ 115 ደውሊ።",
+        ps: "د ژمي پلان تر 31 مارچ پورې: د استوګنې نور ځایونه. 115 ته زنګ ووهئ.",
+        fa: "پلان زمستانی تا 31 مارچ: جاهای خواب بیشتر. به 115 زنگ بزنید.",
+        ro: "Planul de iarnă până pe 31 martie: locuri de cazare în plus. Sunați la 115.",
+        uk: "Зимовий план до 31 березня: додаткові місця для ночівлі. Телефонуйте 115.",
+        es: "Plan de invierno hasta el 31 de marzo: más plazas de alojamiento. Llame al 115."
       }
     },
     {
@@ -43,7 +55,13 @@ window.PALADINES_DATA = {
       texte: {
         fr: "Vacances d'été : beaucoup de lieux changent d'horaires. Appelez avant de vous déplacer.",
         en: "Summer holidays: many places change their hours. Call before you go.",
-        ar: "العطلة الصيفية: كثير من الأماكن تغيّر مواعيدها. اتصلي قبل الذهاب."
+        ar: "العطلة الصيفية: كثير من الأماكن تغيّر مواعيدها. اتصلي قبل الذهاب.",
+        ti: "ዕረፍቲ ሓምለን ነሓሰን: ብዙሓት ቦታታት ሰዓታቶም ይቕይሩ። ቅድሚ ምኻድኪ ደውሊ።",
+        ps: "د اوړي رخصتۍ: ډېر ځایونه خپل وختونه بدلوي. د تګ نه مخکې زنګ ووهئ.",
+        fa: "رخصتی تابستان: اوقات بسیاری از جاها تغییر می‌کند. پیش از رفتن تیلفون کنید.",
+        ro: "Vacanța de vară: multe locuri își schimbă programul. Sunați înainte să mergeți.",
+        uk: "Літні канікули: у багатьох місцях змінюються години роботи. Зателефонуйте, перш ніж іти.",
+        es: "Vacaciones de verano: muchos lugares cambian de horario. Llame antes de ir."
       }
     }
   ],
