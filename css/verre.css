@@ -814,15 +814,15 @@ body:has(.hero) .entete {
   background: var(--fond);
 }
 .carte {
-  background: #e9e7e2;
+  background: #f2f3f0;
 }
 /* Sur le fond clair de la carte, le verre est plus foncé pour que le texte blanc reste lisible */
 .vue-carte {
   --verre: rgb(11 27 54 / 0.9);
   --verre-barre: rgb(11 27 54 / 0.9);
 }
-/* Fond de carte clair et peu coloré : rues et noms lisibles, repères jaunes et bleu nuit bien visibles */
-.carte .leaflet-tile-pane {
+/* Tuiles OpenStreetMap (secours) : couleurs adoucies, proches du fond OpenFreeMap « Positron » */
+.carte .fond-tuiles {
   filter: saturate(0.45) contrast(0.95);
 }
 .vue-carte .leaflet-bottom {

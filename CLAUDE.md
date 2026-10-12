@@ -4,14 +4,14 @@ Appli web gratuite pour les femmes à la rue à Lille : les lieux ouverts mainte
 
 ## Fichiers
 - `index.html` : en-tête, onglets, pictogrammes SVG. `js/app.js` : vues (routage par `#vue-param`), horaires, distances, carte, infos du moment. `js/i18n.js` : textes FR, EN, AR.
-- `css/style.css`, puis `css/theme.css` (style « Nuit raffinée »), puis `css/verre.css` (le seul style : « Liquid Glass » bleu nuit et jaune, `data-theme="paladines"` sur `<html>`, même en mode clair du téléphone ; fond bleu nuit uni, verre transparent flouté ; peu de couleurs, primaires et franches : jaune = choisir/accent, vert = ouvert/appeler, rouge = quitter/urgence, bleu = itinéraire et position ; opaque si « réduire la transparence »). Pas de pastel, pas de dégradés colorés dans le fond. Vérifier le contraste du texte sur le verre à chaque changement de couleur. `fonts/`, `icons/`, `vendor/` (Leaflet, qrcode).
+- `css/style.css`, puis `css/theme.css` (style « Nuit raffinée »), puis `css/verre.css` (le seul style : « Liquid Glass » bleu nuit et jaune, `data-theme="paladines"` sur `<html>`, même en mode clair du téléphone ; fond bleu nuit uni, verre transparent flouté ; peu de couleurs, primaires et franches : jaune = choisir/accent, vert = ouvert/appeler, rouge = quitter/urgence, bleu = itinéraire et position ; opaque si « réduire la transparence »). Pas de pastel, pas de dégradés colorés dans le fond. Vérifier le contraste du texte sur le verre à chaque changement de couleur. `fonts/`, `icons/`, `vendor/` (Leaflet, MapLibre, qrcode).
 - `data/lieux.js` : 56 lieux, 11 besoins, infos saisonnières, urgences. `data/coordonnees.js` : généré par `outils/geocoder.mjs` via `.github/workflows/positions.yml` (faire un pull avant de pousser).
 - `functions/` (Cloudflare Pages Functions, stockage KV `SIGNALEMENTS`, voir README) : `equipe.js` = page de l'équipe `/equipe` protégée par `MOT_DE_PASSE` (onglets À traiter, Historique des signalements traités, Statistiques) ; `api/signalement.js` reçoit les signalements ; `api/visite.js` compte les visites par mois.
 - `data/versions.mjs` : historique des versions et de leurs nouveautés, montré sur `/equipe`.
 - `sw.js` (hors ligne), `manifest.webmanifest`, `_headers`, `affiche.html` (affiches QR), `docs/` (idées, lieux et sources, identité, kit Instagram).
 
 ## Technologies
-HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service worker), Leaflet + tuiles OpenStreetMap (sans clé, couleurs adoucies en CSS ; CARTO demande une clé), Base Adresse Nationale (positions des lieux), Open-Meteo (météo de Lille). Pas de tests dans le dépôt : vérifier dans un navigateur à 320 px et en arabe.
+HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service worker), Leaflet + fond de carte OpenFreeMap « Positron » (vectoriel, gratuit, sans clé, via MapLibre chargé à l'ouverture de la carte ; tuiles OpenStreetMap en secours ; CARTO et Stadia demandent une clé), Base Adresse Nationale (positions des lieux), Open-Meteo (météo de Lille). Pas de tests dans le dépôt : vérifier dans un navigateur à 320 px et en arabe.
 
 ## Choix importants (à respecter)
 - Aller droit au but : listes avec « Près de moi » (tri par distance, GPS seulement), « Ouvert maintenant » et le reste dans « Plus de filtres ». Pas de repères « Je suis près de… » ni de position posée sur la carte.
@@ -29,5 +29,5 @@ Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les fe
 - Confirmer les 56 lieux par téléphone avant tout lancement (`docs/LIEUX-LILLE.md`).
 - Faire relire l'anglais et l'arabe.
 - Activer la réception des signalements dans Cloudflare (espace KV et mot de passe, voir README).
-- Choisir un service d'itinéraire (Google Maps pour l'instant) ; pour un usage important de la carte, prendre une clé CARTO ou un autre fournisseur de tuiles.
+- Choisir un service d'itinéraire (Google Maps pour l'instant) .
 - Tester avec des femmes concernées et des associations ; trancher les questions de `docs/IDEES.md`.

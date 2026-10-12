@@ -16,7 +16,7 @@ export const VERSIONS = [
       "Listes plus courtes : un bouton « Près de moi » pour trier du plus proche au plus loin, « Ouvert maintenant », et les autres filtres rangés dans « Plus de filtres ».",
       "Fini « Je suis près de… » et « Me placer sur la carte » : seul le tri par distance reste.",
       "Infos pratiques en fiches claires : une phrase pour l'essentiel, le détail en touchant la fiche, et les boutons « Appeler » ou « Voir les lieux » directement dedans.",
-      "Carte plus sobre : fond clair aux couleurs adoucies, les lieux ouverts en jaune ressortent, les autres en bleu nuit.",
+      "Nouvelle carte nette et sobre (OpenFreeMap) : fond clair, les lieux ouverts en jaune ressortent, les autres en bleu nuit.",
       "Page de l'équipe aux mêmes couleurs."
     ]
   },
