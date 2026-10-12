@@ -7,6 +7,17 @@
  */
 export const VERSIONS = [
   {
+    v: 26,
+    date: "2026-10-12",
+    titre: "Carte, réglages et petits détails",
+    nouveautes: [
+      "Carte : repères noirs pour les lieux ouverts maintenant, blancs pour les autres ; l'icône indique le besoin.",
+      "Réglages : choix de la langue, de la taille et des couleurs dans des sélecteurs comme sur iPhone.",
+      "« Tout effacer » en rouge, comme toute action qui supprime ; page « Mes lieux gardés » vide plus soignée.",
+      "En arabe, « A+ » et « A++ » s'affichent dans le bon sens."
+    ]
+  },
+  {
     v: 25,
     date: "2026-10-12",
     titre: "Vert et rouge plus élégants",
