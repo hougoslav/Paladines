@@ -4,8 +4,11 @@
 // Utilisation (Node 18 ou plus), depuis le dossier du projet :
 //   node outils/chemins.mjs               (télécharge les données avec l'API Overpass)
 //   node outils/chemins.mjs osm.json      (à partir d'un fichier Overpass déjà téléchargé)
+//   node outils/chemins.mjs rues.opl      (à partir d'un extrait OSM converti par osmium, format OPL)
+//   node outils/chemins.mjs --zone        (affiche la zone « ouest,sud,est,nord » pour osmium)
 //
-// GitHub le refait tout seul chaque mois (.github/workflows/chemins.yml).
+// GitHub le refait tout seul chaque mois (.github/workflows/chemins.yml), à partir de l'extrait
+// Geofabrik de la région découpé avec osmium (l'API Overpass refuse souvent une zone aussi grande).
 //
 // Zone : tous les lieux de data/lieux.js et data/coordonnees.js, plus une marge de 1,5 km.
 // Format du fichier (court, pour peser peu sur le téléphone) :
@@ -57,6 +60,26 @@ async function telecharger(b) {
     }
   }
   throw new Error("Aucun serveur Overpass n'a répondu");
+}
+
+// Format OPL d'osmium : une ligne par élément, « n12 … T… x3.05 y50.63 » ou « w34 … Thighway=…,name=… Nn1,n2 »
+function lireOpl(texte) {
+  const decoder = (v) => v.replace(/%([0-9a-f]+)%/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)));
+  const elements = [];
+  for (const ligne of texte.split("\n")) {
+    if (!ligne) continue;
+    const champs = ligne.split(" ");
+    const type = champs[0][0], id = Number(champs[0].slice(1));
+    const ch = {};
+    for (const c of champs.slice(1)) ch[c[0]] = c.slice(1);
+    if (type === "n") elements.push({ type: "node", id: id, lat: Number(ch.y), lon: Number(ch.x) });
+    else if (type === "w") {
+      const tags = {};
+      if (ch.T) for (const kv of ch.T.split(",")) { const i = kv.indexOf("="); tags[decoder(kv.slice(0, i))] = decoder(kv.slice(i + 1)); }
+      elements.push({ type: "way", id: id, tags: tags, nodes: ch.N ? ch.N.split(",").map((n) => Number(n.slice(1))) : [] });
+    }
+  }
+  return { elements: elements };
 }
 
 /* ---------- Tri des voies ---------- */
@@ -193,8 +216,13 @@ function encoder(g, b) {
 }
 
 const b = await zone();
+if (process.argv[2] === "--zone") {
+  console.log([b.w, b.s, b.e, b.n].join(","));
+  process.exit(0);
+}
 console.log("Zone :", b);
-const osm = process.argv[2] ? JSON.parse(await readFile(process.argv[2], "utf8")) : await telecharger(b);
+const source = process.argv[2];
+const osm = !source ? await telecharger(b) : source.endsWith(".opl") ? lireOpl(await readFile(source, "utf8")) : JSON.parse(await readFile(source, "utf8"));
 const g = plusGrandeComposante(construire(osm));
 const sortie = encoder(g, b);
 const texte = JSON.stringify(sortie);
