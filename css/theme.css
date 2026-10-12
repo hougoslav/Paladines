@@ -1153,8 +1153,7 @@ code {
   justify-content: center;
   gap: 2px;
 }
-.im-point,
-.im-pause {
+.im-point {
   display: grid;
   place-items: center;
   width: 28px;
@@ -1177,9 +1176,6 @@ code {
 .im-point[aria-current="true"]::before {
   width: 18px;
   background: var(--encre);
-}
-.im-pause .ic {
-  font-size: 0.95rem;
 }
 @media (prefers-reduced-motion: reduce) {
   .im-point::before {

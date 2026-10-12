@@ -63,8 +63,7 @@
     carteCat: "toutes",
     carteOuvert: false,
     carteCadree: false,
-    meteo: null,
-    imPause: stock.lire("imPause", false)
+    meteo: null
   };
 
   function langueDuTelephone() {
@@ -615,7 +614,6 @@
       '<div class="im-piste">' + cartes + "</div>" +
       (n > 1
         ? '<div class="im-ctrl">' +
-          '<button type="button" class="im-pause" data-action="im-pause" aria-pressed="' + !!etat.imPause + '" aria-label="' + esc(t(etat.imPause ? "im_lecture" : "im_pause")) + '">' + icone(etat.imPause ? "i-lecture" : "i-pause") + "</button>" +
           infos.map((x, i) => '<button type="button" class="im-point" data-action="im-aller" data-i="' + i + '" aria-label="' + esc(t("im_numero", { i: i + 1, n: n })) + '"></button>').join("") +
           "</div>"
         : "") +
@@ -656,7 +654,7 @@
     piste.addEventListener("touchend", () => setTimeout(retenir(false), 4000), { passive: true });
     if (n < 2 || !doux) return;
     im.minuterie = setInterval(() => {
-      if (etat.imPause || im.retenue || document.hidden || !document.body.contains(piste)) return;
+      if (im.retenue || document.hidden || !document.body.contains(piste)) return;
       im.aller((courant() + 1) % n, true);
     }, DEFILEMENT_MS);
   }
@@ -1910,13 +1908,6 @@
           rendreGuide();
         } else if (etat.position && etat.position.source === "gps") majMoiSurCarte(true);
         else demanderPosition();
-        break;
-      case "im-pause":
-        etat.imPause = !etat.imPause;
-        stock.ecrire("imPause", etat.imPause);
-        el.setAttribute("aria-pressed", String(etat.imPause));
-        el.setAttribute("aria-label", t(etat.imPause ? "im_lecture" : "im_pause"));
-        el.innerHTML = icone(etat.imPause ? "i-lecture" : "i-pause");
         break;
       case "im-aller":
         if (im.aller) im.aller(Number(el.dataset.i), true);
