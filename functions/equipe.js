@@ -37,7 +37,7 @@ export async function onRequestGet({ request, env }) {
   const { signalements, visites } = await toutLire(env.SIGNALEMENTS);
   const aTraiter = signalements.filter((x) => !x.s.traite);
   const traites = signalements.filter((x) => x.s.traite).sort((a, b) => (a.s.traite < b.s.traite ? 1 : -1));
-  const corps = onglet === "statistiques" ? htmlStatistiques(visites)
+  const corps = onglet === "statistiques" ? htmlStatistiques(visites, aTraiter.length, traites.length)
     : onglet === "historique" ? htmlHistorique(traites, signalements.length)
     : htmlSignalements(aTraiter);
   return reponse(page(onglet, aTraiter.length, corps), 200, "text/html; charset=utf-8");
@@ -171,15 +171,38 @@ function nomMois(iso) {
 }
 
 /* ---------- Onglet « Statistiques » ---------- */
-function htmlStatistiques(visites) {
+function htmlStatistiques(visites, nbATraiter, nbTraites) {
   const actuelle = VERSIONS[0];
   return (
-    "<h2>Version en ligne</h2>" +
+    htmlChiffresCles(visites, nbATraiter, nbTraites, actuelle) +
+    "<h2>Ce que la v" + actuelle.v + " apporte</h2>" +
     '<div class="carte carte--actuelle">' + htmlVersion(actuelle, true) + "</div>" +
     "<h2>Visites par mois</h2>" + htmlVisites(visites) +
     "<h2>Versions précédentes</h2>" +
     '<ul class="cartes">' + VERSIONS.slice(1).map((v) => "<li><details><summary>" + resumeVersion(v) + "</summary>" + listeNouveautes(v) + "</details></li>").join("") + "</ul>"
   );
+}
+
+// Chiffres clés en haut de l'onglet : quatre tuiles
+function htmlChiffresCles(visites, nbATraiter, nbTraites, actuelle) {
+  const [a, m] = moisParis(new Date()).split("-").map(Number);
+  const cle = (an, mo) => { const d = new Date(Date.UTC(an, mo - 1, 1)); return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0"); };
+  const ceMois = visites[cle(a, m)] || 0;
+  const avant = visites[cle(a, m - 1)] || 0;
+  const nomAvant = MOIS[(m + 10) % 12];
+  // Le mois en cours n'est pas fini : on montre le mois précédent plutôt qu'un pourcentage trompeur
+  const note = nomAvant.charAt(0).toUpperCase() + nomAvant.slice(1) + " : " + avant.toLocaleString("fr-FR");
+  const total = Object.values(visites).reduce((x, n) => x + n, 0);
+  const tuile = (libelle, valeur, detail, lien) =>
+    (lien ? '<a class="kpi" href="' + lien + '">' : '<div class="kpi">') +
+    '<span class="kpi-libelle">' + esc(libelle) + '</span><span class="kpi-valeur">' + esc(valeur) + '</span><span class="kpi-note">' + esc(detail) + "</span>" +
+    (lien ? "</a>" : "</div>");
+  return '<section class="kpis" aria-label="Chiffres clés">' +
+    tuile("Visites ce mois-ci", ceMois.toLocaleString("fr-FR"), note) +
+    tuile("Visites au total", total.toLocaleString("fr-FR"), "Depuis le début du comptage") +
+    tuile("Signalements à traiter", String(nbATraiter), nbTraites + " déjà traité" + (nbTraites > 1 ? "s" : ""), "/equipe") +
+    tuile("Version en ligne", "v" + actuelle.v, dateCourte(actuelle.date)) +
+    "</section>";
 }
 
 function resumeVersion(v) {
@@ -272,19 +295,19 @@ const LOGO = '<svg class="logo" aria-hidden="true" viewBox="0 0 512 512"><rect w
 const CSS =
   // Même « Liquid Glass » que l'appli (css/verre.css) : fond maillé coloré, verre transparent flouté,
   // couleurs système Apple, onglets segmentés et boutons en capsule
-  ":root{--fond-base:#efeff1;--t1:rgb(255 255 255/.95);--t2:rgb(0 0 0/.1);--t3:rgb(255 255 255/.85);--t4:rgb(0 0 0/.08);--t5:rgb(0 0 0/.06);" +
-  "--verre:rgb(255 255 255/.3);--verre-barre:rgb(255 255 255/.42);--lentille:rgb(255 255 255/.66);--bord:rgb(255 255 255/.55);" +
-  "--reflet:linear-gradient(135deg,rgb(255 255 255/.5),rgb(255 255 255/.1) 38%,rgb(255 255 255/0) 60%,rgb(255 255 255/.14));" +
-  "--liseré:inset 0 1px 0 rgb(255 255 255/.85),inset 0 -1px 0 rgb(255 255 255/.28),inset 0 0 0 1px rgb(255 255 255/.16);" +
+  ":root{--fond-base:#f2f2f7;--t1:rgb(255 255 255/.9);--t2:rgb(255 255 255/.55);--t3:rgb(229 229 234/.6);--t4:rgb(255 255 255/.6);--t5:rgb(229 229 234/.5);" +
+  "--verre:rgb(255 255 255/.72);--verre-barre:rgb(249 249 251/.72);--lentille:#fff;--bord:rgb(0 0 0/.07);" +
+  "--reflet:linear-gradient(180deg,rgb(255 255 255/.35),rgb(255 255 255/0) 40%);" +
+  "--liseré:inset 0 .5px 0 rgb(255 255 255/.9);" +
   "--ombre:0 1px 1px rgb(0 0 0/.03),0 6px 18px -10px rgb(0 0 0/.16);--flou:blur(22px) saturate(120%) brightness(1.04);" +
-  "--segment:rgb(255 255 255/.22);--encre:#111113;--douce:#4a4a4f;--accent:#111113;--lien:#111113;--barre:#111113;--rail:rgb(0 0 0/.08);" +
+  "--segment:rgb(118 118 128/.12);--encre:#111113;--douce:#4a4a4f;--accent:#111113;--lien:#111113;--barre:#111113;--rail:rgb(0 0 0/.08);" +
   "--trait:rgb(0 0 0/.12);--ok:#17692d;--danger:#c0000e;--sur-accent:#fff;--actuelle:rgb(0 0 0/.06);color-scheme:light}" +
-  "@media (prefers-color-scheme:dark){:root{--fond-base:#000;--t1:rgb(255 255 255/.13);--t2:rgb(255 255 255/.06);--t3:rgb(255 255 255/.1);--t4:rgb(255 255 255/.05);--t5:rgb(255 255 255/.08);" +
-  "--verre:rgb(255 255 255/.08);--verre-barre:rgb(28 28 36/.42);--lentille:rgb(255 255 255/.2);--bord:rgb(255 255 255/.16);" +
-  "--reflet:linear-gradient(135deg,rgb(255 255 255/.16),rgb(255 255 255/.03) 38%,rgb(255 255 255/0) 60%,rgb(255 255 255/.06));" +
-  "--liseré:inset 0 1px 0 rgb(255 255 255/.24),inset 0 -1px 0 rgb(255 255 255/.06),inset 0 0 0 1px rgb(255 255 255/.06);" +
+  "@media (prefers-color-scheme:dark){:root{--fond-base:#000;--t1:rgb(44 44 46/.55);--t2:rgb(28 28 30/.5);--t3:rgb(44 44 46/.35);--t4:rgb(28 28 30/.4);--t5:rgb(44 44 46/.3);" +
+  "--verre:rgb(28 28 30/.72);--verre-barre:rgb(22 22 24/.72);--lentille:rgb(255 255 255/.16);--bord:rgb(255 255 255/.09);" +
+  "--reflet:linear-gradient(180deg,rgb(255 255 255/.05),rgb(255 255 255/0) 40%);" +
+  "--liseré:inset 0 .5px 0 rgb(255 255 255/.1);" +
   "--ombre:0 1px 1px rgb(0 0 0/.3),0 8px 22px -12px rgb(0 0 0/.6);--flou:blur(22px) saturate(120%) brightness(.9);" +
-  "--segment:rgb(255 255 255/.08);--encre:#f5f5f7;--douce:#c4c4cc;--accent:#f5f5f7;--lien:#f5f5f7;--barre:#f5f5f7;--rail:rgb(255 255 255/.1);" +
+  "--segment:rgb(118 118 128/.24);--encre:#f5f5f7;--douce:#c4c4cc;--accent:#f5f5f7;--lien:#f5f5f7;--barre:#f5f5f7;--rail:rgb(255 255 255/.1);" +
   "--trait:rgb(255 255 255/.12);--ok:#4ade80;--danger:#ffa39d;--sur-accent:#111113;--actuelle:rgb(255 255 255/.1);color-scheme:dark}}" +
   "*{box-sizing:border-box}html{background:var(--fond-base)}" +
   "body{font:16px/1.5 -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:0 16px 24px;color:var(--encre);-webkit-font-smoothing:antialiased}" +
@@ -303,6 +326,13 @@ const CSS =
   ".onglets a{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:0 6px;border-radius:999px;text-decoration:none;" +
   "color:var(--encre);font-weight:600;font-size:.875rem;white-space:nowrap;transition:background-color .25s ease,box-shadow .25s ease}" +
   ".onglets a[aria-current]{background:var(--lentille);color:var(--lien);box-shadow:inset 0 1px 0 rgb(255 255 255/.7),inset 0 -1px 0 rgb(255 255 255/.2),0 4px 14px -6px rgb(0 0 0/.25)}" +
+  ".kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:4px 0 8px}" +
+  ".kpi{display:flex;flex-direction:column;gap:2px;min-width:0;padding:14px 16px;border:1px solid var(--bord);border-radius:20px;background:var(--verre) var(--reflet);" +
+  "-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou);box-shadow:var(--liseré),var(--ombre);color:var(--encre);text-decoration:none}" +
+  "a.kpi:active{transform:scale(.98)}" +
+  ".kpi-libelle{font-size:.8125rem;font-weight:600;color:var(--douce)}" +
+  ".kpi-valeur{font-size:1.875rem;font-weight:700;line-height:1.15;letter-spacing:-.025em;font-variant-numeric:tabular-nums}" +
+  ".kpi-note{font-size:.8125rem;color:var(--douce);overflow-wrap:anywhere}" +
   ".cartes{list-style:none;padding:0;margin:0}" +
   ".cartes>li,.carte,.visites,.connexion{background:var(--verre) var(--reflet);border:1px solid var(--bord);border-radius:24px;box-shadow:var(--liseré),var(--ombre)}" +
   ".cartes>li,.carte{padding:16px 18px;margin:12px 0}" +

@@ -7,6 +7,18 @@
  */
 export const VERSIONS = [
   {
+    v: 24,
+    date: "2026-10-12",
+    titre: "Finitions plus professionnelles",
+    nouveautes: [
+      "Fond gris système de l'iPhone (noir en mode sombre), plus net que le dégradé.",
+      "Surfaces en verre plus sobres : presque blanches, liseré fin, ombre douce, sans reflet appuyé.",
+      "Icônes des besoins sur un fond neutre plein ; indicateur de pages plus discret sous les infos du moment.",
+      "Fondu court entre les écrans (sauf si le téléphone demande moins d'animations).",
+      "Page de l'équipe : tableau de bord avec les chiffres clés (visites du mois, total, signalements à traiter, version en ligne)."
+    ]
+  },
+  {
     v: 23,
     date: "2026-10-12",
     titre: "Finitions selon les règles de design d'Apple",
