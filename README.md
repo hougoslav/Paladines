@@ -39,6 +39,7 @@ js/i18n.js             les textes en français, anglais et arabe
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
 data/coordonnees.js    positions GPS des lieux (générées par outils/geocoder.mjs)
 outils/geocoder.mjs    calcule les positions GPS à partir des adresses
+functions/api/         réception des signalements (Cloudflare Pages Functions)
 sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
 vendor/                Leaflet (carte) et qrcode-generator, copiés ici pour marcher hors ligne
@@ -166,6 +167,32 @@ que sur ce site en ligne.
    **Production branch** : la branche qui contient l'appli. **Framework preset** : *None*.
    **Build command** : vide. **Build output directory** : vide (ou `/`). Puis **Save and Deploy**.
 
+### Recevoir les signalements (à faire une fois)
+
+Les boutons « Signaler une erreur » (sur chaque fiche) et « Signaler un problème » (dans
+*Réglages* et *Infos*) envoient un message **anonyme** : le lieu, la raison choisie, le texte
+facultatif et la langue. Jamais la position, le nom ni l'adresse IP. Sans internet, le
+message attend sur le téléphone et part tout seul au retour de la connexion.
+
+Les messages sont reçus par `functions/api/signalement.js` et gardés (un an au plus) dans
+un stockage privé de Cloudflare. Pour l'activer, dans le tableau de bord Cloudflare :
+
+1. **Storage & Databases** → **KV** → **Create** : nommer l'espace `paladines-signalements`.
+2. Projet **paladines** → **Settings** → **Bindings** → **Add** → **KV namespace** :
+   *Variable name* `SIGNALEMENTS`, choisir `paladines-signalements`. Faire de même pour
+   *Preview* si besoin.
+3. **Settings** → **Variables and Secrets** → **Add** : type *Secret*, nom `MOT_DE_PASSE`,
+   valeur = le mot de passe de l'équipe.
+4. Refaire une mise en ligne (*Deployments* → ⋯ → *Retry deployment*) pour que ce soit pris
+   en compte.
+
+**Lire les signalements** : ouvrir <https://paladines.pages.dev/api/signalement>, taper
+n'importe quel nom d'utilisateur et le mot de passe. Chaque message a un bouton
+« Traité : supprimer ». Tant que l'étape 2 n'est pas faite, les messages restent en attente
+sur les téléphones (dix au plus) et partiront une fois le stockage branché.
+
+Les signalements ne marchent que sur Cloudflare Pages (pas sur GitHub Pages ni Netlify).
+
 ### Autres hébergeurs gratuits
 
 - **GitHub Pages** (adresse en `hougoslav.github.io/Paladines`) : *Settings* → *Pages* →
@@ -200,7 +227,6 @@ Plus tard, pour la mettre dans les stores :
 - Le fond de carte vient des serveurs d'OpenStreetMap, qui ne sont pas faits pour un usage
   intensif : pour un vrai lancement, passer par un fournisseur de tuiles (gratuit ou payant).
 - « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
-- « Signaler une erreur » n'envoie encore rien : il faudra un petit serveur ou un formulaire.
 - Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
   sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la
   position de la personne).

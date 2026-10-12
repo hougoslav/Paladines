@@ -817,7 +817,6 @@
     const criteres = CRITERES.filter((c) => l.criteres && l.criteres[c]);
     const femmes = pourFemmes(l);
     const langues = (l.langues || []).map((c) => t("nomsLangues")[c] || c);
-    const raisons = ["ferme", "horaires", "adresse", "accueil", "autre"];
 
     return (
       htmlRetour() +
@@ -854,10 +853,31 @@
         : "") +
       "</div>" +
       '<details class="signaler"><summary>' + icone("i-drapeau") + esc(t("signaler")) + "</summary>" +
-      '<form id="form-signaler" data-id="' + l.id + '"><fieldset><legend>' + esc(t("signalerQuoi")) + "</legend>" +
-      raisons.map((r, i) => '<label><input type="radio" name="raison" id="raison-' + r + '" value="' + r + '"' + (i === 0 ? " required" : "") + "> " + esc(t("sig_" + r)) + "</label>").join("") +
-      '</fieldset><button type="submit" class="btn">' + esc(t("envoyer")) + '</button><p class="merci" role="status" hidden>' + esc(t("signalerMerci")) + "</p></form></details>" +
+      htmlFormSignaler(l.id, ["ferme", "horaires", "adresse", "accueil", "autre"]) + "</details>" +
       "</article>"
+    );
+  }
+
+  /* Formulaire « Signaler » : sur chaque fiche (lieu) ou pour toute l'appli (lieu vide) */
+  function htmlFormSignaler(lieu, raisons) {
+    return (
+      '<form class="form-signaler" data-lieu="' + esc(lieu) + '"><fieldset><legend>' + esc(t("signalerQuoi")) + "</legend>" +
+      raisons.map((r, i) => '<label><input type="radio" name="raison" value="' + r + '"' + (i === 0 ? " required" : "") + "> " + esc(t("sig_" + r)) + "</label>").join("") +
+      '<label class="champ-message"><span>' + esc(t("signalerPrecisez")) + '</span><textarea name="message" rows="3" maxlength="500"></textarea></label>' +
+      '<p class="aide">' + esc(t("signalerAnonyme")) + "</p>" +
+      // Champ piège invisible : seuls les robots le remplissent
+      '<input type="text" name="site" class="piege" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+      '</fieldset><button type="submit" class="btn">' + esc(t("envoyer")) + "</button>" +
+      '<p class="merci" role="status" hidden></p></form>'
+    );
+  }
+
+  function vueSignaler() {
+    return (
+      htmlRetour() +
+      "<h1>" + esc(t("signalerProbleme")) + "</h1>" +
+      '<p class="sous-titre">' + esc(t("signalerIntro")) + "</p>" +
+      '<div class="signaler signaler--page">' + htmlFormSignaler("", ["manque", "bug", "traduction", "autre"]) + "</div>"
     );
   }
 
@@ -897,6 +917,7 @@
       "</div>" +
       '<nav class="liens-bas" aria-label="' + esc(t("plus")) + '">' +
       '<a href="#reglages">' + icone("i-installer") + esc(t("installerCourt")) + "</a>" +
+      '<a href="#signaler">' + icone("i-drapeau") + esc(t("signalerProbleme")) + "</a>" +
       '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
       "</nav>"
     );
@@ -1002,6 +1023,7 @@
       '<p class="ok" role="status" hidden>' + icone("i-check") + esc(t("effacerOk")) + "</p></div></section>" +
       '<nav class="liens-bas" aria-label="' + esc(t("plus")) + '">' +
       '<a href="#infos-securite">' + icone("i-bouclier") + esc(t("securite")) + "</a>" +
+      '<a href="#signaler">' + icone("i-drapeau") + esc(t("signalerProbleme")) + "</a>" +
       '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
       "</nav>"
     );
@@ -1513,13 +1535,80 @@
     else if (h.vue === "proche") zone.innerHTML = htmlListe(preparer(D.lieux, true), true);
   }
 
-  function surEnvoi(e) {
-    if (e.target.id !== "form-signaler") return;
+  /* ---------- Signalements ----------
+   * Envoyés à /api/signalement (functions/api/signalement.js) : le lieu, la raison, le message
+   * facultatif et la langue. Jamais la position ni rien qui identifie la personne.
+   * Sans internet, le message attend sur le téléphone et part au retour de la connexion. */
+  const MAX_ATTENTE = 10;
+
+  async function posterSignalement(s) {
+    try {
+      const rep = await fetch("/api/signalement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(s),
+        cache: "no-store",
+        referrerPolicy: "no-referrer"
+      });
+      if (rep.ok) return "envoye";
+      return rep.status >= 500 ? "attente" : "refuse";
+    } catch (e) {
+      return "attente";
+    }
+  }
+
+  function mettreEnAttente(s) {
+    const liste = stock.lire("signalements", []).concat([s]).slice(-MAX_ATTENTE);
+    stock.ecrire("signalements", liste);
+  }
+
+  let envoiEnCours = false;
+  async function envoyerEnAttente() {
+    if (envoiEnCours || navigator.onLine === false) return;
+    const liste = stock.lire("signalements", []);
+    if (!liste.length) return;
+    envoiEnCours = true;
+    const restent = [];
+    for (const s of liste) {
+      if ((await posterSignalement(s)) === "attente") restent.push(s);
+    }
+    // Relire : un message a pu être ajouté pendant l'envoi
+    const ajoutes = stock.lire("signalements", []).slice(liste.length);
+    stock.ecrire("signalements", restent.concat(ajoutes).slice(-MAX_ATTENTE));
+    envoiEnCours = false;
+  }
+
+  async function surEnvoi(e) {
+    const form = e.target;
+    if (!form.classList || !form.classList.contains("form-signaler")) return;
     e.preventDefault();
-    // Prototype : rien n'est envoyé. Plus tard : envoyer { lieu, raison, date } à l'équipe qui met à jour les données.
-    e.target.querySelector(".merci").hidden = false;
-    e.target.querySelector("fieldset").disabled = true;
-    e.target.querySelector('button[type="submit"]').hidden = true;
+    const champs = form.querySelector("fieldset");
+    const bouton = form.querySelector('button[type="submit"]');
+    const msg = form.querySelector(".merci");
+    const s = {
+      lieu: form.dataset.lieu || "",
+      raison: form.elements.raison.value,
+      message: form.elements.message.value.trim(),
+      langue: etat.langue,
+      site: form.elements.site.value
+    };
+    champs.disabled = true;
+    bouton.disabled = true;
+
+    let resultat = navigator.onLine === false ? "attente" : await posterSignalement(s);
+    if (resultat === "attente") mettreEnAttente(s);
+
+    if (resultat === "refuse") {
+      msg.classList.add("merci--erreur");
+      msg.textContent = t("signalerErreur");
+      champs.disabled = false;
+      bouton.disabled = false;
+    } else {
+      msg.classList.remove("merci--erreur");
+      msg.textContent = t(resultat === "envoye" ? "signalerMerci" : "signalerAttente");
+      bouton.hidden = true;
+    }
+    msg.hidden = false;
   }
 
   /* ---------- Langue, réglages, chrome ---------- */
@@ -1621,6 +1710,7 @@
       case "favoris": html = vueFavoris(); break;
       case "reglages": html = vueReglages(); break;
       case "apropos": html = vueApropos(); break;
+      case "signaler": html = vueSignaler(); break;
       case "pourvous": html = vuePourVous(h.param); break;
       default: html = vueAccueil();
     }
@@ -1699,6 +1789,8 @@
     majHorsLigne();
     window.addEventListener("online", geocoderManquants);
     geocoderManquants();
+    window.addEventListener("online", envoyerEnAttente);
+    envoyerEnAttente();
 
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();

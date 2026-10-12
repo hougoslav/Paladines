@@ -1060,10 +1060,47 @@ svg {
   gap: 10px;
   min-height: 40px;
 }
-.signaler input {
+.signaler input[type="radio"] {
   width: 20px;
   height: 20px;
   accent-color: var(--encre);
+}
+.signaler .champ-message {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+.signaler textarea {
+  width: 100%;
+  min-height: 88px;
+  padding: 10px 12px;
+  border: 1px solid var(--trait);
+  border-radius: var(--r-petit, 8px);
+  background: var(--papier);
+  color: var(--encre);
+  font: inherit;
+  resize: vertical;
+}
+.signaler fieldset {
+  width: 100%;
+}
+.signaler .aide {
+  margin: 0;
+}
+.signaler .piege {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+}
+.signaler--page {
+  margin-top: 16px;
+}
+.merci--erreur {
+  color: var(--urgent);
 }
 .merci,
 .ok {
