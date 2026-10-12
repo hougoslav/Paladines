@@ -1027,6 +1027,37 @@ body:has(.hero) .entete {
   display: none;
 }
 
+/* Toilettes, eau, lieux sûrs : petits repères blancs, pour ne pas les confondre avec les lieux */
+.marqueur-eq {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--fond);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--fond);
+  box-shadow: 0 3px 10px -3px rgb(0 0 0 / 0.6);
+}
+.marqueur-eq .ic {
+  width: 17px;
+  height: 17px;
+}
+.marqueur-eq--eau {
+  color: var(--bleu);
+}
+.marqueur-eq--police,
+.marqueur-eq--urgences {
+  border-color: var(--bleu);
+  background: var(--bleu);
+  color: #fff;
+}
+.cf-source {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+  color: var(--gris);
+}
+
 /* ============ 12 ter. Guidage à pied ============ */
 body.en-guide .onglets,
 .vue-carte.en-guide .barre-carte,
@@ -1175,6 +1206,83 @@ body.en-guide .onglets,
   flex-basis: 100%;
   font-size: 0.9375rem;
   color: var(--gris);
+}
+
+/* ============ 12 quater. « Je ne me sens pas en sécurité » ============ */
+.btn--aide {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  margin: 4px 0 14px;
+  font-size: 1.0625rem;
+}
+.btn--grand {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.0625rem;
+}
+.aide-etapes {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+.aide-etape {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--verre-bord);
+  border-radius: var(--r);
+  background: var(--verre) var(--reflet);
+  box-shadow: var(--liseré), var(--ombre-verre);
+}
+.aide-etape h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+.aide-etape p {
+  margin: 0;
+  color: var(--gris);
+}
+.aide-etape .btn {
+  justify-self: start;
+}
+.aide-etape .btn--grand {
+  justify-self: stretch;
+}
+.aide-surs {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.aide-surs li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+}
+.aide-surs .btn {
+  margin-inline-start: auto;
+}
+.aide-surs .pastille {
+  flex: none;
+}
+.aide-sur-txt {
+  display: grid;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.aide-sur-txt small {
+  color: var(--gris);
+}
+.lien-eq .ic:first-child {
+  color: var(--jaune);
 }
 
 /* ============ 13. Réglages ============ */

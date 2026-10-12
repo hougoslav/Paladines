@@ -43,6 +43,8 @@ outils/geocoder.mjs    calcule les positions GPS à partir des adresses
 data/chemins.json      rues et chemins à pied de Lille, pour le guidage sans internet
 outils/chemins.mjs     fabrique data/chemins.json (OpenStreetMap)
 js/chemins.js          calcule l'itinéraire et les consignes sur le téléphone
+data/equipements.js    toilettes, eau potable et lieux sûrs (OpenStreetMap, chaque mois)
+outils/equipements.mjs fabrique data/equipements.js
 functions/             page de l'équipe (/equipe), réception des signalements et des visites
 data/versions.mjs      les versions de l'appli et leurs nouveautés (page de l'équipe)
 sw.js                  service worker : fonctionnement sans internet

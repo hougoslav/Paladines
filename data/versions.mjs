@@ -8,6 +8,17 @@
  */
 export const VERSIONS = [
   {
+    v: 23,
+    date: "2026-10-12",
+    titre: "Toilettes, eau potable et lieux sûrs",
+    nouveautes: [
+      "Sur la carte, trois nouveaux boutons : « Toilettes » (70), « Eau » (87 fontaines) et « Lieux sûrs » (commissariats et urgences des hôpitaux), avec « Y aller ».",
+      "Nouveau bouton rouge « Je ne me sens pas en sécurité » (accueil et urgences) : appeler le 17, SMS au 114 déjà écrit si l'on ne peut pas parler, le lieu sûr le plus proche, la pharmacie de garde (3237) et le 3919.",
+      "Infos pratiques : lien direct vers Reconnect, coffre-fort numérique gratuit pour garder une copie de ses papiers.",
+      "Ces données viennent d'OpenStreetMap et sont mises à jour chaque mois."
+    ]
+  },
+  {
     v: 22,
     date: "2026-10-12",
     titre: "Guidage à pied, même sans réseau",
