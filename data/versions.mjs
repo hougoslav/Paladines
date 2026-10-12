@@ -7,6 +7,16 @@
  */
 export const VERSIONS = [
   {
+    v: 28,
+    date: "2026-10-12",
+    titre: "Style « Paladines » plus lumineux",
+    nouveautes: [
+      "Le style « Paladines » reprend le verre de la première version Liquid Glass : très transparent, avec des reflets et des liserés de lumière.",
+      "Lueurs colorées derrière le verre (bleu, prune, jaune lampe, bleu canard, indigo), toujours sur le bleu nuit.",
+      "Les styles Clair et Sombre ne changent pas ; tous les textes restent bien lisibles."
+    ]
+  },
+  {
     v: 27,
     date: "2026-10-12",
     titre: "Nouveau style « Paladines »",

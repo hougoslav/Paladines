@@ -1065,28 +1065,29 @@ h2 {
 }
 
 /* ============ 12. Style « Paladines » (Réglages → Couleurs), en dernier pour primer ============
- * Les couleurs du début : bleu nuit et lampe jaune, avec tout le reste du style actuel
- * (verre, typographie, mise en page). Un thème de nuit : la lanterne dans le noir. */
+ * Les couleurs du début (bleu nuit, lampe jaune) avec le verre de la première version
+ * Liquid Glass : très transparent, lueurs colorées derrière (bleu, prune, lampe, bleu canard,
+ * indigo), reflets en biais et liserés de lumière. Le reste du style actuel est gardé. */
 :root[data-theme="paladines"] {
   color-scheme: dark;
-  --fond-base: #0a1324;
-  --tache-1: rgb(31 51 84 / 0.75);
-  --tache-2: rgb(244 182 63 / 0.16);
-  --tache-3: rgb(123 47 134 / 0.2);
-  --tache-4: rgb(36 82 143 / 0.32);
-  --tache-5: rgb(37 60 96 / 0.5);
-  --verre: rgb(26 41 68 / 0.66);
-  --verre-survol: rgb(37 56 90 / 0.76);
-  --verre-barre: rgb(14 24 44 / 0.74);
-  --verre-lentille: rgb(244 182 63 / 0.18);
-  --verre-bord: rgb(255 255 255 / 0.1);
-  --reflet: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0) 40%);
-  --liseré: inset 0 0.5px 0 rgb(255 255 255 / 0.12);
-  --ombre-verre: 0 0.5px 0 rgb(0 0 0 / 0.4), 0 6px 18px -10px rgb(0 0 0 / 0.7);
+  --fond-base: #081022;
+  --tache-1: rgb(36 82 143 / 0.6);
+  --tache-2: rgb(244 182 63 / 0.26);
+  --tache-3: rgb(123 47 134 / 0.45);
+  --tache-4: rgb(14 116 144 / 0.32);
+  --tache-5: rgb(91 63 160 / 0.4);
+  --verre: rgb(255 255 255 / 0.07);
+  --verre-survol: rgb(255 255 255 / 0.12);
+  --verre-barre: rgb(10 19 36 / 0.45);
+  --verre-lentille: rgb(244 182 63 / 0.22);
+  --verre-bord: rgb(255 255 255 / 0.16);
+  --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.18) 0%, rgb(255 255 255 / 0.04) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.07) 100%);
+  --liseré: inset 0 1px 0 rgb(255 255 255 / 0.26), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
   --ombre-1: var(--liseré), var(--ombre-verre);
   --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
   --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
-  --flou: blur(22px) saturate(150%) brightness(0.92);
+  --flou: blur(22px) saturate(180%) brightness(0.9);
   --encre: #f3f5f8;
   --encre-douce: #bcc6d6;
   --lien: #f6c35a;
