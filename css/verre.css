@@ -26,7 +26,7 @@
   --verre-bord: rgb(255 255 255 / 0.55);
   --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.5) 0%, rgb(255 255 255 / 0.1) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.14) 100%);
   --liseré: inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(255 255 255 / 0.28), inset 0 0 0 1px rgb(255 255 255 / 0.16);
-  --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px -14px rgb(0 0 0 / 0.22);
+  --ombre-verre: 0 1px 1px rgb(0 0 0 / 0.03), 0 6px 18px -10px rgb(0 0 0 / 0.16);
   --flou: blur(22px) saturate(120%) brightness(1.04);
 
   /* Couleurs système (texte AA sur le verre le plus coloré) */
@@ -112,7 +112,7 @@
     --verre-bord: rgb(255 255 255 / 0.16);
     --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0.03) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.06) 100%);
     --liseré: inset 0 1px 0 rgb(255 255 255 / 0.24), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
-    --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
+    --ombre-verre: 0 1px 1px rgb(0 0 0 / 0.3), 0 8px 22px -12px rgb(0 0 0 / 0.6);
     --flou: blur(22px) saturate(120%) brightness(0.9);
     --encre: #f5f5f7;
     --encre-douce: #c4c4cc;
@@ -175,7 +175,7 @@
   --verre-bord: rgb(255 255 255 / 0.16);
   --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0.03) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.06) 100%);
   --liseré: inset 0 1px 0 rgb(255 255 255 / 0.24), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
-  --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
+  --ombre-verre: 0 1px 1px rgb(0 0 0 / 0.3), 0 8px 22px -12px rgb(0 0 0 / 0.6);
   --flou: blur(22px) saturate(120%) brightness(0.9);
   --encre: #f5f5f7;
   --encre-douce: #c4c4cc;
@@ -639,7 +639,219 @@ a,
   background: var(--verre-barre);
 }
 
-/* ============ 10. Confort : moins de transparence, pas de flou, couleurs forcées ============ */
+/* ============ 10. Finitions selon les règles de design d'Apple (HIG) ============
+ * Une seule famille de caractères, une échelle de tailles (34 / 28 / 20 / 17 / 15 / 13 / 11),
+ * des espacements sur une grille de 4 et 8 px, des titres de section courts en gras, des
+ * listes « groupées » d'iOS, et des ombres légères : c'est le verre qui donne la profondeur. */
+:root {
+  --f-texte: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Geeza Pro", system-ui, sans-serif;
+  --r: 22px;
+}
+body {
+  font-size: 1.0625rem;
+  line-height: 1.47;
+  letter-spacing: -0.006em;
+}
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.026em;
+}
+.fiche-lieu h1 {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.017em;
+}
+.horaires,
+.statut,
+.urg-num,
+.urg-rapide-num,
+.lieu-meta {
+  font-variant-numeric: tabular-nums;
+}
+.vue {
+  gap: 28px;
+}
+.bloc {
+  gap: 12px;
+}
+/* Titres de section : en gras, sans capitales espacées */
+.titre-bloc {
+  font-family: var(--f-titre);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.017em;
+  text-transform: none;
+  color: var(--encre);
+}
+.titre-bloc--urg {
+  color: var(--urgent);
+}
+
+/* En-tête */
+.btn-quitter {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 4px 12px -6px rgb(209 32 15 / 0.55);
+}
+
+/* Accueil : grand titre posé sur le fond, sans plaque ; le bouton principal porte l'action */
+.hero {
+  padding: 4px 0 0;
+  gap: 18px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.hero-pour {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--encre-douce);
+}
+.hero-titre {
+  font-size: 2.125rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.hero-titre span {
+  color: var(--encre-douce);
+}
+.cta-proche {
+  min-height: 72px;
+  padding: 14px 16px;
+  border-radius: 22px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 10px 24px -14px rgb(0 0 0 / 0.5);
+}
+.cta-txt strong {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.cta-txt small {
+  font-size: 0.8125rem;
+  opacity: 0.85;
+}
+
+/* Tuiles des besoins */
+.grille-cat {
+  gap: 10px;
+}
+.tuile {
+  gap: 8px;
+  padding: 16px 6px 14px;
+}
+.tuile-nom {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+.tuile-nb {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.pastille {
+  border-radius: 13px;
+}
+
+/* Listes de lieux : liste groupée d'iOS (séparateurs après l'icône, statut en texte coloré) */
+.ligne-lieu {
+  position: relative;
+}
+.liste li + li {
+  border-top: 0;
+}
+.liste li + li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline: 72px 0;
+  height: 1px;
+  background: var(--trait);
+}
+.lieu {
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px 14px 16px;
+}
+.lieu-cat {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.lieu-nom {
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+.statut {
+  padding: 0;
+  border-radius: 0;
+  background: none !important;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.appel-rapide {
+  width: 72px;
+  border-inline-start: 0;
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.appel-rapide .ic {
+  background: var(--vert-bouton);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 4px 10px -4px rgb(26 107 47 / 0.6);
+}
+.appel-rapide:hover {
+  background: transparent;
+}
+
+/* Fiche */
+.horaires tr.auj th,
+.horaires tr.auj td {
+  font-weight: 700;
+  box-shadow: none;
+}
+.actions--principales .action--principale {
+  min-height: 54px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.action {
+  border-radius: 18px;
+  font-weight: 600;
+}
+
+/* Urgences : « Appeler » en vert, comme partout ailleurs (même action, même apparence) */
+.liste-urg .btn {
+  background: color-mix(in srgb, var(--vert-bouton) 96%, transparent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
+  border-color: rgb(255 255 255 / 0.35);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 6px 16px -8px rgb(26 107 47 / 0.6);
+}
+
+/* Barre d'onglets : libellés 11 px, icônes 24 px, comme iOS */
+.onglets a {
+  gap: 2px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.onglets .ic {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* ============ 11. Confort : moins de transparence, pas de flou, couleurs forcées ============ */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root,
   :root:not([data-theme="light"]),

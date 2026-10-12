@@ -45,7 +45,7 @@ data/versions.mjs      les versions de l'appli et leurs nouveautés (page de l'�
 sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
 vendor/                Leaflet (carte) et qrcode-generator, copiés ici pour marcher hors ligne
-fonts/                 polices Atkinson Hyperlegible et Bricolage Grotesque (licence OFL)
+fonts/                 polices Atkinson Hyperlegible et Bricolage Grotesque (licence OFL), plus utilisées par le style actuel
 icons/                 icônes de l'appli (logo « lanterne »)
 docs/IDEES.md          idées, feuille de route, questions pour le groupe
 docs/identite/         les logos et styles proposés, et le choix retenu
