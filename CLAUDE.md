@@ -6,6 +6,7 @@ Appli web gratuite pour les femmes à la rue à Lille : les lieux ouverts mainte
 - `index.html` : en-tête, onglets, pictogrammes SVG. `js/app.js` : vues (routage par `#vue-param`), horaires, distances, carte, infos du moment. `js/i18n.js` : textes FR, EN, AR.
 - `css/style.css` puis `css/theme.css` (style « Nuit raffinée »). `fonts/`, `icons/`, `vendor/` (Leaflet, qrcode).
 - `data/lieux.js` : 56 lieux, 11 besoins, infos saisonnières, urgences. `data/coordonnees.js` : généré par `outils/geocoder.mjs` via `.github/workflows/positions.yml` (faire un pull avant de pousser).
+- `functions/api/signalement.js` : reçoit les signalements (Cloudflare Pages Functions, stockage KV `SIGNALEMENTS`, page de l'équipe protégée par `MOT_DE_PASSE`, voir README).
 - `sw.js` (hors ligne), `manifest.webmanifest`, `_headers`, `affiche.html` (affiches QR), `docs/` (idées, lieux et sources, identité, kit Instagram).
 
 ## Technologies
@@ -20,10 +21,11 @@ HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service wor
 - Lisibilité : police Atkinson Hyperlegible, pictogrammes, cibles tactiles d'au moins 44 px.
 
 ## Terminé
-Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les femmes », infos du moment (météo, plan hiver), listes et filtres, fiches, carte de tous les lieux, urgences, lieux gardés, réglages, hors ligne, installation, affiches QR, identité (logo lanterne, style A), kit Instagram.
+Accueil « Ouvert maintenant, près de moi », 11 besoins et page « Pour les femmes », infos du moment (météo, plan hiver), listes et filtres, fiches, carte de tous les lieux, urgences, lieux gardés, réglages, signalements anonymes (fiche et « Signaler un problème », envoi différé sans internet), hors ligne, installation, affiches QR, identité (logo lanterne, style A), kit Instagram.
 
 ## Reste à faire
 - Confirmer les 56 lieux par téléphone avant tout lancement (`docs/LIEUX-LILLE.md`).
-- Faire relire l'anglais et l'arabe ; brancher « Signaler une erreur », qui n'envoie encore rien.
+- Faire relire l'anglais et l'arabe.
+- Activer la réception des signalements dans Cloudflare (espace KV et mot de passe, voir README).
 - Choisir un fournisseur de tuiles pour la carte et un service d'itinéraire (Google Maps pour l'instant).
 - Tester avec des femmes concernées et des associations ; trancher les questions de `docs/IDEES.md`.

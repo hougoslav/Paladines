@@ -10,7 +10,7 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v16";
+const VERSION = "paladines-v17";
 const CACHE_TUILES = "paladines-tuiles";
 const MAX_TUILES = 300;
 
@@ -74,6 +74,8 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   if (url.origin !== self.location.origin) return;
+  // Les signalements (page de l'équipe) ne passent jamais par le cache
+  if (url.pathname.indexOf("/api/") === 0) return;
 
   // Les QR codes ajoutent ?pres=…&nom=… : on sert la même page depuis le cache.
   // /index.html et / sont la même page.
