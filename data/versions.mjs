@@ -2,108 +2,24 @@
  * Les versions de l'appli et ce que chacune a apporté, montrées sur la page de l'équipe
  * (/equipe → Statistiques). La plus récente en premier.
  *
- * À chaque mise à jour : augmenter VERSION dans sw.js, puis ajouter ici une entrée
- * en haut de la liste, avec le même numéro.
+ * À chaque nouvelle version : ajouter ici une entrée en haut de la liste. Dans sw.js,
+ * VERSION vaut « paladines-v<numéro>.<révision> » (ex. paladines-v20.9) : augmenter la
+ * révision à chaque mise en ligne, même sans nouvelle version affichée ici.
  */
 export const VERSIONS = [
   {
-    v: 28,
-    date: "2026-10-12",
-    titre: "Style « Paladines » plus lumineux",
-    nouveautes: [
-      "Le style « Paladines » reprend le verre de la première version Liquid Glass : très transparent, avec des reflets et des liserés de lumière.",
-      "Lueurs colorées derrière le verre (bleu, prune, jaune lampe, bleu canard, indigo), toujours sur le bleu nuit.",
-      "Les styles Clair et Sombre ne changent pas ; tous les textes restent bien lisibles."
-    ]
-  },
-  {
-    v: 27,
-    date: "2026-10-12",
-    titre: "Nouveau style « Paladines »",
-    nouveautes: [
-      "Réglages → Couleurs : un 4e choix, « Paladines », avec le bleu nuit et le jaune lampe du début.",
-      "Il garde tout le style actuel : verre, police, mise en page, transitions, couleurs lisibles.",
-      "« Bonjour. » et le bouton « Ouvert maintenant » en jaune ; sur la carte, repères jaunes pour les lieux ouverts.",
-      "Les sélecteurs des réglages n'ont plus de coche (la surbrillance suffit) et passent sur deux lignes si le texte est très grand."
-    ]
-  },
-  {
-    v: 26,
-    date: "2026-10-12",
-    titre: "Carte, réglages et petits détails",
-    nouveautes: [
-      "Carte : repères noirs pour les lieux ouverts maintenant, blancs pour les autres ; l'icône indique le besoin.",
-      "Réglages : choix de la langue, de la taille et des couleurs dans des sélecteurs comme sur iPhone.",
-      "« Tout effacer » en rouge, comme toute action qui supprime ; page « Mes lieux gardés » vide plus soignée.",
-      "En arabe, « A+ » et « A++ » s'affichent dans le bon sens."
-    ]
-  },
-  {
-    v: 25,
-    date: "2026-10-12",
-    titre: "Vert et rouge plus élégants",
-    nouveautes: [
-      "Vert émeraude profond pour « Ouvert » et « Appeler », à la place du vert sapin.",
-      "Rouge framboise pour « Quitter » et les numéros d'urgence, à la place du rouge orangé.",
-      "Mêmes teintes sur la page de l'équipe ; tous les textes restent bien lisibles, en clair et en sombre."
-    ]
-  },
-  {
-    v: 24,
-    date: "2026-10-12",
-    titre: "Finitions plus professionnelles",
-    nouveautes: [
-      "Fond gris système de l'iPhone (noir en mode sombre), plus net que le dégradé.",
-      "Surfaces en verre plus sobres : presque blanches, liseré fin, ombre douce, sans reflet appuyé.",
-      "Icônes des besoins sur un fond neutre plein ; indicateur de pages plus discret sous les infos du moment.",
-      "Fondu court entre les écrans (sauf si le téléphone demande moins d'animations).",
-      "Page de l'équipe : tableau de bord avec les chiffres clés (visites du mois, total, signalements à traiter, version en ligne)."
-    ]
-  },
-  {
-    v: 23,
-    date: "2026-10-12",
-    titre: "Finitions selon les règles de design d'Apple",
-    nouveautes: [
-      "Une seule police, celle du téléphone (SF Pro sur iPhone), avec une échelle de tailles claire.",
-      "Accueil plus aéré : le grand titre est posé sur le fond, le bouton « Ouvert maintenant » porte l'action.",
-      "Titres de section en gras (« Je cherche… ») au lieu de petites capitales espacées.",
-      "Listes de lieux façon iPhone : séparateurs fins, statut en texte coloré, bouton d'appel rond et vert.",
-      "« Appeler » est vert partout, y compris sur la page des urgences ; ombres plus légères ; barre d'onglets plus fine."
-    ]
-  },
-  {
-    v: 22,
-    date: "2026-10-12",
-    titre: "Liquid Glass en noir et blanc",
-    nouveautes: [
-      "Même verre transparent, en noir et blanc : fond gris clair et blanc (noir profond en mode sombre).",
-      "Boutons, onglet choisi, pastilles des besoins et logo en noir (en blanc en mode sombre).",
-      "Seules couleurs gardées, parce qu'elles ont un sens : vert pour « Ouvert » et « Appeler », rouge pour « Quitter » et les numéros d'urgence ; les repères de la carte gardent la couleur de leur besoin.",
-      "Page de l'équipe et icône de l'engrenage au même style noir et blanc."
-    ]
-  },
-  {
-    v: 21,
-    date: "2026-10-12",
-    titre: "Liquid Glass, comme sur iPhone",
-    nouveautes: [
-      "Tout est en verre transparent : cartes, besoins, boutons, filtres, bandeaux, listes, menus, en-tête, barre d'onglets et boutons de la carte.",
-      "Nouveau fond coloré (bleu, lilas, pêche, menthe, rose) qu'on voit à travers le verre ; fond profond en mode sombre.",
-      "Couleurs système d'Apple : boutons bleus, « Appeler » vert, « Quitter » rouge ; l'onglet choisi est une lentille de verre.",
-      "Titres en police système (celle de l'iPhone) ; le texte reste en Atkinson Hyperlegible pour bien se lire.",
-      "Page de l'équipe au même style. Tous les textes ont été vérifiés lisibles sur le verre, en clair et en sombre."
-    ]
-  },
-  {
     v: 20,
     date: "2026-10-12",
-    titre: "Nouveau look : verre et lumière",
+    titre: "Nouveau look façon iPhone (Liquid Glass)",
     nouveautes: [
-      "Style moderne façon iPhone : fond lumineux (lampe, prune, bleu), cartes en verre translucide avec reflets, coins plus arrondis.",
-      "En-tête en verre dépoli et barre d'onglets flottante ; la carte va jusqu'en bas de l'écran, sous la barre.",
-      "Page de l'équipe au même style, avec des onglets façon iOS (« À traiter », « Historique », « Statistiques »).",
-      "Si le téléphone demande moins de transparence, tout redevient opaque ; le flou est réservé aux barres pour rester fluide sur les vieux téléphones."
+      "Verre transparent partout (cartes, boutons, menus), en-tête en verre et barre d'onglets flottante ; la carte va jusqu'en bas de l'écran.",
+      "Style noir et blanc soigné : fond gris de l'iPhone (noir profond en mode sombre), ombres légères, fondu entre les écrans.",
+      "Une seule police, celle du téléphone, avec des tailles claires ; titres de section en gras ; listes de lieux façon iPhone avec bouton d'appel rond.",
+      "Vert pour « Ouvert » et « Appeler », rouge pour « Quitter » et les numéros d'urgence ; tous les textes vérifiés lisibles.",
+      "Carte : repères noirs pour les lieux ouverts, blancs pour les autres ; l'icône dit le besoin.",
+      "Réglages : sélecteurs façon iPhone et nouveau style de couleurs « Paladines » (bleu nuit, jaune lampe, verre lumineux).",
+      "Page de l'équipe au même style, avec onglets « À traiter », « Historique », « Statistiques » et un tableau de bord des chiffres clés.",
+      "Corrections : « A++ » dans le bon sens en arabe, mode sombre lisible sur les navigateurs sans flou, 110 Ko de moins à l'installation."
     ]
   },
   {

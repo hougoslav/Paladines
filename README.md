@@ -151,7 +151,7 @@ que sur ce site en ligne.
 - Une modification sur **une autre branche** ne touche pas le vrai site : Cloudflare en fait
   un aperçu à une adresse à part. Si l'appli passe un jour sur `main`, changer la
   *Production branch* dans les réglages du projet Cloudflare.
-- À chaque mise à jour, changer `VERSION` dans `sw.js` (`paladines-v6` → `paladines-v7`…)
+- À chaque mise à jour, changer `VERSION` dans `sw.js` (`paladines-v20.9` → `paladines-v20.10`…, un nom jamais utilisé)
   pour que les téléphones prennent les nouveaux fichiers dès la première ouverture.
   Décrire la nouvelle version en haut de [`data/versions.mjs`](data/versions.mjs) : c'est
   l'historique montré dans l'onglet « Statistiques » de la page de l'équipe.

@@ -301,14 +301,14 @@ const CSS =
   "--liseré:inset 0 .5px 0 rgb(255 255 255/.9);" +
   "--ombre:0 1px 1px rgb(0 0 0/.03),0 6px 18px -10px rgb(0 0 0/.16);--flou:blur(22px) saturate(120%) brightness(1.04);" +
   "--segment:rgb(118 118 128/.12);--encre:#111113;--douce:#4a4a4f;--accent:#111113;--lien:#111113;--barre:#111113;--rail:rgb(0 0 0/.08);" +
-  "--trait:rgb(0 0 0/.12);--ok:#03684b;--danger:#be123c;--sur-accent:#fff;--actuelle:rgb(0 0 0/.06);color-scheme:light}" +
+  "--trait:rgb(0 0 0/.12);--ok:#1e6b25;--danger:#b71c1c;--sur-accent:#fff;--actuelle:rgb(0 0 0/.06);color-scheme:light}" +
   "@media (prefers-color-scheme:dark){:root{--fond-base:#000;--t1:rgb(44 44 46/.55);--t2:rgb(28 28 30/.5);--t3:rgb(44 44 46/.35);--t4:rgb(28 28 30/.4);--t5:rgb(44 44 46/.3);" +
   "--verre:rgb(28 28 30/.72);--verre-barre:rgb(22 22 24/.72);--lentille:rgb(255 255 255/.16);--bord:rgb(255 255 255/.09);" +
   "--reflet:linear-gradient(180deg,rgb(255 255 255/.05),rgb(255 255 255/0) 40%);" +
   "--liseré:inset 0 .5px 0 rgb(255 255 255/.1);" +
   "--ombre:0 1px 1px rgb(0 0 0/.3),0 8px 22px -12px rgb(0 0 0/.6);--flou:blur(22px) saturate(120%) brightness(.9);" +
   "--segment:rgb(118 118 128/.24);--encre:#f5f5f7;--douce:#c4c4cc;--accent:#f5f5f7;--lien:#f5f5f7;--barre:#f5f5f7;--rail:rgb(255 255 255/.1);" +
-  "--trait:rgb(255 255 255/.12);--ok:#34d399;--danger:#fda4af;--sur-accent:#111113;--actuelle:rgb(255 255 255/.1);color-scheme:dark}}" +
+  "--trait:rgb(255 255 255/.12);--ok:#6fd174;--danger:#ff8a80;--sur-accent:#111113;--actuelle:rgb(255 255 255/.1);color-scheme:dark}}" +
   "*{box-sizing:border-box}html{background:var(--fond-base)}" +
   "body{font:16px/1.5 -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:0 16px 24px;color:var(--encre);-webkit-font-smoothing:antialiased}" +
   "body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:" +
