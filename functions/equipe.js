@@ -267,25 +267,25 @@ function pageConnexion(env, erreur) {
 }
 
 // Logo engrenage (même dessin que icons/equipe.svg), en haut à gauche comme la lanterne de l'appli
-const LOGO = '<svg class="logo" aria-hidden="true" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#14233a"/><path fill="#f4b63f" stroke="#f4b63f" stroke-width="28" stroke-linejoin="round" d="M220.3 133.1L229.7 90.1L282.3 90.1L291.7 133.1L317.7 143.8L354.7 120.1L391.9 157.3L368.2 194.3L378.9 220.3L421.9 229.7L421.9 282.3L378.9 291.7L368.2 317.7L391.9 354.7L354.7 391.9L317.7 368.2L291.7 378.9L282.3 421.9L229.7 421.9L220.3 378.9L194.3 368.2L157.3 391.9L120.1 354.7L143.8 317.7L133.1 291.7L90.1 282.3L90.1 229.7L133.1 220.3L143.8 194.3L120.1 157.3L157.3 120.1L194.3 143.8Z"/><circle cx="256" cy="256" r="58" fill="#14233a"/></svg>';
+const LOGO = '<svg class="logo" aria-hidden="true" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#111113"/><path fill="#ffffff" stroke="#ffffff" stroke-width="28" stroke-linejoin="round" d="M220.3 133.1L229.7 90.1L282.3 90.1L291.7 133.1L317.7 143.8L354.7 120.1L391.9 157.3L368.2 194.3L378.9 220.3L421.9 229.7L421.9 282.3L378.9 291.7L368.2 317.7L391.9 354.7L354.7 391.9L317.7 368.2L291.7 378.9L282.3 421.9L229.7 421.9L220.3 378.9L194.3 368.2L157.3 391.9L120.1 354.7L143.8 317.7L133.1 291.7L90.1 282.3L90.1 229.7L133.1 220.3L143.8 194.3L120.1 157.3L157.3 120.1L194.3 143.8Z"/><circle cx="256" cy="256" r="58" fill="#111113"/></svg>';
 
 const CSS =
   // Même « Liquid Glass » que l'appli (css/verre.css) : fond maillé coloré, verre transparent flouté,
   // couleurs système Apple, onglets segmentés et boutons en capsule
-  ":root{--fond-base:#e8edf8;--t1:rgb(98 160 255/.5);--t2:rgb(190 150 255/.48);--t3:rgb(255 170 130/.42);--t4:rgb(110 220 190/.38);--t5:rgb(255 140 190/.32);" +
+  ":root{--fond-base:#efeff1;--t1:rgb(255 255 255/.95);--t2:rgb(0 0 0/.1);--t3:rgb(255 255 255/.85);--t4:rgb(0 0 0/.08);--t5:rgb(0 0 0/.06);" +
   "--verre:rgb(255 255 255/.3);--verre-barre:rgb(255 255 255/.42);--lentille:rgb(255 255 255/.66);--bord:rgb(255 255 255/.55);" +
   "--reflet:linear-gradient(135deg,rgb(255 255 255/.5),rgb(255 255 255/.1) 38%,rgb(255 255 255/0) 60%,rgb(255 255 255/.14));" +
   "--liseré:inset 0 1px 0 rgb(255 255 255/.85),inset 0 -1px 0 rgb(255 255 255/.28),inset 0 0 0 1px rgb(255 255 255/.16);" +
-  "--ombre:0 1px 2px rgb(30 40 80/.06),0 12px 32px -14px rgb(30 40 80/.28);--flou:blur(22px) saturate(190%) brightness(1.04);" +
-  "--segment:rgb(255 255 255/.22);--encre:#1c1c1e;--douce:#48484c;--accent:#0058cc;--lien:#0050b3;--barre:#0058cc;--rail:rgb(60 60 67/.12);" +
-  "--trait:rgb(60 60 67/.16);--ok:#17692d;--danger:#c0000e;--sur-accent:#fff;color-scheme:light}" +
-  "@media (prefers-color-scheme:dark){:root{--fond-base:#05070f;--t1:rgb(37 99 235/.45);--t2:rgb(124 58 237/.42);--t3:rgb(245 140 40/.2);--t4:rgb(14 165 233/.26);--t5:rgb(219 39 119/.3);" +
+  "--ombre:0 1px 2px rgb(0 0 0/.06),0 12px 32px -14px rgb(0 0 0/.22);--flou:blur(22px) saturate(120%) brightness(1.04);" +
+  "--segment:rgb(255 255 255/.22);--encre:#111113;--douce:#4a4a4f;--accent:#111113;--lien:#111113;--barre:#111113;--rail:rgb(0 0 0/.08);" +
+  "--trait:rgb(0 0 0/.12);--ok:#17692d;--danger:#c0000e;--sur-accent:#fff;--actuelle:rgb(0 0 0/.06);color-scheme:light}" +
+  "@media (prefers-color-scheme:dark){:root{--fond-base:#000;--t1:rgb(255 255 255/.13);--t2:rgb(255 255 255/.06);--t3:rgb(255 255 255/.1);--t4:rgb(255 255 255/.05);--t5:rgb(255 255 255/.08);" +
   "--verre:rgb(255 255 255/.08);--verre-barre:rgb(28 28 36/.42);--lentille:rgb(255 255 255/.2);--bord:rgb(255 255 255/.16);" +
   "--reflet:linear-gradient(135deg,rgb(255 255 255/.16),rgb(255 255 255/.03) 38%,rgb(255 255 255/0) 60%,rgb(255 255 255/.06));" +
   "--liseré:inset 0 1px 0 rgb(255 255 255/.24),inset 0 -1px 0 rgb(255 255 255/.06),inset 0 0 0 1px rgb(255 255 255/.06);" +
-  "--ombre:0 1px 2px rgb(0 0 0/.3),0 14px 36px -14px rgb(0 0 0/.7);--flou:blur(22px) saturate(180%) brightness(.92);" +
-  "--segment:rgb(255 255 255/.08);--encre:#f5f5f7;--douce:#c4c4cc;--lien:#6cb4ff;--barre:#4da3ff;--rail:rgb(255 255 255/.1);" +
-  "--trait:rgb(255 255 255/.12);--ok:#4ade80;--danger:#ffa39d;color-scheme:dark}}" +
+  "--ombre:0 1px 2px rgb(0 0 0/.3),0 14px 36px -14px rgb(0 0 0/.7);--flou:blur(22px) saturate(120%) brightness(.9);" +
+  "--segment:rgb(255 255 255/.08);--encre:#f5f5f7;--douce:#c4c4cc;--accent:#f5f5f7;--lien:#f5f5f7;--barre:#f5f5f7;--rail:rgb(255 255 255/.1);" +
+  "--trait:rgb(255 255 255/.12);--ok:#4ade80;--danger:#ffa39d;--sur-accent:#111113;--actuelle:rgb(255 255 255/.1);color-scheme:dark}}" +
   "*{box-sizing:border-box}html{background:var(--fond-base)}" +
   "body{font:16px/1.5 -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:0 16px 24px;color:var(--encre);-webkit-font-smoothing:antialiased}" +
   "body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:" +
@@ -295,7 +295,7 @@ const CSS =
   "h1,h2{letter-spacing:-.02em;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,system-ui,sans-serif}" +
   ".entete{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;margin:0 -16px 16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;" +
   "background:var(--verre-barre) var(--reflet);-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou);box-shadow:inset 0 -1px 0 var(--trait)}" +
-  ".logo{width:40px;height:40px;flex:none;filter:drop-shadow(0 6px 12px rgb(20 35 58/.3))}.entete h1{margin:0;font-size:1.25rem;font-weight:700}" +
+  ".logo{width:40px;height:40px;flex:none;filter:drop-shadow(0 6px 12px rgb(0 0 0/.3))}.entete h1{margin:0;font-size:1.25rem;font-weight:700}" +
   "h1{font-size:1.5rem;margin:8px 0 16px}h2{font-size:1.375rem;font-weight:700;margin:28px 4px 10px}a{color:var(--lien)}" +
   ".onglets,.cartes>li,.carte,.visites,.connexion,button{-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou)}" +
   ".onglets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:4px;margin-bottom:16px;border:1px solid var(--bord);border-radius:999px;" +
@@ -306,7 +306,7 @@ const CSS =
   ".cartes{list-style:none;padding:0;margin:0}" +
   ".cartes>li,.carte,.visites,.connexion{background:var(--verre) var(--reflet);border:1px solid var(--bord);border-radius:24px;box-shadow:var(--liseré),var(--ombre)}" +
   ".cartes>li,.carte{padding:16px 18px;margin:12px 0}" +
-  ".carte--actuelle{background:linear-gradient(135deg,rgb(255 214 10/.28),transparent 55%),var(--reflet),var(--verre)}.version-titre{margin:0}" +
+  ".carte--actuelle{background:linear-gradient(135deg,var(--actuelle),transparent 55%),var(--reflet),var(--verre)}.version-titre{margin:0}" +
   ".discret{color:var(--douce);font-size:.875rem;margin:0}" +
   "blockquote{margin:10px 0;padding:10px 14px;background:var(--rail);border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere}" +
   "button{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--bord);background:var(--verre) var(--reflet);color:var(--encre);font:inherit;font-weight:600;cursor:pointer;" +
@@ -327,10 +327,10 @@ const CSS =
   ".connexion label{font-weight:600}" +
   ".connexion input{width:100%;min-width:0;min-height:50px;padding:10px 16px;border:1px solid var(--bord);border-radius:16px;background:var(--rail);color:var(--encre);font:inherit}" +
   ".principal{background:var(--accent) linear-gradient(180deg,rgb(255 255 255/.2),rgb(255 255 255/0) 45%);border-color:rgb(255 255 255/.35);color:var(--sur-accent);" +
-  "box-shadow:inset 0 1px 0 rgb(255 255 255/.5),0 10px 24px -12px rgb(0 88 204/.8)}" +
+  "box-shadow:inset 0 1px 0 rgb(255 255 255/.5),0 10px 24px -12px rgb(0 0 0/.55)}" +
   ".erreur{color:var(--danger);margin:0;font-weight:600}" +
   ".sortie{margin:32px 0 8px}" +
-  ".compte{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:.75rem;line-height:20px;text-align:center}" +
+  ".compte{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--sur-accent);font-size:.75rem;line-height:20px;text-align:center}" +
   "@media (max-width:360px){body{padding:0 12px 24px}.entete{margin:0 -12px 16px;padding-inline:12px}.onglets a{font-size:.8125rem;padding:0 3px}}" +
   ".statut{margin:0 0 4px;font-weight:600;color:var(--ok)}" +
   ".traite{box-shadow:inset 4px 0 0 var(--ok),var(--liseré),var(--ombre)!important}" +

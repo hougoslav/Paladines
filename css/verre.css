@@ -11,12 +11,12 @@
 /* ============ 1. Jetons ============ */
 :root {
   /* Fond maillé */
-  --fond-base: #e8edf8;
-  --tache-1: rgb(98 160 255 / 0.5);
-  --tache-2: rgb(190 150 255 / 0.48);
-  --tache-3: rgb(255 170 130 / 0.42);
-  --tache-4: rgb(110 220 190 / 0.38);
-  --tache-5: rgb(255 140 190 / 0.32);
+  --fond-base: #efeff1;
+  --tache-1: rgb(255 255 255 / 0.95);
+  --tache-2: rgb(0 0 0 / 0.1);
+  --tache-3: rgb(255 255 255 / 0.85);
+  --tache-4: rgb(0 0 0 / 0.08);
+  --tache-5: rgb(0 0 0 / 0.06);
 
   /* Verre */
   --verre: rgb(255 255 255 / 0.3);
@@ -26,39 +26,40 @@
   --verre-bord: rgb(255 255 255 / 0.55);
   --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.5) 0%, rgb(255 255 255 / 0.1) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.14) 100%);
   --liseré: inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(255 255 255 / 0.28), inset 0 0 0 1px rgb(255 255 255 / 0.16);
-  --ombre-verre: 0 1px 2px rgb(30 40 80 / 0.06), 0 12px 32px -14px rgb(30 40 80 / 0.28);
-  --flou: blur(22px) saturate(190%) brightness(1.04);
+  --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px -14px rgb(0 0 0 / 0.22);
+  --flou: blur(22px) saturate(120%) brightness(1.04);
 
   /* Couleurs système (texte AA sur le verre le plus coloré) */
-  --encre: #1c1c1e;
-  --encre-douce: #48484c;
-  --lien: #0050b3;
-  --focus: #007aff;
-  --accent: #007aff;
-  --accent-texte: #0050b3;
-  --accent-chaud: #934600;
-  --accent-bouton: #0058cc;
+  --encre: #111113;
+  --encre-douce: #4a4a4f;
+  --lien: #111113;
+  --focus: #111113;
+  --accent: #111113;
+  --accent-texte: #111113;
+  --accent-chaud: #6b6b70;
+  --accent-bouton: #111113;
   --vert-bouton: #1a6b2f;
   --rouge-bouton: #d1200f;
-  --logo: #e8a000;
-  --trait: rgb(60 60 67 / 0.16);
-  --trait-fort: rgb(60 60 67 / 0.26);
+  --logo: #111113;
+  --trait: rgb(0 0 0 / 0.12);
+  --trait-fort: rgb(0 0 0 / 0.22);
   --ok: #17692d;
   --ok-fond: rgb(52 199 89 / 0.18);
-  --bientot: #9a4500;
-  --bientot-fond: rgb(255 149 0 / 0.18);
+  --bientot: #3d3d42;
+  --bientot-fond: rgb(0 0 0 / 0.06);
   --ferme: #5a5a60;
-  --ferme-fond: rgb(120 120 128 / 0.16);
+  --ferme-fond: rgb(0 0 0 / 0.06);
   --urgent: #c0000e;
   --urgent-fond: rgb(255 59 48 / 0.16);
-  --femmes: #7a2d9c;
-  --femmes-fond: rgb(175 82 222 / 0.18);
-  --femmes-trait: rgb(175 82 222 / 0.35);
+  --femmes: #111113;
+  --femmes-fond: rgb(0 0 0 / 0.07);
+  --femmes-trait: rgb(0 0 0 / 0.2);
   --femmes-encre: #ffffff;
-  --lampe: #ffcc00;
-  --lampe-encre: #1c1c1e;
-  --lampe-voile: rgb(255 204 0 / 0.2);
+  --lampe: #111113;
+  --lampe-encre: #ffffff;
+  --lampe-voile: rgb(0 0 0 / 0.06);
   --quitter: var(--rouge-bouton);
+  --sur-accent: #ffffff;
 
   /* L'ancien « bleu nuit » devient du verre clair */
   --nuit: var(--verre-barre);
@@ -89,12 +90,21 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --fond-base: #05070f;
-    --tache-1: rgb(37 99 235 / 0.45);
-    --tache-2: rgb(124 58 237 / 0.42);
-    --tache-3: rgb(245 140 40 / 0.2);
-    --tache-4: rgb(14 165 233 / 0.26);
-    --tache-5: rgb(219 39 119 / 0.3);
+    --surface: var(--verre);
+    --surface-2: var(--verre-survol);
+    --nuit: var(--verre-barre);
+    --nuit-2: var(--verre);
+    --nuit-3: var(--verre-survol);
+    --sur-nuit: var(--encre);
+    --sur-nuit-doux: var(--encre-douce);
+    --quitter: var(--rouge-bouton);
+    --ombre-1: var(--liseré), var(--ombre-verre);
+    --fond-base: #000000;
+    --tache-1: rgb(255 255 255 / 0.13);
+    --tache-2: rgb(255 255 255 / 0.06);
+    --tache-3: rgb(255 255 255 / 0.1);
+    --tache-4: rgb(255 255 255 / 0.05);
+    --tache-5: rgb(255 255 255 / 0.08);
     --verre: rgb(255 255 255 / 0.08);
     --verre-survol: rgb(255 255 255 / 0.14);
     --verre-barre: rgb(28 28 36 / 0.42);
@@ -103,34 +113,35 @@
     --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0.03) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.06) 100%);
     --liseré: inset 0 1px 0 rgb(255 255 255 / 0.24), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
     --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
-    --flou: blur(22px) saturate(180%) brightness(0.92);
+    --flou: blur(22px) saturate(120%) brightness(0.9);
     --encre: #f5f5f7;
     --encre-douce: #c4c4cc;
-    --lien: #6cb4ff;
-    --focus: #0a84ff;
-    --accent: #0a84ff;
-    --accent-texte: #6cb4ff;
-    --accent-chaud: #ffd60a;
+    --lien: #f5f5f7;
+    --focus: #f5f5f7;
+    --accent: #f5f5f7;
+    --accent-texte: #ffffff;
+    --accent-chaud: #a1a1a6;
     --vert-bouton: #1a6b2f;
     --rouge-bouton: #d1200f;
-    --accent-bouton: #0058cc;
-    --logo: #ffd60a;
+    --accent-bouton: #f5f5f7;
+    --sur-accent: #111113;
+    --logo: #f5f5f7;
     --trait: rgb(255 255 255 / 0.12);
     --trait-fort: rgb(255 255 255 / 0.2);
     --ok: #4ade80;
     --ok-fond: rgb(48 209 88 / 0.18);
-    --bientot: #ffb340;
-    --bientot-fond: rgb(255 159 10 / 0.18);
+    --bientot: #d1d1d6;
+    --bientot-fond: rgb(255 255 255 / 0.08);
     --ferme: #a1a1aa;
-    --ferme-fond: rgb(152 152 157 / 0.16);
+    --ferme-fond: rgb(255 255 255 / 0.06);
     --urgent: #ff7b72;
     --urgent-fond: rgb(255 69 58 / 0.18);
-    --femmes: #e3a6ff;
-    --femmes-fond: rgb(191 90 242 / 0.2);
-    --femmes-trait: rgb(191 90 242 / 0.4);
-    --femmes-encre: #1c1c1e;
-    --lampe: #ffd60a;
-    --lampe-voile: rgb(255 214 10 / 0.16);
+    --femmes: #f5f5f7;
+    --femmes-fond: rgb(255 255 255 / 0.1);
+    --femmes-trait: rgb(255 255 255 / 0.28);
+    --femmes-encre: #111113;
+    --lampe: #f5f5f7;
+    --lampe-voile: rgb(255 255 255 / 0.08);
     --sur-nuit-voile: rgb(255 255 255 / 0.08);
     --sur-nuit-filet: rgb(255 255 255 / 0.14);
     --papier: rgb(255 255 255 / 0.06);
@@ -138,15 +149,25 @@
     --clair-ic: 40%;
     --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
     --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
-  }
+    --lampe-encre: #111113;
+}
 }
 :root[data-theme="dark"] {
-  --fond-base: #05070f;
-  --tache-1: rgb(37 99 235 / 0.45);
-  --tache-2: rgb(124 58 237 / 0.42);
-  --tache-3: rgb(245 140 40 / 0.2);
-  --tache-4: rgb(14 165 233 / 0.26);
-  --tache-5: rgb(219 39 119 / 0.3);
+  --surface: var(--verre);
+  --surface-2: var(--verre-survol);
+  --nuit: var(--verre-barre);
+  --nuit-2: var(--verre);
+  --nuit-3: var(--verre-survol);
+  --sur-nuit: var(--encre);
+  --sur-nuit-doux: var(--encre-douce);
+  --quitter: var(--rouge-bouton);
+  --ombre-1: var(--liseré), var(--ombre-verre);
+  --fond-base: #000000;
+  --tache-1: rgb(255 255 255 / 0.13);
+  --tache-2: rgb(255 255 255 / 0.06);
+  --tache-3: rgb(255 255 255 / 0.1);
+  --tache-4: rgb(255 255 255 / 0.05);
+  --tache-5: rgb(255 255 255 / 0.08);
   --verre: rgb(255 255 255 / 0.08);
   --verre-survol: rgb(255 255 255 / 0.14);
   --verre-barre: rgb(28 28 36 / 0.42);
@@ -155,34 +176,35 @@
   --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0.03) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.06) 100%);
   --liseré: inset 0 1px 0 rgb(255 255 255 / 0.24), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
   --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
-  --flou: blur(22px) saturate(180%) brightness(0.92);
+  --flou: blur(22px) saturate(120%) brightness(0.9);
   --encre: #f5f5f7;
   --encre-douce: #c4c4cc;
-  --lien: #6cb4ff;
-  --focus: #0a84ff;
-  --accent: #0a84ff;
-  --accent-texte: #6cb4ff;
-  --accent-chaud: #ffd60a;
-  --accent-bouton: #0058cc;
+  --lien: #f5f5f7;
+  --focus: #f5f5f7;
+  --accent: #f5f5f7;
+  --accent-texte: #ffffff;
+  --accent-chaud: #a1a1a6;
+  --accent-bouton: #f5f5f7;
+  --sur-accent: #111113;
   --vert-bouton: #1a6b2f;
   --rouge-bouton: #d1200f;
-  --logo: #ffd60a;
+  --logo: #f5f5f7;
   --trait: rgb(255 255 255 / 0.12);
   --trait-fort: rgb(255 255 255 / 0.2);
   --ok: #4ade80;
   --ok-fond: rgb(48 209 88 / 0.18);
-  --bientot: #ffb340;
-  --bientot-fond: rgb(255 159 10 / 0.18);
+  --bientot: #d1d1d6;
+  --bientot-fond: rgb(255 255 255 / 0.08);
   --ferme: #a1a1aa;
-  --ferme-fond: rgb(152 152 157 / 0.16);
+  --ferme-fond: rgb(255 255 255 / 0.06);
   --urgent: #ff7b72;
   --urgent-fond: rgb(255 69 58 / 0.18);
-  --femmes: #e3a6ff;
-  --femmes-fond: rgb(191 90 242 / 0.2);
-  --femmes-trait: rgb(191 90 242 / 0.4);
-  --femmes-encre: #1c1c1e;
-  --lampe: #ffd60a;
-  --lampe-voile: rgb(255 214 10 / 0.16);
+  --femmes: #f5f5f7;
+  --femmes-fond: rgb(255 255 255 / 0.1);
+  --femmes-trait: rgb(255 255 255 / 0.28);
+  --femmes-encre: #111113;
+  --lampe: #f5f5f7;
+  --lampe-voile: rgb(255 255 255 / 0.08);
   --sur-nuit-voile: rgb(255 255 255 / 0.08);
   --sur-nuit-filet: rgb(255 255 255 / 0.14);
   --papier: rgb(255 255 255 / 0.06);
@@ -190,6 +212,7 @@
   --clair-ic: 40%;
   --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
   --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
+  --lampe-encre: #111113;
 }
 
 /* ============ 2. Fond maillé, vu à travers le verre ============ */
@@ -307,7 +330,18 @@ h3,
   background-color: var(--verre-survol);
   background-image: var(--reflet);
 }
-/* Les fonds teintés gardent leur couleur, en verre */
+/* Noir et blanc : pastilles, icônes et survols sans la couleur du besoin
+   (seuls les repères de la carte la gardent, pour s'y retrouver) */
+.pastille,
+.action,
+.im-ic,
+.barre-carte .puce .ic {
+  --c: var(--encre) !important;
+}
+.tuile:hover {
+  border-color: var(--verre-bord);
+}
+/* Les fonds teintés gardent leur teinte, en verre */
 .tuile--femmes,
 .im--femmes,
 .sommaire-femmes .puce {
@@ -408,12 +442,12 @@ body:has(.hero) .entete {
   background: color-mix(in srgb, var(--lampe) 86%, transparent);
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0) 55%);
   color: var(--lampe-encre);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 0 rgb(0 0 0 / 0.06), 0 12px 28px -12px rgb(200 150 0 / 0.55);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 0 rgb(0 0 0 / 0.06), 0 12px 28px -12px rgb(0 0 0 / 0.45);
 }
 .cta-ic {
   border-radius: 16px;
-  background: #1c1c1e;
-  color: #ffd60a;
+  background: var(--lampe-encre);
+  color: var(--lampe);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
 }
 .titre-bloc {
@@ -442,7 +476,7 @@ body:has(.hero) .entete {
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 45%);
-  color: #fff;
+  color: var(--sur-accent);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 10px 24px -12px color-mix(in srgb, var(--accent) 80%, transparent);
 }
 .btn:hover {
@@ -479,7 +513,7 @@ body:has(.hero) .entete {
   color: #fff;
 }
 .leaflet-container a.btn {
-  color: #fff;
+  color: var(--sur-accent);
 }
 /* Puces (filtres, réglages) : capsules de verre ; choisie = bleu système */
 .puce {
@@ -492,7 +526,7 @@ body:has(.hero) .entete {
   background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 45%);
   border-color: rgb(255 255 255 / 0.35);
-  color: #fff;
+  color: var(--sur-accent);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 18px -10px color-mix(in srgb, var(--accent) 80%, transparent);
 }
 .choix-repere select {
@@ -582,7 +616,7 @@ a,
 .btn-tel-carte[aria-expanded="true"] {
   background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
   border-color: rgb(255 255 255 / 0.35);
-  color: #fff;
+  color: var(--sur-accent);
 }
 .btn-localiser,
 .btn-placer,

@@ -34,7 +34,7 @@ index.html             la page de l'appli (en-tête, onglets, pictogrammes)
 affiche.html           générateur d'affiches et d'autocollants avec QR code
 css/style.css          toute la mise en forme (thème clair et sombre)
 css/theme.css          le style choisi par le groupe (« Nuit raffinée »), chargé après style.css
-css/verre.css          « Liquid Glass » façon iOS 26 (fond coloré, verre transparent, couleurs Apple), chargé en dernier
+css/verre.css          « Liquid Glass » noir et blanc façon iOS 26 (verre transparent), chargé en dernier
 js/app.js              la logique : vues, horaires, distances, carte, réglages
 js/i18n.js             les textes en français, anglais et arabe
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
