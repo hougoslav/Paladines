@@ -1,5 +1,6 @@
 # Télécharge les rues et chemins à pied de Lille (OpenStreetMap) et enregistre data/chemins.json :
 # l'appli s'en sert pour calculer l'itinéraire et guider pas à pas, même sans internet.
+# Enregistre aussi data/equipements.js : toilettes, eau potable, lieux sûrs ouverts la nuit.
 # Refait chaque mois (les rues changent peu) et à chaque changement de l'outil.
 name: Chemins à pied
 
@@ -7,6 +8,8 @@ on:
   push:
     paths:
       - outils/chemins.mjs
+      - outils/equipements.mjs
+      - outils/opl.mjs
       - .github/workflows/chemins.yml
   schedule:
     - cron: "17 4 3 * *"
@@ -35,17 +38,22 @@ jobs:
           osmium extract -b "$(node outils/chemins.mjs --zone)" region.osm.pbf -o zone.osm.pbf
           osmium tags-filter zone.osm.pbf w/highway -o rues.osm.pbf
           osmium cat rues.osm.pbf -f opl -o rues.opl
+          osmium tags-filter zone.osm.pbf nwr/amenity=toilets,drinking_water,water_point,police,hospital nwr/healthcare=hospital -o equipements.osm.pbf
+          osmium cat equipements.osm.pbf -f opl -o equipements.opl
       - name: Construire le graphe des chemins
         run: |
-          if [ "${{ steps.extrait.outcome }}" = "success" ]; then node outils/chemins.mjs rues.opl
+          if [ "${{ steps.extrait.outcome }}" = "success" ]; then
+            node outils/chemins.mjs rues.opl
+            node outils/equipements.mjs equipements.opl
           else node outils/chemins.mjs; fi
       - name: Enregistrer
         run: |
-          git add -N data/chemins.json
-          if git diff --quiet data/chemins.json; then echo "Chemins inchangés"; exit 0; fi
+          git add -N data/chemins.json data/equipements.js 2>/dev/null || git add -N data/chemins.json
+          if git diff --quiet data/chemins.json data/equipements.js 2>/dev/null; then echo "Rien de changé"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/chemins.json
-          git commit -m "Chemins à pied de Lille (OpenStreetMap)"
+          [ -f data/equipements.js ] && git add data/equipements.js
+          git commit -m "Chemins à pied, toilettes, eau et lieux sûrs de Lille (OpenStreetMap)"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin "HEAD:${GITHUB_REF_NAME}"
