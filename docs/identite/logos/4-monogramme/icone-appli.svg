@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Paladines">
+  <rect width="512" height="512" fill="#14233a"/>
+  <g transform="translate(83.2 83.2) scale(5.4)">
+    <path fill="#f1f3f6" d="M16 56.5V23A17 17 0 0 1 50 23V42.5A1.5 1.5 0 0 1 48.5 44H26V56.5A1.5 1.5 0 0 1 24.5 58H17.5A1.5 1.5 0 0 1 16 56.5Z"/>
+    <path fill="#f4b63f" d="M26 36V22A7 7 0 0 1 40 22V36Z"/>
+  </g>
+</svg>

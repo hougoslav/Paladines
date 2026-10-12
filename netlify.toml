@@ -1,0 +1,18 @@
+# Configuration Netlify : un site statique, sans aucune étape de compilation.
+[build]
+  publish = "."
+  command = ""
+
+# Le service worker doit toujours être relu, pour que les mises à jour arrivent sur les téléphones
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Confidentialité : ne rien transmettre aux sites ouverts depuis l'appli, limiter les accès du navigateur
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Referrer-Policy = "no-referrer"
+    X-Content-Type-Options = "nosniff"
+    Permissions-Policy = "geolocation=(self), camera=(), microphone=()"

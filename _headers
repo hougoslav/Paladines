@@ -1,0 +1,11 @@
+# En-têtes HTTP pour Cloudflare Pages (équivalent de netlify.toml).
+
+# Le service worker doit toujours être relu, pour que les mises à jour arrivent sur les téléphones
+/sw.js
+  Cache-Control: no-cache
+
+# Confidentialité : ne rien transmettre aux sites ouverts depuis l'appli, limiter les accès du navigateur
+/*
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: geolocation=(self), camera=(), microphone=()

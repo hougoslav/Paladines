@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Paladines — icône d'appli (pleine, compatible maskable)</title>
+  <rect width="512" height="512" fill="#14233a"/>
+  <g transform="translate(19.2 30.3) scale(7.4)">
+    <path fill="#d3dbe6" d="M32 5 40 25.5 55.5 33.5 40 41.5 32 55.5 24 41.5 8.5 33.5 24 25.5Z"/>
+    <path fill="#e0a12f" d="M32 33.5 24 25.5 32 5 40 25.5Z"/>
+    <path fill="#f4b63f" d="M32 33.5 24 25.5 32 5Z"/>
+    <path fill="#e0a12f" d="M32 33.5 32 5 40 25.5Z"/>
+    <path fill="#ffffff" d="M32 33.5 40 25.5 55.5 33.5Z"/>
+    <path fill="#d3dbe6" d="M32 33.5 55.5 33.5 40 41.5Z"/>
+    <path fill="#ffffff" d="M32 33.5 40 41.5 32 55.5Z"/>
+    <path fill="#d3dbe6" d="M32 33.5 32 55.5 24 41.5Z"/>
+    <path fill="#ffffff" d="M32 33.5 24 41.5 8.5 33.5Z"/>
+    <path fill="#d3dbe6" d="M32 33.5 8.5 33.5 24 25.5Z"/>
+  </g>
+</svg>

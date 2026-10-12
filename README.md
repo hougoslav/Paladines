@@ -1,1 +1,217 @@
 # Paladines
+
+Prototype d'application web pour les femmes à la rue, **à Lille** : en scannant un QR code,
+elles arrivent sur une page qui montre **les lieux ouverts près d'elles** pour dormir, manger, se laver,
+se soigner, se poser, trouver de l'écoute en cas de violences, des vêtements, une bagagerie,
+une aide pour les papiers ou de quoi recharger son téléphone.
+
+> ⚠️ **Prototype** : les 56 lieux sont de **vrais lieux de Lille**, relevés sur internet les
+> 7 et 8 octobre 2026 (sources sur chaque fiche). Ils n'ont **pas encore été confirmés par téléphone** :
+> c'est à faire avant tout lancement. La liste complète, à appeler, est dans
+> [`docs/LIEUX-LILLE.md`](docs/LIEUX-LILLE.md).
+
+Les idées, les choix et les questions à trancher en groupe sont dans
+[`docs/IDEES.md`](docs/IDEES.md).
+
+## Voir le prototype
+
+**Le plus simple** : ouvrir `index.html` dans un navigateur (double-clic).
+Tout marche, sauf le mode hors connexion et, parfois, le fond de carte.
+
+**Comme sur un vrai site** (recommandé) : lancer un petit serveur dans le dossier, puis ouvrir
+l'adresse indiquée.
+
+```bash
+npx serve .            # ou : python3 -m http.server 8000
+```
+
+Pour tester un QR code d'affiche : `http://localhost:3000/?pres=50.6366,3.0707&nom=Gare%20Lille%20Flandres`
+
+## Ce qu'il y a dedans
+
+```
+index.html             la page de l'appli (en-tête, onglets, pictogrammes)
+affiche.html           générateur d'affiches et d'autocollants avec QR code
+css/style.css          toute la mise en forme (thème clair et sombre)
+css/theme.css          le style choisi par le groupe (« Nuit raffinée »), chargé après style.css
+js/app.js              la logique : vues, horaires, distances, carte, réglages
+js/i18n.js             les textes en français, anglais et arabe
+data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
+data/coordonnees.js    positions GPS des lieux (générées par outils/geocoder.mjs)
+outils/geocoder.mjs    calcule les positions GPS à partir des adresses
+sw.js                  service worker : fonctionnement sans internet
+manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
+vendor/                Leaflet (carte) et qrcode-generator, copiés ici pour marcher hors ligne
+fonts/                 polices Atkinson Hyperlegible et Bricolage Grotesque (licence OFL)
+icons/                 icônes de l'appli (logo « lanterne »)
+docs/IDEES.md          idées, feuille de route, questions pour le groupe
+docs/identite/         les logos et styles proposés, et le choix retenu
+docs/LIEUX-LILLE.md    les lieux de Lille, leurs sources, ce qui reste à vérifier
+```
+
+Pas de framework, pas d'étape de compilation : du HTML, du CSS et du JavaScript simples,
+pour que tout le groupe puisse modifier le code.
+
+## Modifier les données
+
+Tout est dans [`data/lieux.js`](data/lieux.js). Un lieu ressemble à ceci :
+
+```js
+{
+  id: "l02", cat: "dormir",
+  autresCats: ["hygiene", "bagagerie"],      // le lieu apparaît aussi dans ces besoins
+  nom: "Halte de nuit abej SOLIDARITÉ",
+  adresse: "22 parvis Saint-Michel, 59000 Lille",
+  lat: null, lng: null,                      // positions dans data/coordonnees.js
+  tel: "03 66 19 09 30",
+  horaires: { lun: [["21:00", "08:00"]], mar: [["21:00", "08:00"]] },  // ou "24/7", ou null
+  horairesTexte: "Tous les soirs de 21h à 8h, 7 jours sur 7",          // texte de la source
+  services: ["Un abri pour la nuit, dans une salle de repos."],
+  conditions: "Pour les personnes sans abri. Les animaux sont acceptés.",
+  criteres: { animaux: true, sansRdv: true },
+  femmes: { niveau: "creneau", texte: "Des chambres plus petites sont prévues pour les femmes." },
+  langues: [],
+  adresseMasquee: false,   // true : adresse jamais montrée (lieux protégés)
+  // acces: "l26",         // pour une adresse protégée : le lieu public où demander à y aller
+  verifie: "2026-10-07",   // date du relevé
+  sources: ["https://abej-solidarite.fr/structure/halte-de-nuit/"]
+}
+```
+
+- Une plage qui finit avant de commencer (`["21:00", "08:00"]`) passe minuit.
+- `horaires: null` : l'appli affiche « appeler avant » et le texte de la source.
+- `femmes` (facultatif) : ce que le lieu offre aux femmes, affiché en badge, dans la fiche et
+  sur la page « Pour les femmes ». `niveau` : `reserve` (réservé aux femmes), `creneau` (un
+  créneau, un espace ou des places pour les femmes) ou `specialise` (santé, droits, écoute).
+- - `adresseGeo` (facultatif) : adresse simplifiée pour le calcul de la position, quand
+  l'adresse affichée contient des précisions (« cour de la mairie de quartier… »).
+- Catégories possibles : `dormir`, `manger`, `hygiene`, `sante`, `accueil`, `ecoute`,
+  `vetements`, `bagagerie`, `droits`, `recharge`, `wifi`.
+- Pour changer de ville : modifier `ville` (centre de la carte) en haut du fichier.
+
+### Les infos du moment (bandeau qui défile sur l'accueil)
+
+Elles se mettent à jour toutes seules :
+
+- **selon la période de l'année** : la liste `infos` en haut de `data/lieux.js`. Chaque info a
+  une période `du` / `au` (mois-jour, par exemple `"11-01"` à `"03-31"` pour le plan hiver),
+  un texte en français, anglais et arabe, et un `lien` (`tel:115`, `#cat-dormir`…). Pour une
+  info ponctuelle (fermeture, distribution exceptionnelle), il suffit d'en ajouter une ;
+- **selon la météo de Lille** : nuit froide ou glaciale, forte chaleur, pluie ;
+- **selon les lieux** : ce qui est ouvert maintenant ou ouvre bientôt pour dormir et manger,
+  les douches ouvertes, un lieu pour les femmes ouvert.
+
+Le bandeau change d'info toutes les 6 secondes. On peut le mettre en pause, glisser du doigt
+ou toucher un point. Il ne défile pas tout seul si le téléphone demande moins d'animations.
+
+## Positions GPS des lieux
+
+La carte et le tri par distance ont besoin de la position de chaque lieu. Tout est automatique :
+
+- **GitHub calcule les positions tout seul** à chaque modification de `data/lieux.js`
+  (`.github/workflows/positions.yml`). Il lance `outils/geocoder.mjs`, qui cherche chaque
+  adresse dans la **Base Adresse Nationale** (service public gratuit) et enregistre
+  `data/coordonnees.js`. Le site en ligne se met ensuite à jour.
+- Une position n'est gardée que si elle tombe **dans la bonne rue, au bon numéro et dans la
+  bonne ville**. Sinon le lieu est placé au milieu de la bonne rue, et le journal de l'action
+  GitHub (onglet *Actions*) liste les **adresses à vérifier**.
+- **Position fixée à la main** : pour un lieu que la Base Adresse ne connaît pas (un bâtiment
+  d'hôpital, une place), mettre `lat` et `lng` dans `data/lieux.js`. Le calcul ne la touche plus.
+- On peut aussi lancer le calcul soi-même (Node 18 ou plus) : `node outils/geocoder.mjs`.
+
+Ce que montre la carte :
+
+- **Chaque lieu avec une adresse** a son repère. Plusieurs lieux à la même adresse sont écartés
+  en cercle pour rester visibles.
+- **Adresses protégées** (`adresseMasquee: true`, hébergements pour femmes) : jamais à leur vraie
+  adresse. Avec `acces: "l26"`, un repère en pointillés est posé au lieu public où l'on peut
+  demander à y aller (ici l'accueil de jour Eole), avec une explication.
+- **Services sans adresse** (115, équipe mobile Diogène) : bouton « Par téléphone » sur la carte.
+
+## Ajouter une langue
+
+Copier le bloc `en` de [`js/i18n.js`](js/i18n.js), le traduire, puis ajouter le code de la
+langue dans `LANGUES` (début de `js/app.js`) et un bouton dans le menu de langue
+(`index.html`). Un texte manquant s'affiche en français.
+
+## Le site en ligne
+
+L'appli est en ligne sur **<https://paladines.pages.dev>**, hébergée gratuitement par
+**Cloudflare Pages** : en https, sans mise en pause du site, 500 mises en ligne par mois.
+Le GPS, la carte de Lille, les appels et l'installation sur téléphone ne marchent vraiment
+que sur ce site en ligne.
+
+- **Mise à jour automatique** : chaque modification envoyée sur la branche
+  `claude/homeless-women-aid-app-kg6mpg` (depuis un ordinateur, ou avec le crayon ✏️ sur
+  GitHub) est en ligne en une minute environ. L'onglet *Deployments* du projet Cloudflare
+  montre chaque mise en ligne.
+- Une modification sur **une autre branche** ne touche pas le vrai site : Cloudflare en fait
+  un aperçu à une adresse à part. Si l'appli passe un jour sur `main`, changer la
+  *Production branch* dans les réglages du projet Cloudflare.
+- À chaque mise à jour, changer `VERSION` dans `sw.js` (`paladines-v6` → `paladines-v7`…)
+  pour que les téléphones prennent les nouveaux fichiers dès la première ouverture.
+- Les QR codes des affiches se font sur <https://paladines.pages.dev/affiche.html> :
+  l'adresse du site y est remplie toute seule. Le fichier `_headers` règle le cache et la
+  confidentialité.
+
+### Refaire la mise en ligne sur Cloudflare Pages
+
+1. Créer un compte gratuit sur <https://dash.cloudflare.com>.
+2. Menu de gauche **Workers & Pages** → **Create**. Sur la page « Make something new »,
+   ne pas prendre *Continue with GitHub* (c'est pour les Workers) : cliquer tout en bas sur
+   « Need to use the legacy Pages workflow? **Continue to Pages** ».
+   Puis **Import an existing Git repository** → **Get started** → **GitHub** → autoriser
+   Cloudflare, choisir le dépôt **Paladines** → **Begin setup**.
+3. **Project name** : `paladines` (ce nom donne l'adresse, il est difficile à changer après).
+   **Production branch** : la branche qui contient l'appli. **Framework preset** : *None*.
+   **Build command** : vide. **Build output directory** : vide (ou `/`). Puis **Save and Deploy**.
+
+### Autres hébergeurs gratuits
+
+- **GitHub Pages** (adresse en `hougoslav.github.io/Paladines`) : *Settings* → *Pages* →
+  *Deploy from a branch*, choisir la branche et le dossier **`/ (root)`**. Le fichier
+  `.nojekyll` est déjà là.
+- **Netlify** (adresse en `paladines.netlify.app`) : *Add new project* → *Import an existing
+  project* → GitHub → Paladines ; les réglages sont lus dans `netlify.toml`.
+  ⚠️ L'offre gratuite donne 300 crédits par mois (15 par mise en ligne, 20 par Go de trafic) :
+  une fois épuisés, **le site est mis en pause jusqu'au mois suivant**.
+
+## Avoir l'appli sur son téléphone
+
+1. **Ouvrir le site sur le téléphone** : taper l'adresse, scanner une affiche, ou scanner le
+   QR code affiché dans *Réglages → Ouvrir sur mon téléphone* depuis un ordinateur.
+2. **L'installer** :
+   - **Android (Chrome)** : un bandeau « Installer Paladines » apparaît sur l'accueil de
+     l'appli. Sinon : menu ⋮ → *Installer l'application* (ou *Ajouter à l'écran d'accueil*).
+   - **iPhone (Safari)** : bouton Partager → *Sur l'écran d'accueil* → *Ajouter*.
+3. L'appli a son icône, s'ouvre en plein écran, et les lieux restent disponibles **sans
+   internet**. Un appui long sur l'icône (Android) donne des raccourcis : *Près de moi*,
+   *Carte*, *Urgences*.
+
+Plus tard, pour la mettre dans les stores :
+
+- **Play Store** : [PWABuilder](https://www.pwabuilder.com/) transforme le site en
+  paquet Android à partir de son adresse en ligne.
+- **App Store et Play Store** : [Capacitor](https://capacitorjs.com/) emballe ce même
+  code dans une vraie appli native (il faut un Mac pour iOS et un compte développeur).
+
+## Points à connaître
+
+- Le fond de carte vient des serveurs d'OpenStreetMap, qui ne sont pas faits pour un usage
+  intensif : pour un vrai lancement, passer par un fournisseur de tuiles (gratuit ou payant).
+- « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
+- « Signaler une erreur » n'envoie encore rien : il faudra un petit serveur ou un formulaire.
+- Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
+  sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la
+  position de la personne).
+- La météo vient d'[Open-Meteo](https://open-meteo.com/) (gratuit, sans compte) : le téléphone
+  demande la météo **de Lille** (jamais sa position) au plus une fois toutes les 3 heures.
+- Les traductions anglaise et arabe sont un premier jet, à faire relire.
+
+## Crédits et licences
+
+- Carte : [Leaflet](https://leafletjs.com/) (BSD-2) et données © contributeurs
+  [OpenStreetMap](https://www.openstreetmap.org/copyright) (ODbL)
+- QR codes : [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) de Kazuhiko Arase (MIT)
+- Polices : Atkinson Hyperlegible (Braille Institute) et Bricolage Grotesque, licence SIL Open Font
+- Pictogrammes : dessinés pour le projet
