@@ -271,7 +271,7 @@ function debut() {
   return "<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">" +
     "<meta name=\"robots\" content=\"noindex\"><title>Paladines</title>" +
     '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">' +
-    '<meta name="theme-color" content="#14233a">' +
+    '<meta name="theme-color" content="#0b1b36">' +
     '<link rel="icon" href="/icons/equipe.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/equipe-180.png">' +
     "<style>" + CSS + "</style></head><body>" +
     '<header class="entete">' + LOGO + "<h1>Paladines · équipe</h1></header>";
@@ -290,31 +290,18 @@ function pageConnexion(env, erreur) {
 }
 
 // Logo engrenage (même dessin que icons/equipe.svg), en haut à gauche comme la lanterne de l'appli
-const LOGO = '<svg class="logo" aria-hidden="true" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#111113"/><path fill="#ffffff" stroke="#ffffff" stroke-width="28" stroke-linejoin="round" d="M220.3 133.1L229.7 90.1L282.3 90.1L291.7 133.1L317.7 143.8L354.7 120.1L391.9 157.3L368.2 194.3L378.9 220.3L421.9 229.7L421.9 282.3L378.9 291.7L368.2 317.7L391.9 354.7L354.7 391.9L317.7 368.2L291.7 378.9L282.3 421.9L229.7 421.9L220.3 378.9L194.3 368.2L157.3 391.9L120.1 354.7L143.8 317.7L133.1 291.7L90.1 282.3L90.1 229.7L133.1 220.3L143.8 194.3L120.1 157.3L157.3 120.1L194.3 143.8Z"/><circle cx="256" cy="256" r="58" fill="#111113"/></svg>';
+const LOGO = '<svg class="logo" aria-hidden="true" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0b1b36"/><path fill="#ffc400" stroke="#ffc400" stroke-width="28" stroke-linejoin="round" d="M220.3 133.1L229.7 90.1L282.3 90.1L291.7 133.1L317.7 143.8L354.7 120.1L391.9 157.3L368.2 194.3L378.9 220.3L421.9 229.7L421.9 282.3L378.9 291.7L368.2 317.7L391.9 354.7L354.7 391.9L317.7 368.2L291.7 378.9L282.3 421.9L229.7 421.9L220.3 378.9L194.3 368.2L157.3 391.9L120.1 354.7L143.8 317.7L133.1 291.7L90.1 282.3L90.1 229.7L133.1 220.3L143.8 194.3L120.1 157.3L157.3 120.1L194.3 143.8Z"/><circle cx="256" cy="256" r="58" fill="#0b1b36"/></svg>';
 
 const CSS =
-  // Même « Liquid Glass » que l'appli (css/verre.css) : fond maillé coloré, verre transparent flouté,
-  // couleurs système Apple, onglets segmentés et boutons en capsule
-  ":root{--fond-base:#f2f2f7;--t1:rgb(255 255 255/.9);--t2:rgb(255 255 255/.55);--t3:rgb(229 229 234/.6);--t4:rgb(255 255 255/.6);--t5:rgb(229 229 234/.5);" +
-  "--verre:rgb(255 255 255/.72);--verre-barre:rgb(249 249 251/.72);--lentille:#fff;--bord:rgb(0 0 0/.07);" +
-  "--reflet:linear-gradient(180deg,rgb(255 255 255/.35),rgb(255 255 255/0) 40%);" +
-  "--liseré:inset 0 .5px 0 rgb(255 255 255/.9);" +
-  "--ombre:0 1px 1px rgb(0 0 0/.03),0 6px 18px -10px rgb(0 0 0/.16);--flou:blur(22px) saturate(120%) brightness(1.04);" +
-  "--segment:rgb(118 118 128/.12);--encre:#111113;--douce:#4a4a4f;--accent:#111113;--lien:#111113;--barre:#111113;--rail:rgb(0 0 0/.08);" +
-  "--trait:rgb(0 0 0/.12);--ok:#1e6b25;--danger:#b71c1c;--sur-accent:#fff;--actuelle:rgb(0 0 0/.06);color-scheme:light}" +
-  "@media (prefers-color-scheme:dark){:root{--fond-base:#000;--t1:rgb(44 44 46/.55);--t2:rgb(28 28 30/.5);--t3:rgb(44 44 46/.35);--t4:rgb(28 28 30/.4);--t5:rgb(44 44 46/.3);" +
-  "--verre:rgb(28 28 30/.72);--verre-barre:rgb(22 22 24/.72);--lentille:rgb(255 255 255/.16);--bord:rgb(255 255 255/.09);" +
-  "--reflet:linear-gradient(180deg,rgb(255 255 255/.05),rgb(255 255 255/0) 40%);" +
-  "--liseré:inset 0 .5px 0 rgb(255 255 255/.1);" +
-  "--ombre:0 1px 1px rgb(0 0 0/.3),0 8px 22px -12px rgb(0 0 0/.6);--flou:blur(22px) saturate(120%) brightness(.9);" +
-  "--segment:rgb(118 118 128/.24);--encre:#f5f5f7;--douce:#c4c4cc;--accent:#f5f5f7;--lien:#f5f5f7;--barre:#f5f5f7;--rail:rgb(255 255 255/.1);" +
-  "--trait:rgb(255 255 255/.12);--ok:#6fd174;--danger:#ff8a80;--sur-accent:#111113;--actuelle:rgb(255 255 255/.1);color-scheme:dark}}" +
+  // Même style que l'appli (css/verre.css) : fond bleu nuit uni, verre transparent flouté,
+  // peu de couleurs : jaune (accent), vert (fait), rouge (supprimer), blanc (texte)
+  ":root{--fond-base:#0b1b36;--verre:rgb(255 255 255/.06);--verre-barre:rgb(11 27 54/.72);--bord:rgb(255 255 255/.12);" +
+  "--reflet:linear-gradient(180deg,rgb(255 255 255/.06),rgb(255 255 255/0) 40%);--liseré:inset 0 .5px 0 rgb(255 255 255/.14);" +
+  "--ombre:0 1px 1px rgb(0 0 0/.25),0 10px 24px -14px rgb(0 0 0/.7);--flou:blur(20px) saturate(160%);" +
+  "--segment:rgb(255 255 255/.06);--encre:#fff;--douce:#c3cddd;--accent:#ffc400;--lien:#ffc400;--barre:#ffc400;--rail:rgb(255 255 255/.1);" +
+  "--trait:rgb(255 255 255/.12);--ok:#43c759;--danger:#ff8077;--sur-accent:#0b1b36;--actuelle:rgb(255 196 0/.12);color-scheme:dark}" +
   "*{box-sizing:border-box}html{background:var(--fond-base)}" +
   "body{font:16px/1.5 -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:0 16px 24px;color:var(--encre);-webkit-font-smoothing:antialiased}" +
-  "body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:" +
-  "radial-gradient(48vmax 40vmax at 8% 4%,var(--t1),transparent 70%),radial-gradient(45vmax 38vmax at 96% 12%,var(--t2),transparent 70%)," +
-  "radial-gradient(42vmax 36vmax at 0% 62%,var(--t3),transparent 70%),radial-gradient(50vmax 40vmax at 100% 78%,var(--t4),transparent 70%)," +
-  "radial-gradient(46vmax 36vmax at 40% 104%,var(--t5),transparent 70%),var(--fond-base)}" +
   "h1,h2{letter-spacing:-.02em;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,system-ui,sans-serif}" +
   ".entete{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;margin:0 -16px 16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;" +
   "background:var(--verre-barre) var(--reflet);-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou);box-shadow:inset 0 -1px 0 var(--trait)}" +
@@ -325,7 +312,7 @@ const CSS =
   "background:var(--segment) var(--reflet);box-shadow:var(--liseré),var(--ombre)}" +
   ".onglets a{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:0 6px;border-radius:999px;text-decoration:none;" +
   "color:var(--encre);font-weight:600;font-size:.875rem;white-space:nowrap;transition:background-color .25s ease,box-shadow .25s ease}" +
-  ".onglets a[aria-current]{background:var(--lentille);color:var(--lien);box-shadow:inset 0 1px 0 rgb(255 255 255/.7),inset 0 -1px 0 rgb(255 255 255/.2),0 4px 14px -6px rgb(0 0 0/.25)}" +
+  ".onglets a[aria-current]{background:rgb(255 196 0/.16);color:var(--accent);box-shadow:inset 0 0 0 1px rgb(255 196 0/.35)}" +
   ".kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:4px 0 8px}" +
   ".kpi{display:flex;flex-direction:column;gap:2px;min-width:0;padding:14px 16px;border:1px solid var(--bord);border-radius:20px;background:var(--verre) var(--reflet);" +
   "-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou);box-shadow:var(--liseré),var(--ombre);color:var(--encre);text-decoration:none}" +
@@ -356,8 +343,7 @@ const CSS =
   ".connexion{display:grid;gap:12px;max-width:380px;padding:22px}" +
   ".connexion label{font-weight:600}" +
   ".connexion input{width:100%;min-width:0;min-height:50px;padding:10px 16px;border:1px solid var(--bord);border-radius:16px;background:var(--rail);color:var(--encre);font:inherit}" +
-  ".principal{background:var(--accent) linear-gradient(180deg,rgb(255 255 255/.2),rgb(255 255 255/0) 45%);border-color:rgb(255 255 255/.35);color:var(--sur-accent);" +
-  "box-shadow:inset 0 1px 0 rgb(255 255 255/.5),0 10px 24px -12px rgb(0 0 0/.55)}" +
+  ".principal{background:var(--accent);border-color:var(--accent);color:var(--sur-accent);box-shadow:0 10px 24px -12px rgb(0 0 0/.7)}" +
   ".erreur{color:var(--danger);margin:0;font-weight:600}" +
   ".sortie{margin:32px 0 8px}" +
   ".compte{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--sur-accent);font-size:.75rem;line-height:20px;text-align:center}" +
@@ -366,11 +352,10 @@ const CSS =
   ".traite{box-shadow:inset 4px 0 0 var(--ok),var(--liseré),var(--ombre)!important}" +
   ".actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}" +
   ".danger{color:var(--danger)}" +
-  "@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:root{--verre:rgb(255 255 255/.82);--verre-barre:rgb(255 255 255/.9)}}" +
-  "@media (prefers-reduced-transparency:reduce){:root{--verre:#fff;--verre-barre:#f9f9fb;--segment:#e5e5ea;--reflet:none}body::before{background:#f2f2f7}" +
-  "@media (prefers-color-scheme:dark){:root{--verre:#1c1c1e;--verre-barre:#1c1c1e;--segment:#2c2c2e}body::before{background:#000}}}" +
+  "@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:root{--verre:#16294a;--verre-barre:#0b1b36}}" +
+  "@media (prefers-reduced-transparency:reduce){:root{--verre:#16294a;--verre-barre:#0b1b36;--segment:#16294a;--reflet:none}}" +
   "@media (prefers-reduced-motion:reduce){button:active{transform:none}}" +
-  "@media (forced-colors:active){.barre{background:CanvasText}body::before{display:none}}";
+  "@media (forced-colors:active){.barre{background:CanvasText}}";
 
 /* ---------- Connexion de l'équipe ----------
  * Cookie « expiration.signature » : la signature HMAC-SHA256 de l'expiration, avec le mot

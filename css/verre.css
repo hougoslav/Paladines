@@ -1,312 +1,171 @@
-/* Paladines — « Liquid Glass » (style iOS 26 : verre transparent, lumière, couleurs système Apple)
- * Se charge APRÈS theme.css et redéfinit ses jetons : les surfaces deviennent du verre transparent,
- * le « bleu nuit » devient du verre clair, les couleurs passent à la palette système d'Apple.
- * - Fond : dégradé maillé coloré, fixe, qu'on voit à travers le verre.
- * - Verre : très transparent, flouté et saturé, liseré de lumière, reflet en biais.
- * - Titres : police système (SF Pro sur iPhone) ; texte courant : Atkinson Hyperlegible (lisibilité).
- * - « Réduire la transparence » ou navigateur sans flou : surfaces opaques et lisibles.
- * Aucun changement de HTML ni de JS. Contrastes AA vérifiés sur les zones les plus colorées du fond.
+/* Paladines — style unique « bleu nuit et jaune », en Liquid Glass
+ * Se charge APRÈS style.css et theme.css et redéfinit leurs jetons (sélecteur
+ * :root[data-theme="paladines"], posé dans index.html et par l'appli).
+ * - Fond uni bleu nuit, sans lueurs ni dégradés.
+ * - Verre : surfaces transparentes floutées, liseré de lumière, reflet discret.
+ * - Peu de couleurs, des couleurs franches : jaune (actions principales, choix), vert
+ *   (ouvert, appeler), rouge (quitter, urgences), bleu (itinéraire, liens), blanc (texte).
+ * - Police du téléphone, échelle de tailles d'Apple, cibles de 44 px au moins.
+ * - « Réduire la transparence », navigateurs sans flou, couleurs forcées : surfaces opaques.
+ * Contraste AA vérifié sur le rendu réel.
  */
 
 /* ============ 1. Jetons ============ */
-:root {
-  /* Fond maillé */
-  --fond-base: #f2f2f7;
-  --tache-1: rgb(255 255 255 / 0.9);
-  --tache-2: rgb(255 255 255 / 0.55);
-  --tache-3: rgb(229 229 234 / 0.6);
-  --tache-4: rgb(255 255 255 / 0.6);
-  --tache-5: rgb(229 229 234 / 0.5);
+:root[data-theme="paladines"] {
+  color-scheme: dark;
+
+  /* Les couleurs de l'appli, et seulement elles */
+  --fond: #0b1b36;
+  --jaune: #ffc400;
+  --sur-jaune: #0b1b36;
+  --vert: #2e7d32;
+  --vert-texte: #43c759;
+  --rouge: #d32f2f;
+  --rouge-texte: #ff6b63;
+  --bleu: #1e63d6;
+  --bleu-texte: #7cb0ff;
+  --blanc: #ffffff;
+  --gris: #c3cddd;
 
   /* Verre */
-  --verre: rgb(255 255 255 / 0.72);
-  --verre-survol: rgb(255 255 255 / 0.86);
-  --verre-barre: rgb(249 249 251 / 0.72);
-  --verre-lentille: rgb(255 255 255 / 0.9);
-  --verre-bord: rgb(0 0 0 / 0.07);
-  --reflet: linear-gradient(180deg, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0) 40%);
-  --liseré: inset 0 0.5px 0 rgb(255 255 255 / 0.9);
-  --ombre-verre: 0 0.5px 0 rgb(0 0 0 / 0.04), 0 4px 14px -8px rgb(0 0 0 / 0.12);
-  --flou: blur(22px) saturate(120%) brightness(1.04);
+  --verre: rgb(255 255 255 / 0.06);
+  --verre-survol: rgb(255 255 255 / 0.1);
+  --verre-fort: rgb(255 255 255 / 0.12);
+  --verre-barre: rgb(11 27 54 / 0.72);
+  --verre-bord: rgb(255 255 255 / 0.12);
+  --reflet: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 45%);
+  --liseré: inset 0 1px 0 rgb(255 255 255 / 0.16);
+  --ombre-verre: 0 8px 24px -14px rgb(0 0 0 / 0.7);
+  --ombre-flottante: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 12px 32px -12px rgb(0 0 0 / 0.75);
+  --flou: blur(20px) saturate(160%);
 
-  /* Couleurs système (texte AA sur le verre le plus coloré) */
-  --encre: #111113;
-  --encre-douce: #4a4a4f;
-  --lien: #111113;
-  --focus: #111113;
-  --accent: #111113;
-  --accent-texte: #111113;
-  --accent-chaud: #6b6b70;
-  --accent-bouton: #111113;
-  --vert-bouton: #2e7d32;
-  --rouge-bouton: #d32f2f;
-  --logo: #111113;
-  --trait: rgb(0 0 0 / 0.12);
-  --trait-fort: rgb(0 0 0 / 0.22);
-  --ok: #1e6b25;
-  --ok-fond: rgb(46 125 50 / 0.13);
-  --bientot: #3d3d42;
-  --bientot-fond: rgb(0 0 0 / 0.06);
-  --ferme: #5a5a60;
-  --ferme-fond: rgb(0 0 0 / 0.06);
-  --urgent: #b71c1c;
-  --urgent-fond: rgb(211 47 47 / 0.12);
-  --femmes: #111113;
-  --femmes-fond: rgb(0 0 0 / 0.07);
-  --femmes-trait: rgb(0 0 0 / 0.2);
-  --femmes-encre: #ffffff;
-  --lampe: #111113;
-  --lampe-encre: #ffffff;
-  --lampe-voile: rgb(0 0 0 / 0.06);
-  --quitter: var(--rouge-bouton);
-  --sur-accent: #ffffff;
-
-  /* L'ancien « bleu nuit » devient du verre clair */
+  /* Jetons de style.css et theme.css, ramenés à cette palette */
   --nuit: var(--verre-barre);
   --nuit-2: var(--verre);
   --nuit-3: var(--verre-survol);
-  --sur-nuit: var(--encre);
-  --sur-nuit-doux: var(--encre-douce);
-  --sur-nuit-voile: rgb(0 0 0 / 0.05);
-  --sur-nuit-filet: rgb(255 255 255 / 0.5);
-
-  /* Surfaces : du verre */
-  --papier: rgb(255 255 255 / 0.5);
+  --papier: var(--fond);
   --surface: var(--verre);
   --surface-2: var(--verre-survol);
+  --encre: var(--blanc);
+  --encre-douce: var(--gris);
+  --trait: rgb(255 255 255 / 0.12);
+  --trait-fort: rgb(255 255 255 / 0.22);
+  --lampe: var(--jaune);
+  --lampe-encre: var(--sur-jaune);
+  --lampe-voile: rgb(255 196 0 / 0.14);
+  --lien: var(--bleu-texte);
+  --focus: var(--jaune);
+  --sur-nuit: var(--blanc);
+  --sur-nuit-doux: var(--gris);
+  --sur-nuit-voile: rgb(255 255 255 / 0.08);
+  --sur-nuit-filet: rgb(255 255 255 / 0.14);
+  --quitter: var(--rouge);
+  --ok: var(--vert-texte);
+  --ok-fond: rgb(67 199 89 / 0.14);
+  --bientot: var(--jaune);
+  --bientot-fond: rgb(255 196 0 / 0.12);
+  --ferme: #a3b2c8;
+  --ferme-fond: rgb(255 255 255 / 0.06);
+  --urgent: var(--rouge-texte);
+  --urgent-fond: rgb(211 47 47 / 0.18);
+  --femmes: var(--jaune);
+  --femmes-fond: rgb(255 196 0 / 0.12);
+  --femmes-trait: rgb(255 196 0 / 0.4);
+  --femmes-encre: var(--sur-jaune);
   --ombre-1: var(--liseré), var(--ombre-verre);
-  --ombre-2: var(--liseré), 0 2px 4px rgb(30 40 80 / 0.08), 0 18px 40px -16px rgb(30 40 80 / 0.35);
-  --ombre-flot: var(--liseré), 0 2px 6px rgb(30 40 80 / 0.1), 0 22px 48px -16px rgb(30 40 80 / 0.4);
-  --teinte-fond: 20%;
+  --ombre-2: var(--liseré), var(--ombre-verre);
+  --ombre-flot: var(--ombre-flottante);
+  --teinte-fond: 0%;
   --clair-ic: 0%;
 
+  --f-texte: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Geeza Pro", system-ui, sans-serif;
   --f-titre: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Geeza Pro", system-ui, sans-serif;
-  --r: 24px;
+  --r: 22px;
   --r-btn: 999px;
   --r-petit: 14px;
   --h-onglets: 64px;
   --marge-onglets: 12px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --surface: var(--verre);
-    --surface-2: var(--verre-survol);
-    --nuit: var(--verre-barre);
-    --nuit-2: var(--verre);
-    --nuit-3: var(--verre-survol);
-    --sur-nuit: var(--encre);
-    --sur-nuit-doux: var(--encre-douce);
-    --quitter: var(--rouge-bouton);
-    --ombre-1: var(--liseré), var(--ombre-verre);
-    --fond-base: #000000;
-    --tache-1: rgb(44 44 46 / 0.55);
-    --tache-2: rgb(28 28 30 / 0.5);
-    --tache-3: rgb(44 44 46 / 0.35);
-    --tache-4: rgb(28 28 30 / 0.4);
-    --tache-5: rgb(44 44 46 / 0.3);
-    --verre: rgb(28 28 30 / 0.72);
-    --verre-survol: rgb(44 44 46 / 0.8);
-    --verre-barre: rgb(22 22 24 / 0.72);
-    --verre-lentille: rgb(255 255 255 / 0.16);
-    --verre-bord: rgb(255 255 255 / 0.09);
-    --reflet: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0) 40%);
-    --liseré: inset 0 0.5px 0 rgb(255 255 255 / 0.1);
-    --ombre-verre: 0 0.5px 0 rgb(0 0 0 / 0.4), 0 6px 18px -10px rgb(0 0 0 / 0.7);
-    --flou: blur(22px) saturate(120%) brightness(0.9);
-    --encre: #f5f5f7;
-    --encre-douce: #c4c4cc;
-    --lien: #f5f5f7;
-    --focus: #f5f5f7;
-    --accent: #f5f5f7;
-    --accent-texte: #ffffff;
-    --accent-chaud: #a1a1a6;
-    --vert-bouton: #2e7d32;
-    --rouge-bouton: #d32f2f;
-    --accent-bouton: #f5f5f7;
-    --sur-accent: #111113;
-    --logo: #f5f5f7;
-    --trait: rgb(255 255 255 / 0.12);
-    --trait-fort: rgb(255 255 255 / 0.2);
-    --ok: #6fd174;
-    --ok-fond: rgb(76 175 80 / 0.18);
-    --bientot: #d1d1d6;
-    --bientot-fond: rgb(255 255 255 / 0.08);
-    --ferme: #a1a1aa;
-    --ferme-fond: rgb(255 255 255 / 0.06);
-    --urgent: #ff6b6b;
-    --urgent-fond: rgb(255 82 82 / 0.16);
-    --femmes: #f5f5f7;
-    --femmes-fond: rgb(255 255 255 / 0.1);
-    --femmes-trait: rgb(255 255 255 / 0.28);
-    --femmes-encre: #111113;
-    --lampe: #f5f5f7;
-    --lampe-voile: rgb(255 255 255 / 0.08);
-    --sur-nuit-voile: rgb(255 255 255 / 0.08);
-    --sur-nuit-filet: rgb(255 255 255 / 0.14);
-    --papier: rgb(255 255 255 / 0.05);
-    --teinte-fond: 30%;
-    --clair-ic: 40%;
-    --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
-    --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
-    --lampe-encre: #111113;
-}
-}
-:root[data-theme="dark"] {
-  --surface: var(--verre);
-  --surface-2: var(--verre-survol);
-  --nuit: var(--verre-barre);
-  --nuit-2: var(--verre);
-  --nuit-3: var(--verre-survol);
-  --sur-nuit: var(--encre);
-  --sur-nuit-doux: var(--encre-douce);
-  --quitter: var(--rouge-bouton);
-  --ombre-1: var(--liseré), var(--ombre-verre);
-  --fond-base: #000000;
-  --tache-1: rgb(44 44 46 / 0.55);
-  --tache-2: rgb(28 28 30 / 0.5);
-  --tache-3: rgb(44 44 46 / 0.35);
-  --tache-4: rgb(28 28 30 / 0.4);
-  --tache-5: rgb(44 44 46 / 0.3);
-  --verre: rgb(28 28 30 / 0.72);
-  --verre-survol: rgb(44 44 46 / 0.8);
-  --verre-barre: rgb(22 22 24 / 0.72);
-  --verre-lentille: rgb(255 255 255 / 0.16);
-  --verre-bord: rgb(255 255 255 / 0.09);
-  --reflet: linear-gradient(180deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0) 40%);
-  --liseré: inset 0 0.5px 0 rgb(255 255 255 / 0.1);
-  --ombre-verre: 0 0.5px 0 rgb(0 0 0 / 0.4), 0 6px 18px -10px rgb(0 0 0 / 0.7);
-  --flou: blur(22px) saturate(120%) brightness(0.9);
-  --encre: #f5f5f7;
-  --encre-douce: #c4c4cc;
-  --lien: #f5f5f7;
-  --focus: #f5f5f7;
-  --accent: #f5f5f7;
-  --accent-texte: #ffffff;
-  --accent-chaud: #a1a1a6;
-  --accent-bouton: #f5f5f7;
-  --sur-accent: #111113;
-  --vert-bouton: #2e7d32;
-  --rouge-bouton: #d32f2f;
-  --logo: #f5f5f7;
-  --trait: rgb(255 255 255 / 0.12);
-  --trait-fort: rgb(255 255 255 / 0.2);
-  --ok: #6fd174;
-  --ok-fond: rgb(76 175 80 / 0.18);
-  --bientot: #d1d1d6;
-  --bientot-fond: rgb(255 255 255 / 0.08);
-  --ferme: #a1a1aa;
-  --ferme-fond: rgb(255 255 255 / 0.06);
-  --urgent: #ff6b6b;
-  --urgent-fond: rgb(255 82 82 / 0.16);
-  --femmes: #f5f5f7;
-  --femmes-fond: rgb(255 255 255 / 0.1);
-  --femmes-trait: rgb(255 255 255 / 0.28);
-  --femmes-encre: #111113;
-  --lampe: #f5f5f7;
-  --lampe-voile: rgb(255 255 255 / 0.08);
-  --sur-nuit-voile: rgb(255 255 255 / 0.08);
-  --sur-nuit-filet: rgb(255 255 255 / 0.14);
-  --papier: rgb(255 255 255 / 0.05);
-  --teinte-fond: 30%;
-  --clair-ic: 40%;
-  --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
-  --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
-  --lampe-encre: #111113;
-}
-
-/* ============ 2. Fond maillé, vu à travers le verre ============ */
-html {
-  background: var(--fond-base);
+/* ============ 2. Fond et typographie ============ */
+html,
+body {
+  background: var(--fond);
 }
 body {
-  background: transparent;
+  color: var(--blanc);
+  font-size: 1.0625rem;
+  line-height: 1.47;
+  letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
 }
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(48vmax 40vmax at 8% 4%, var(--tache-1), transparent 70%),
-    radial-gradient(45vmax 38vmax at 96% 12%, var(--tache-2), transparent 70%),
-    radial-gradient(42vmax 36vmax at 0% 62%, var(--tache-3), transparent 70%),
-    radial-gradient(50vmax 40vmax at 100% 78%, var(--tache-4), transparent 70%),
-    radial-gradient(46vmax 36vmax at 40% 104%, var(--tache-5), transparent 70%),
-    var(--fond-base);
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.026em;
 }
-h1,
-h2,
-h3,
-.marque-nom,
-.hero-titre,
+h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.017em;
+}
+.fiche-lieu h1 {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+.sous-titre,
+.aide,
+.maj,
+.position-prive {
+  color: var(--gris);
+}
+.horaires,
+.statut,
 .urg-num,
-.urg-rapide-num {
-  letter-spacing: -0.02em;
+.urg-rapide-num,
+.lieu-meta {
+  font-variant-numeric: tabular-nums;
+}
+a {
+  color: var(--bleu-texte);
+}
+.vue {
+  gap: 28px;
+  padding-bottom: calc(var(--h-onglets) + var(--marge-onglets) + 40px + env(safe-area-inset-bottom, 0px));
+}
+.bloc {
+  gap: 12px;
+}
+.titre-bloc {
+  font-family: var(--f-titre);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.017em;
+  text-transform: none;
+  color: var(--blanc);
+}
+.titre-bloc--urg {
+  color: var(--rouge-texte);
 }
 
-/* ============ 3. Le verre, partout ============ */
-.entete,
-.onglets,
-.hero,
+/* ============ 3. Le verre ============ */
 .tuile,
 .im-carte,
 .urg-rapide,
 .liens-bas,
 .liste,
 .liste-urg,
-.fiches,
+.fiche,
 .horaires,
 .verifie,
 .signaler form,
 .installer-bandeau,
 .adresse,
-.adresse-masquee,
-.action,
-.puce,
-.btn,
-.btn--doux,
-.choix-repere select,
-.badge-fictif,
-.menu-langue,
-.alerte,
-.rappel,
-.encart-femmes,
-.criteres li,
-.btn-quitter,
-.btn-entete,
-.cta-proche,
-.btn-localiser,
-.btn-placer,
-.btn-tel-carte,
-.carte-tel,
-.carte-msg,
-.leaflet-bar a,
-.leaflet-popup-content-wrapper,
-.leaflet-control-attribution {
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
-}
-.hero,
-.tuile,
-.im-carte,
-.urg-rapide,
-.liens-bas,
-.liste,
-.liste-urg,
-.fiches,
-.horaires,
-.verifie,
-.signaler form,
-.installer-bandeau,
-.adresse,
-.adresse-masquee,
 .action,
 .puce,
 .btn--doux,
-.choix-repere select,
 .badge-fictif,
 .menu-langue,
 .alerte,
@@ -316,9 +175,12 @@ h3,
 .carte-tel,
 .carte-msg,
 .leaflet-popup-content-wrapper {
+  border: 1px solid var(--verre-bord);
+  background-color: var(--verre);
   background-image: var(--reflet);
-  border-color: var(--verre-bord);
   box-shadow: var(--liseré), var(--ombre-verre);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
 }
 .tuile:hover,
 .action:hover,
@@ -326,32 +188,11 @@ h3,
 .btn--doux:hover,
 .liens-bas a:hover,
 .im-carte:hover,
-.urg-rapide:hover {
+.urg-rapide:hover,
+.lieu:hover {
   background-color: var(--verre-survol);
-  background-image: var(--reflet);
 }
-/* Noir et blanc : pastilles, icônes et survols sans la couleur du besoin
-   (seuls les repères de la carte la gardent, pour s'y retrouver) */
-.pastille,
-.action,
-.im-ic,
-.barre-carte .puce .ic {
-  --c: var(--encre) !important;
-}
-.tuile:hover {
-  border-color: var(--verre-bord);
-}
-/* Les fonds teintés gardent leur teinte, en verre */
-.tuile--femmes,
-.im--femmes,
-.sommaire-femmes .puce {
-  border-color: var(--femmes-trait);
-}
-.im--alerte {
-  border-color: color-mix(in srgb, var(--bientot) 35%, transparent);
-}
-
-/* Pression : le verre s'enfonce un peu, comme sur iPhone */
+/* À la pression, le verre s'enfonce un peu */
 .tuile,
 .action,
 .btn,
@@ -359,7 +200,7 @@ h3,
 .urg-rapide,
 .puce,
 .im-carte {
-  transition: transform 0.18s cubic-bezier(0.3, 0.7, 0.4, 1.4), background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.18s cubic-bezier(0.3, 0.7, 0.4, 1.4), background-color 0.2s ease;
 }
 .tuile:active,
 .action:active,
@@ -374,15 +215,16 @@ h3,
 /* ============ 4. En-tête : barre de verre ============ */
 .entete {
   background: var(--verre-barre);
-  background-image: var(--reflet);
-  color: var(--encre);
   box-shadow: inset 0 -1px 0 var(--trait);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+  view-transition-name: entete;
 }
 body:has(.hero) .entete {
   box-shadow: inset 0 -1px 0 var(--trait);
 }
 .logo-lanterne {
-  fill: var(--logo);
+  fill: var(--jaune);
 }
 .marque-nom {
   font-family: var(--f-titre);
@@ -390,363 +232,121 @@ body:has(.hero) .entete {
 }
 .btn-entete {
   border-radius: 999px;
-  color: var(--encre);
+  color: var(--blanc);
 }
 .btn-entete:hover {
   background: var(--verre-survol);
 }
 .btn-quitter {
   border-radius: 999px;
-  background: color-mix(in srgb, var(--rouge-bouton) 92%, transparent);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0) 60%);
-  color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -1px 0 rgb(0 0 0 / 0.1), 0 6px 16px -6px rgb(211 47 47 / 0.6);
+  background: var(--rouge);
+  color: var(--blanc);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 4px 12px -6px rgb(211 47 47 / 0.8);
 }
 .menu-langue {
   background-color: var(--verre-barre);
-  border: 1px solid var(--verre-bord);
-  box-shadow: var(--ombre-flot);
+  box-shadow: var(--ombre-flottante);
 }
 .menu-langue button {
-  color: var(--encre);
+  color: var(--blanc);
 }
 
-/* ============ 5. Accueil : grand titre sur une plaque de verre ============ */
+/* ============ 5. Accueil ============ */
 .hero {
   margin: 4px 0 0;
-  padding: 22px 18px 18px;
-  border: 1px solid var(--verre-bord);
-  border-radius: 30px;
-  background-color: var(--verre);
-  color: var(--encre);
-}
-.hero-pour {
-  color: var(--accent-chaud);
-}
-.hero-titre {
-  font-family: var(--f-titre);
-  font-weight: 800;
-}
-.hero-titre span {
-  color: var(--accent-chaud);
-}
-.proto {
-  background: var(--sur-nuit-voile);
-  border-color: var(--trait);
-  color: var(--encre-douce);
-}
-/* Bouton principal : verre teinté jaune, comme un bouton « rempli » d'iOS */
-.cta-proche {
-  border: 1px solid rgb(255 255 255 / 0.5);
-  border-radius: 24px;
-  background: color-mix(in srgb, var(--lampe) 86%, transparent);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0) 55%);
-  color: var(--lampe-encre);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 0 rgb(0 0 0 / 0.06), 0 12px 28px -12px rgb(0 0 0 / 0.45);
-}
-.cta-ic {
-  border-radius: 16px;
-  background: var(--lampe-encre);
-  color: var(--lampe);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
-}
-.titre-bloc {
-  color: var(--encre-douce);
-}
-
-/* ============ 6. Pastilles : verre teinté de la couleur du besoin ============ */
-@supports (color: color-mix(in srgb, red 50%, blue)) {
-  .pastille,
-  .tete .pastille {
-    background: color-mix(in srgb, var(--c, var(--accent)) var(--teinte-fond), transparent);
-    background-image: linear-gradient(160deg, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0) 60%);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 30%, transparent);
-  }
-}
-.tuile--femmes .pastille,
-.tete.tete--femmes .pastille {
-  background: var(--femmes);
-  color: var(--femmes-encre);
-}
-
-/* ============ 7. Boutons ============ */
-/* Bouton « rempli » : verre teinté bleu système, texte blanc */
-.btn {
-  border: 1px solid rgb(255 255 255 / 0.35);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 45%);
-  color: var(--sur-accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 10px 24px -12px color-mix(in srgb, var(--accent) 80%, transparent);
-}
-.btn:hover {
-  background-color: var(--accent-bouton);
-  border-color: rgb(255 255 255 / 0.35);
-}
-/* Bouton « doux » : verre clair */
-.btn--doux,
-.btn--doux:hover {
-  background-color: var(--verre);
-  border-color: var(--verre-bord);
-  color: var(--encre);
-  box-shadow: var(--liseré), var(--ombre-verre);
-}
-.btn--doux:hover {
-  background-color: var(--verre-survol);
-}
-.btn--danger,
-.btn--danger:hover {
-  background: color-mix(in srgb, var(--rouge-bouton) 90%, transparent);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
-  color: #fff;
-}
-.btn--appel,
-.actions--principales .action--appel,
-.leaflet-container a.btn--appel {
-  background: color-mix(in srgb, var(--vert-bouton) 96%, transparent);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
-  border-color: rgb(255 255 255 / 0.35);
-  color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 10px 24px -12px rgb(46 125 50 / 0.7);
-}
-.actions--principales .action--appel .ic {
-  color: #fff;
-}
-.leaflet-container a.btn {
-  color: var(--sur-accent);
-}
-/* Puces (filtres, réglages) : capsules de verre ; choisie = bleu système */
-.puce {
-  border-radius: 999px;
-  border-color: var(--verre-bord);
-  color: var(--encre);
-}
-.puce[aria-pressed="true"],
-.barre-carte .puce[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 45%);
-  border-color: rgb(255 255 255 / 0.35);
-  color: var(--sur-accent);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 18px -10px color-mix(in srgb, var(--accent) 80%, transparent);
-}
-.choix-repere select {
-  border-radius: 18px;
-  color: var(--encre);
-}
-.action {
-  border-radius: 20px;
-}
-a,
-.lien-carte,
-.lien-fleche {
-  color: var(--lien);
-}
-.im-point[aria-current="true"]::before {
-  background: var(--encre);
-}
-
-/* ============ 8. Barre d'onglets : capsule de verre flottante, onglet choisi en lentille ============ */
-.onglets {
-  left: var(--marge-onglets);
-  right: var(--marge-onglets);
-  bottom: calc(var(--marge-onglets) + env(safe-area-inset-bottom, 0px));
-  max-width: 34rem;
-  margin-inline: auto;
-  min-height: var(--h-onglets);
-  padding: 4px;
-  border: 1px solid var(--verre-bord);
-  border-radius: 999px;
-  background: var(--verre-barre);
-  background-image: var(--reflet);
-  box-shadow: var(--ombre-flot);
-}
-.onglets a {
-  border-radius: 999px;
-  color: var(--encre);
-  transition: background-color 0.25s ease, box-shadow 0.25s ease;
-}
-.onglets a[aria-current="page"] {
-  background: var(--verre-lentille);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 0 rgb(255 255 255 / 0.2), 0 4px 14px -6px rgb(0 0 0 / 0.25);
-  color: var(--accent-texte);
-}
-.onglets a[aria-current="page"] .ic,
-.onglets .ic {
-  padding: 2px;
-  background: none;
-  box-shadow: none;
-  color: inherit;
-}
-.onglets .onglet-urg {
-  color: var(--urgent);
-}
-.vue {
-  padding-bottom: calc(var(--h-onglets) + var(--marge-onglets) + 40px + env(safe-area-inset-bottom, 0px));
-}
-
-/* ============ 9. Carte : jusqu'en bas, contrôles en verre ============ */
-.vue-carte {
-  bottom: 0;
-  background: transparent;
-}
-.vue-carte .leaflet-bottom {
-  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 8px + env(safe-area-inset-bottom, 0px));
-}
-.btn-localiser,
-.btn-placer {
-  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 24px + env(safe-area-inset-bottom, 0px));
-}
-.btn-tel-carte {
-  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 88px + env(safe-area-inset-bottom, 0px));
-}
-.carte-tel {
-  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 146px + env(safe-area-inset-bottom, 0px));
-}
-.btn-localiser,
-.btn-placer:not([aria-pressed="true"]),
-.btn-tel-carte:not([aria-expanded="true"]),
-.barre-carte .puce:not([aria-pressed="true"]),
-.leaflet-bar a {
-  background-color: var(--verre-barre);
-  background-image: var(--reflet);
-  border-color: var(--verre-bord);
-  color: var(--encre);
-  box-shadow: var(--ombre-flot);
-}
-.btn-tel-carte[aria-expanded="true"] {
-  background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
-  border-color: rgb(255 255 255 / 0.35);
-  color: var(--sur-accent);
-}
-.btn-localiser,
-.btn-placer,
-.btn-tel-carte {
-  border-radius: 999px;
-}
-.leaflet-bar {
-  border: 0;
-  border-radius: 999px;
-  overflow: hidden;
-  box-shadow: var(--ombre-flot);
-}
-.leaflet-popup-content-wrapper {
-  border: 1px solid var(--verre-bord);
-  border-radius: 22px;
-  background-color: var(--verre-barre);
-  color: var(--encre);
-}
-.leaflet-popup-tip {
-  background: var(--verre-barre);
-}
-
-/* ============ 10. Finitions selon les règles de design d'Apple (HIG) ============
- * Une seule famille de caractères, une échelle de tailles (34 / 28 / 20 / 17 / 15 / 13 / 11),
- * des espacements sur une grille de 4 et 8 px, des titres de section courts en gras, des
- * listes « groupées » d'iOS, et des ombres légères : c'est le verre qui donne la profondeur. */
-:root {
-  --f-texte: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Geeza Pro", system-ui, sans-serif;
-  --r: 22px;
-}
-body {
-  font-size: 1.0625rem;
-  line-height: 1.47;
-  letter-spacing: -0.006em;
-}
-h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.026em;
-}
-.fiche-lieu h1 {
-  font-size: 1.75rem;
-  line-height: 1.15;
-}
-h2 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.017em;
-}
-.horaires,
-.statut,
-.urg-num,
-.urg-rapide-num,
-.lieu-meta {
-  font-variant-numeric: tabular-nums;
-}
-.vue {
-  gap: 28px;
-}
-.bloc {
-  gap: 12px;
-}
-/* Titres de section : en gras, sans capitales espacées */
-.titre-bloc {
-  font-family: var(--f-titre);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.25;
-  letter-spacing: -0.017em;
-  text-transform: none;
-  color: var(--encre);
-}
-.titre-bloc--urg {
-  color: var(--urgent);
-}
-
-/* En-tête */
-.btn-quitter {
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 4px 12px -6px rgb(211 47 47 / 0.55);
-}
-
-/* Accueil : grand titre posé sur le fond, sans plaque ; le bouton principal porte l'action */
-.hero {
   padding: 4px 0 0;
   gap: 18px;
   border: 0;
+  border-radius: 0;
   background: none;
   box-shadow: none;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  color: var(--blanc);
 }
 .hero-pour {
   font-size: 0.9375rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--encre-douce);
+  color: var(--jaune);
 }
 .hero-titre {
+  font-family: var(--f-titre);
   font-size: 2.125rem;
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
 .hero-titre span {
-  color: var(--encre-douce);
+  color: var(--jaune);
 }
+/* Bouton principal : jaune plein */
 .cta-proche {
   min-height: 72px;
   padding: 14px 16px;
+  border: 0;
   border-radius: 22px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 10px 24px -14px rgb(0 0 0 / 0.5);
+  background: var(--jaune);
+  color: var(--sur-jaune);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 12px 28px -14px rgb(255 196 0 / 0.6);
+}
+.cta-ic {
+  border-radius: 16px;
+  background: var(--sur-jaune);
+  color: var(--jaune);
+  box-shadow: none;
 }
 .cta-txt strong {
   font-size: 1.0625rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
 }
 .cta-txt small {
   font-size: 0.8125rem;
   opacity: 0.85;
 }
+/* Infos du moment : une alerte = jaune, le reste = verre */
+.im-carte {
+  color: var(--blanc);
+}
+.im-ic {
+  background: var(--sur-nuit-voile);
+  color: var(--jaune);
+}
+.im--alerte {
+  border-color: rgb(255 196 0 / 0.45);
+  background-color: rgb(255 196 0 / 0.1);
+}
+.im--alerte .im-ic,
+.im--femmes .im-ic {
+  background: var(--jaune);
+  color: var(--sur-jaune);
+}
+.im--femmes {
+  border-color: var(--femmes-trait);
+  background-color: var(--femmes-fond);
+}
+.im-ctrl {
+  gap: 0;
+}
+.im-point::before {
+  width: 6px;
+  height: 6px;
+  background: var(--trait-fort);
+}
+.im-point[aria-current="true"]::before {
+  width: 16px;
+  background: var(--jaune);
+}
+.im-pause {
+  color: var(--gris);
+}
 
-/* Tuiles des besoins */
+/* Tuiles des besoins : verre, pictogramme jaune */
 .grille-cat {
   gap: 10px;
 }
 .tuile {
   gap: 8px;
   padding: 16px 6px 14px;
+  border-radius: var(--r);
+  color: var(--blanc);
 }
 .tuile-nom {
   font-size: 0.9375rem;
@@ -756,12 +356,183 @@ h2 {
 .tuile-nb {
   font-size: 0.75rem;
   font-weight: 600;
+  color: var(--gris);
 }
-.pastille {
-  border-radius: 13px;
+.tuile-nb--ouvert {
+  color: var(--vert-texte);
+}
+.tuile-nb--inconnu {
+  color: var(--jaune);
+}
+.tuile--femmes {
+  border-color: var(--femmes-trait);
+  background-color: var(--femmes-fond);
+}
+.tuile--femmes .tuile-nom {
+  color: var(--jaune);
 }
 
-/* Listes de lieux : liste groupée d'iOS (séparateurs après l'icône, statut en texte coloré) */
+/* Pastilles : pictogramme jaune sur verre ; « Pour les femmes » et « Près de moi » en jaune plein */
+.pastille,
+.tete .pastille {
+  --c: var(--jaune) !important;
+  border-radius: 13px;
+  background: var(--sur-nuit-voile) !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  color: var(--jaune) !important;
+}
+.tuile--femmes .pastille,
+.tete--femmes .pastille,
+.tete--proche .pastille {
+  background: var(--jaune) !important;
+  color: var(--sur-jaune) !important;
+}
+.tete--urg .pastille {
+  background: var(--urgent-fond) !important;
+  color: var(--rouge-texte) !important;
+}
+
+/* Urgences rapides : numéros en rouge */
+.urg-rapide {
+  color: var(--blanc);
+}
+.urg-rapide-num {
+  color: var(--rouge-texte);
+}
+.urg-rapide-txt {
+  color: var(--gris);
+}
+
+/* ============ 6. Boutons ============ */
+/* Principal : jaune plein, texte bleu nuit */
+.btn {
+  border: 0;
+  border-radius: 999px;
+  background: var(--jaune);
+  color: var(--sur-jaune);
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 20px -12px rgb(255 196 0 / 0.6);
+}
+.btn:hover {
+  background: var(--jaune);
+  filter: brightness(1.05);
+}
+/* Secondaire : verre */
+.btn--doux,
+.btn--doux:hover {
+  border: 1px solid var(--verre-bord);
+  color: var(--blanc);
+  filter: none;
+}
+/* Appeler : vert ; supprimer, quitter : rouge ; itinéraire : bleu */
+.btn--appel,
+.actions--principales .action--appel,
+.liste-urg .btn,
+.leaflet-container a.btn--appel {
+  border: 0;
+  background: var(--vert);
+  background-image: none;
+  color: var(--blanc);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 8px 20px -12px rgb(46 125 50 / 0.8);
+}
+.actions--principales .action--appel .ic {
+  color: var(--blanc);
+}
+.btn--danger,
+.btn--danger:hover {
+  background: var(--rouge);
+  color: var(--blanc);
+}
+.actions--principales .action--principale:not(.action--appel) {
+  border: 0;
+  background: var(--bleu);
+  background-image: none;
+  color: var(--blanc);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 8px 20px -12px rgb(30 99 214 / 0.8);
+}
+.actions--principales .action--principale:not(.action--appel) .ic {
+  color: var(--blanc);
+}
+.leaflet-container a.btn {
+  color: var(--sur-jaune);
+}
+.leaflet-container a.btn--appel {
+  color: var(--blanc);
+}
+.leaflet-container a.btn--doux {
+  color: var(--blanc);
+}
+
+/* Puces : capsules de verre ; choisie = jaune */
+.puce {
+  border-radius: 999px;
+  color: var(--blanc);
+  font-weight: 600;
+}
+.puce[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--jaune);
+  background-image: none;
+  color: var(--sur-jaune);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45);
+}
+.puce .ic {
+  color: inherit;
+}
+
+/* ============ 7. Listes et filtres ============ */
+.outils {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.outils-puces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.outils-puces .puce {
+  min-height: 44px;
+  padding: 0 16px;
+  gap: 8px;
+}
+.plus-filtres > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--gris);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.plus-filtres > summary::-webkit-details-marker {
+  display: none;
+}
+.plus-filtres > summary .ic {
+  font-size: 1.1rem;
+}
+.plus-filtres .filtres {
+  margin-top: 4px;
+}
+.position-msg {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gris);
+}
+.position-prive {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+/* Liste groupée : séparateurs après l'icône, statut en texte coloré, appel en rond vert */
+.liste {
+  border-radius: var(--r);
+  overflow: hidden;
+}
 .ligne-lieu {
   position: relative;
 }
@@ -780,16 +551,24 @@ h2 {
   align-items: center;
   gap: 14px;
   padding: 14px 4px 14px 16px;
+  color: var(--blanc);
+}
+.lieu .chevron {
+  color: var(--gris);
 }
 .lieu-cat {
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
+  color: var(--gris);
 }
 .lieu-nom {
   font-weight: 600;
   letter-spacing: -0.012em;
+}
+.lieu-meta {
+  color: var(--gris);
 }
 .statut {
   padding: 0;
@@ -798,117 +577,337 @@ h2 {
   font-size: 0.875rem;
   font-weight: 600;
 }
+.statut--ouvert {
+  color: var(--vert-texte);
+}
+.statut--bientot {
+  color: var(--jaune);
+}
+.statut--ferme,
+.statut--inconnu {
+  color: var(--ferme);
+}
 .appel-rapide {
   width: 72px;
   border-inline-start: 0;
   background: transparent;
+  color: var(--vert-texte);
   font-size: 0.75rem;
   font-weight: 600;
 }
 .appel-rapide .ic {
-  background: var(--vert-bouton);
-  color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 4px 10px -4px rgb(46 125 50 / 0.6);
+  background: var(--vert);
+  color: var(--blanc);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
 }
 .appel-rapide:hover {
   background: transparent;
 }
+.compte {
+  color: var(--gris);
+}
+.compte-note {
+  color: var(--gris);
+}
+.vide {
+  padding: 40px 24px;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  text-align: center;
+  color: var(--gris);
+}
+.rappel {
+  color: var(--blanc);
+}
+.rappel .ic {
+  color: var(--rouge-texte);
+}
 
-/* Fiche */
+/* « Pour les femmes » : sommaire en capsules jaunes claires */
+.sommaire-femmes .puce {
+  border-color: var(--femmes-trait);
+  background-color: var(--femmes-fond);
+  color: var(--blanc);
+}
+
+/* ============ 8. Fiche d'un lieu ============ */
+.badge-fictif {
+  color: var(--gris);
+}
+.adresse {
+  border-radius: var(--r);
+}
+.adresse-masquee {
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.horaires {
+  border-radius: var(--r);
+}
 .horaires tr.auj th,
 .horaires tr.auj td {
   font-weight: 700;
+  color: var(--jaune);
   box-shadow: none;
 }
 .actions--principales .action--principale {
   min-height: 54px;
   border-radius: 999px;
-  font-weight: 600;
+  font-weight: 700;
 }
 .action {
   border-radius: 18px;
+  color: var(--blanc);
   font-weight: 600;
 }
-
-/* Urgences : « Appeler » en vert, comme partout ailleurs (même action, même apparence) */
-.liste-urg .btn {
-  background: color-mix(in srgb, var(--vert-bouton) 96%, transparent);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
-  border-color: rgb(255 255 255 / 0.35);
-  color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 6px 16px -8px rgb(46 125 50 / 0.6);
+.action .ic {
+  color: var(--jaune);
+}
+.criteres li .ic {
+  color: var(--vert-texte);
+}
+.encart-femmes h2 {
+  color: var(--jaune);
 }
 
-/* Pastilles : icône sur un fond neutre plein, sans reflet ni liseré (plus net) */
-.pastille,
-.tete .pastille {
-  border-radius: 12px;
-  background: var(--sur-nuit-voile) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  color: var(--encre) !important;
+/* ============ 9. Infos pratiques : fiches claires ============ */
+.fiches {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 0;
+  background: none;
+  box-shadow: none;
 }
-.tuile--femmes .pastille,
-.tete.tete--femmes .pastille,
-.tete--proche .pastille {
-  background: var(--encre) !important;
-  color: var(--fond-base) !important;
+.fiche {
+  border-radius: var(--r);
+  overflow: hidden;
 }
-.tete--urg .pastille {
-  background: var(--urgent-fond) !important;
-  color: var(--urgent) !important;
+.fiche > summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 14px 14px 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.fiche > summary::-webkit-details-marker {
+  display: none;
+}
+.fiche > summary .pastille {
+  flex: none;
+}
+.fiche-tete {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fiche-titre {
+  font-weight: 700;
+  font-size: 1.0625rem;
+  line-height: 1.3;
+}
+.fiche-resume {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  color: var(--gris);
+}
+.fiche > summary .chevron {
+  flex: none;
+  color: var(--gris);
+  transition: transform 0.2s ease;
+}
+.fiche[open] > summary .chevron {
+  transform: rotate(90deg);
+}
+[dir="rtl"] .fiche > summary .chevron {
+  transform: scaleX(-1);
+}
+[dir="rtl"] .fiche[open] > summary .chevron {
+  transform: rotate(90deg);
+}
+.fiche-points {
+  margin: 0;
+  padding: 0 18px 4px 74px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+[dir="rtl"] .fiche-points {
+  padding: 0 74px 4px 18px;
+}
+.fiche-points li {
+  line-height: 1.45;
+}
+.fiche-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px 4px;
+}
+.fiche > .btn--mini {
+  margin: 10px 16px 16px;
 }
 
-/* Infos du moment : indicateur de pages discret, comme iOS */
-.im-ctrl {
-  gap: 0;
+/* ============ 10. Urgences ============ */
+.liste-urg {
+  border-radius: var(--r);
 }
-.im-point::before {
-  width: 6px;
-  height: 6px;
-  background: var(--trait-fort);
+.urg-num {
+  color: var(--blanc);
 }
-.im-point[aria-current="true"]::before {
-  width: 16px;
-}
-.im-pause {
-  opacity: 0.55;
+.urg--fort .urg-num {
+  color: var(--rouge-texte);
 }
 
-/* Changement d'écran : fondu court ; l'en-tête et les onglets ne bougent pas */
-.entete {
-  view-transition-name: entete;
-}
+/* ============ 11. Barre d'onglets : capsule de verre flottante ============ */
 .onglets {
+  left: var(--marge-onglets);
+  right: var(--marge-onglets);
+  bottom: calc(var(--marge-onglets) + env(safe-area-inset-bottom, 0px));
+  max-width: 34rem;
+  margin-inline: auto;
+  min-height: var(--h-onglets);
+  padding: 4px;
+  border: 1px solid var(--verre-bord);
+  border-radius: 999px;
+  background: var(--verre-barre);
+  box-shadow: var(--ombre-flottante);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
   view-transition-name: onglets;
 }
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 0.18s;
-  animation-timing-function: ease-out;
+.onglets a {
+  gap: 2px;
+  border-radius: 999px;
+  color: var(--blanc);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  transition: background-color 0.25s ease;
+}
+.onglets .ic,
+.onglets a[aria-current="page"] .ic {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 2px;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+}
+.onglets a[aria-current="page"] {
+  background: rgb(255 196 0 / 0.16);
+  color: var(--jaune);
+}
+.onglets .onglet-urg {
+  color: var(--rouge-texte);
 }
 
-/* Carte : repères noir et blanc. Noir = ouvert maintenant, blanc = fermé ou horaires inconnus ;
-   l'icône dit le besoin. Les lieux à adresse protégée gardent leur bord en pointillés. */
+/* ============ 12. Carte ============ */
+.vue-carte {
+  bottom: 0;
+  background: var(--fond);
+}
+.carte {
+  background: #1b1b1b;
+}
+.vue-carte .leaflet-bottom {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 8px + env(safe-area-inset-bottom, 0px));
+}
+.btn-localiser {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 24px + env(safe-area-inset-bottom, 0px));
+}
+.btn-tel-carte {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 88px + env(safe-area-inset-bottom, 0px));
+}
+.carte-tel {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 146px + env(safe-area-inset-bottom, 0px));
+}
+/* La carte ne se retourne pas en arabe : le zoom reste à droite, ces boutons restent à gauche. */
+[dir="rtl"] .btn-localiser,
+[dir="rtl"] .btn-tel-carte {
+  inset-inline-start: auto;
+  left: var(--gouttiere);
+}
+.btn-localiser,
+.btn-tel-carte:not([aria-expanded="true"]),
+.barre-carte .puce:not([aria-pressed="true"]),
+.leaflet-bar a {
+  border: 1px solid var(--verre-bord);
+  background-color: var(--verre-barre);
+  color: var(--blanc);
+  box-shadow: var(--ombre-flottante);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+}
+.btn-tel-carte .ic {
+  color: var(--vert-texte);
+}
+.btn-tel-carte[aria-expanded="true"] {
+  border: 0;
+  background: var(--jaune);
+  color: var(--sur-jaune);
+}
+.btn-localiser,
+.btn-tel-carte {
+  border-radius: 999px;
+}
+.leaflet-bar {
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: var(--ombre-flottante);
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 20px;
+  background-color: var(--verre-barre);
+  color: var(--blanc);
+}
+.leaflet-popup-tip {
+  background: var(--verre-barre);
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--gris);
+}
+.popup-cat {
+  color: var(--gris);
+}
+.leaflet-control-attribution {
+  background: var(--verre-barre) !important;
+  color: var(--gris) !important;
+}
+.leaflet-control-attribution a {
+  color: var(--blanc) !important;
+}
+/* Repères : jaune = ouvert maintenant ; gris bleuté = fermé ou horaires inconnus */
 .marqueur {
-  background: #111113;
-  color: #ffffff;
-  border: 2px solid #ffffff;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 6px 14px -4px rgb(0 0 0 / 0.4);
+  background: var(--jaune);
+  color: var(--sur-jaune);
+  border: 2px solid var(--blanc);
+  box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.7);
 }
 .marqueur--ferme {
   filter: none;
   opacity: 1;
-  background: #ffffff;
-  color: #4a4a4f;
-  border-color: rgb(0 0 0 / 0.14);
+  background: #33435e;
+  color: #dbe2ee;
+  border-color: rgb(255 255 255 / 0.35);
 }
 .marqueur--protege {
   border-style: dashed;
-  box-shadow: 0 0 0 3px rgb(17 17 19 / 0.35), 0 6px 14px -4px rgb(0 0 0 / 0.4);
+  box-shadow: 0 0 0 3px rgb(255 196 0 / 0.35), 0 4px 12px -4px rgb(0 0 0 / 0.7);
+}
+.moi {
+  background: var(--bleu);
 }
 
-/* Réglages : contrôles segmentés d'iOS (une capsule, l'option choisie en lentille) */
+/* ============ 13. Réglages ============ */
+/* Contrôles segmentés : une capsule, l'option choisie en jaune */
 .choix {
   display: flex;
   flex-wrap: wrap;
@@ -917,11 +916,10 @@ h2 {
   max-width: 26rem;
   padding: 3px;
   border-radius: 24px;
-  background: rgb(118 118 128 / 0.12);
+  background: rgb(255 255 255 / 0.08);
 }
 .choix .puce,
 .choix .puce:hover {
-  /* parts égales tant que ça tient ; sinon la capsule passe sur deux lignes plutôt que de couper un mot */
   flex: 1 1 0;
   min-width: max-content;
   justify-content: center;
@@ -930,26 +928,18 @@ h2 {
   border: 0;
   background: none;
   box-shadow: none;
-  color: var(--encre);
-  font-weight: 600;
+  color: var(--blanc);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 .choix .puce[aria-pressed="true"] {
-  background: var(--verre-lentille);
-  background-image: none;
-  color: var(--encre);
-  box-shadow: 0 3px 8px rgb(0 0 0 / 0.12), 0 1px 1px rgb(0 0 0 / 0.06);
+  background: var(--jaune);
+  color: var(--sur-jaune);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .choix {
-    background: rgb(118 118 128 / 0.24);
-  }
+.choix .puce .ic,
+.choix .puce[aria-pressed="true"]::before {
+  display: none;
 }
-:root[data-theme="dark"] .choix {
-  background: rgb(118 118 128 / 0.24);
-}
-
 /* « A+ » et « A++ » restent dans ce sens, même en arabe */
 .taille-0,
 .taille-1,
@@ -957,94 +947,40 @@ h2 {
   direction: ltr;
   unicode-bidi: isolate;
 }
-
-/* Segments : pas de coche (la lentille suffit, comme sur iPhone), pour que quatre choix tiennent */
-.choix .puce .ic,
-.choix .puce[aria-pressed="true"]::before {
-  display: none;
-}
-
-/* Mention de la carte : lisible dans tous les styles */
-.leaflet-control-attribution {
-  background: var(--verre-barre) !important;
-  color: var(--encre-douce) !important;
-}
-.leaflet-control-attribution a {
-  color: var(--encre) !important;
-}
-
-/* « Tout effacer » : action destructive, en rouge comme sur iPhone */
 .effacer > .btn--doux {
-  color: var(--urgent);
+  color: var(--rouge-texte);
+}
+.liens-bas {
+  border-radius: var(--r);
+}
+.liens-bas a {
+  color: var(--blanc);
+}
+.liens-bas .ic {
+  color: var(--jaune);
 }
 
-/* État vide : centré, sans cadre en pointillés */
-.vide {
-  padding: 40px 24px;
-  border: 0;
-  background: none;
-  box-shadow: none;
-  text-align: center;
-  color: var(--encre-douce);
-  font-size: 1.0625rem;
-  line-height: 1.5;
+/* ============ 14. Changement d'écran : fondu court ============ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+  animation-timing-function: ease-out;
 }
 
-/* Barre d'onglets : libellés 11 px, icônes 24 px, comme iOS */
-.onglets a {
-  gap: 2px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-.onglets .ic {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
-/* ============ 11. Confort : moins de transparence, pas de flou, couleurs forcées ============ */
+/* ============ 15. Confort ============ */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root {
-    --verre: rgb(255 255 255 / 0.94);
-    --verre-survol: #ffffff;
-    --verre-barre: rgb(249 249 251 / 0.97);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --verre: rgb(28 28 30 / 0.96);
-      --verre-survol: #2c2c2e;
-      --verre-barre: rgb(22 22 24 / 0.97);
-    }
-  }
-  :root[data-theme="dark"] {
-    --verre: rgb(28 28 30 / 0.96);
-    --verre-survol: #2c2c2e;
-    --verre-barre: rgb(22 22 24 / 0.97);
+  :root[data-theme="paladines"] {
+    --verre: #172843;
+    --verre-survol: #1e3252;
+    --verre-barre: #0e2042;
   }
 }
 @media (prefers-reduced-transparency: reduce) {
-  :root {
-    --verre: #ffffff;
-    --verre-survol: #f2f2f7;
-    --verre-barre: #f9f9fb;
-    --verre-lentille: #e5e5ea;
-    --papier: #f2f2f7;
+  :root[data-theme="paladines"] {
+    --verre: #172843;
+    --verre-survol: #1e3252;
+    --verre-barre: #0e2042;
     --reflet: none;
-  }
-  body::before {
-    background: #f2f2f7;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --verre: #1c1c1e;
-      --verre-survol: #2c2c2e;
-      --verre-barre: #1c1c1e;
-      --verre-lentille: #3a3a3c;
-      --papier: #000000;
-    }
-    :root:not([data-theme="light"]) body::before {
-      background: #000000;
-    }
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1057,132 +993,7 @@ h2 {
   .im-carte:active {
     transform: none;
   }
-}
-@media (forced-colors: active) {
-  body::before {
-    display: none;
-  }
-}
-
-/* ============ 12. Style « Paladines » (Réglages → Couleurs), en dernier pour primer ============
- * Les couleurs du début (bleu nuit, lampe jaune) avec le verre de la première version
- * Liquid Glass : très transparent, lueurs colorées derrière (bleu, prune, lampe, bleu canard,
- * indigo), reflets en biais et liserés de lumière. Le reste du style actuel est gardé. */
-:root[data-theme="paladines"] {
-  color-scheme: dark;
-  --fond-base: #081022;
-  --tache-1: rgb(36 82 143 / 0.6);
-  --tache-2: rgb(244 182 63 / 0.26);
-  --tache-3: rgb(123 47 134 / 0.45);
-  --tache-4: rgb(14 116 144 / 0.32);
-  --tache-5: rgb(91 63 160 / 0.4);
-  --verre: rgb(255 255 255 / 0.07);
-  --verre-survol: rgb(255 255 255 / 0.12);
-  --verre-barre: rgb(10 19 36 / 0.45);
-  --verre-lentille: rgb(244 182 63 / 0.22);
-  --verre-bord: rgb(255 255 255 / 0.16);
-  --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.18) 0%, rgb(255 255 255 / 0.04) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.07) 100%);
-  --liseré: inset 0 1px 0 rgb(255 255 255 / 0.26), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
-  --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
-  --ombre-1: var(--liseré), var(--ombre-verre);
-  --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
-  --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
-  --flou: blur(22px) saturate(180%) brightness(0.9);
-  --encre: #f3f5f8;
-  --encre-douce: #bcc6d6;
-  --lien: #f6c35a;
-  --focus: #f6c35a;
-  --accent: #f4b63f;
-  --accent-texte: #f6c35a;
-  --accent-chaud: #f6c35a;
-  --accent-bouton: #f4b63f;
-  --sur-accent: #1d1606;
-  --logo: #f4b63f;
-  --lampe: #f4b63f;
-  --lampe-encre: #1d1606;
-  --lampe-voile: rgb(244 182 63 / 0.16);
-  --vert-bouton: #2e7d32;
-  --rouge-bouton: #d32f2f;
-  --quitter: var(--rouge-bouton);
-  --trait: rgb(255 255 255 / 0.12);
-  --trait-fort: rgb(255 255 255 / 0.2);
-  --ok: #6fd174;
-  --ok-fond: rgb(76 175 80 / 0.18);
-  --bientot: #f6c35a;
-  --bientot-fond: rgb(244 182 63 / 0.16);
-  --ferme: #aab6c8;
-  --ferme-fond: rgb(255 255 255 / 0.06);
-  --urgent: #ff6b6b;
-  --urgent-fond: rgb(255 82 82 / 0.16);
-  --femmes: #e2a8f0;
-  --femmes-fond: rgb(123 47 134 / 0.32);
-  --femmes-trait: rgb(226 168 240 / 0.35);
-  --femmes-encre: #1d1606;
-  --nuit: var(--verre-barre);
-  --nuit-2: var(--verre);
-  --nuit-3: var(--verre-survol);
-  --sur-nuit: var(--encre);
-  --sur-nuit-doux: var(--encre-douce);
-  --sur-nuit-voile: rgb(255 255 255 / 0.08);
-  --sur-nuit-filet: rgb(255 255 255 / 0.14);
-  --surface: var(--verre);
-  --surface-2: var(--verre-survol);
-  --papier: rgb(255 255 255 / 0.05);
-  --teinte-fond: 30%;
-  --clair-ic: 40%;
-}
-/* Pictogrammes couleur lampe, contrôles segmentés sombres */
-:root[data-theme="paladines"] .pastille,
-:root[data-theme="paladines"] .tete .pastille {
-  color: var(--lampe) !important;
-}
-:root[data-theme="paladines"] .tuile--femmes .pastille,
-:root[data-theme="paladines"] .tete--proche .pastille {
-  background: var(--lampe) !important;
-  color: var(--lampe-encre) !important;
-}
-:root[data-theme="paladines"] .choix {
-  background: rgb(118 118 128 / 0.24);
-}
-:root[data-theme="paladines"] .choix .puce[aria-pressed="true"] {
-  background: rgb(255 255 255 / 0.16);
-}
-/* Accueil : « Bonjour. » et la ligne du haut en jaune lampe, bouton principal jaune plein */
-:root[data-theme="paladines"] .hero-titre span,
-:root[data-theme="paladines"] .hero-pour {
-  color: var(--accent-chaud);
-}
-:root[data-theme="paladines"] .cta-proche {
-  background: var(--lampe);
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 50%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 12px 28px -14px rgb(244 182 63 / 0.6);
-}
-/* Carte : repère jaune lampe = ouvert ; bleu nuit = fermé */
-:root[data-theme="paladines"] .marqueur {
-  background: #f4b63f;
-  color: #1d1606;
-  border-color: #ffffff;
-}
-:root[data-theme="paladines"] .marqueur--ferme {
-  background: #1f3354;
-  color: #c9d2df;
-  border-color: rgb(255 255 255 / 0.3);
-}
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root[data-theme="paladines"] {
-    --verre: rgb(26 41 68 / 0.97);
-    --verre-survol: #253a5a;
-    --verre-barre: rgb(14 24 44 / 0.98);
-  }
-}
-@media (prefers-reduced-transparency: reduce) {
-  :root[data-theme="paladines"] {
-    --verre: #16233b;
-    --verre-survol: #1f3354;
-    --verre-barre: #101b30;
-    --papier: #0a1324;
-  }
-  :root[data-theme="paladines"] body::before {
-    background: #0a1324;
+  .fiche > summary .chevron {
+    transition: none;
   }
 }
