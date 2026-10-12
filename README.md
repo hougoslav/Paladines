@@ -39,7 +39,8 @@ js/i18n.js             les textes en français, anglais et arabe
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
 data/coordonnees.js    positions GPS des lieux (générées par outils/geocoder.mjs)
 outils/geocoder.mjs    calcule les positions GPS à partir des adresses
-functions/api/         réception des signalements (Cloudflare Pages Functions)
+functions/             page de l'équipe (/equipe), réception des signalements et des visites
+data/versions.mjs      les versions de l'appli et leurs nouveautés (page de l'équipe)
 sw.js                  service worker : fonctionnement sans internet
 manifest.webmanifest   pour installer l'appli sur l'écran d'accueil
 vendor/                Leaflet (carte) et qrcode-generator, copiés ici pour marcher hors ligne
@@ -151,6 +152,8 @@ que sur ce site en ligne.
   *Production branch* dans les réglages du projet Cloudflare.
 - À chaque mise à jour, changer `VERSION` dans `sw.js` (`paladines-v6` → `paladines-v7`…)
   pour que les téléphones prennent les nouveaux fichiers dès la première ouverture.
+  Décrire la nouvelle version en haut de [`data/versions.mjs`](data/versions.mjs) : c'est
+  l'historique montré dans l'onglet « Statistiques » de la page de l'équipe.
 - Les QR codes des affiches se font sur <https://paladines.pages.dev/affiche.html> :
   l'adresse du site y est remplie toute seule. Le fichier `_headers` règle le cache et la
   confidentialité.
@@ -186,13 +189,19 @@ un stockage privé de Cloudflare. Pour l'activer, dans le tableau de bord Cloudf
 4. Refaire une mise en ligne (*Deployments* → ⋯ → *Retry deployment*) pour que ce soit pris
    en compte.
 
-**Lire les signalements** : ouvrir <https://paladines.pages.dev/equipe> (lien aussi dans la page
-« À propos »), taper
-n'importe quel nom d'utilisateur et le mot de passe. Chaque message a un bouton
-« Traité : supprimer ». Tant que l'étape 2 n'est pas faite, les messages restent en attente
-sur les téléphones (dix au plus) et partiront une fois le stockage branché.
+**La page de l'équipe** : ouvrir <https://paladines.pages.dev/equipe> (bouton aussi dans la
+page « À propos »), taper n'importe quel nom d'utilisateur et le mot de passe. Deux onglets :
 
-Les signalements ne marchent que sur Cloudflare Pages (pas sur GitHub Pages ni Netlify).
+- **Signalements** : chaque message, avec un bouton « Traité : supprimer ». Tant que l'étape 2
+  n'est pas faite, les messages restent en attente sur les téléphones (dix au plus) et
+  partiront une fois le stockage branché.
+- **Statistiques** : la version en ligne et ce qu'elle apporte, les versions précédentes, et
+  les visites par mois. Une visite = un téléphone qui ouvre l'appli avec internet, compté une
+  fois par jour au plus (`functions/api/visite.js`). Rien n'est envoyé sur la personne : seul
+  le compteur du mois augmente, dans le même stockage. Les chiffres sont approximatifs (une
+  ouverture sans internet n'est pas comptée).
+
+Les signalements et les statistiques ne marchent que sur Cloudflare Pages (pas sur GitHub Pages ni Netlify).
 
 ### Autres hébergeurs gratuits
 
