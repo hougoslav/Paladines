@@ -34,7 +34,7 @@ index.html             la page de l'appli (en-tête, onglets, pictogrammes)
 affiche.html           générateur d'affiches et d'autocollants avec QR code
 css/style.css          toute la mise en forme (thème clair et sombre)
 css/theme.css          le style choisi par le groupe (« Nuit raffinée »), chargé après style.css
-css/verre.css          « Liquid Glass » noir et blanc façon iOS 26 (verre transparent), chargé en dernier
+css/verre.css          le style de l'appli : « Liquid Glass » bleu nuit et jaune, chargé en dernier
 js/app.js              la logique : vues, horaires, distances, carte, réglages
 js/i18n.js             les textes en français, anglais et arabe
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
@@ -151,7 +151,7 @@ que sur ce site en ligne.
 - Une modification sur **une autre branche** ne touche pas le vrai site : Cloudflare en fait
   un aperçu à une adresse à part. Si l'appli passe un jour sur `main`, changer la
   *Production branch* dans les réglages du projet Cloudflare.
-- À chaque mise à jour, changer `VERSION` dans `sw.js` (`paladines-v20.9` → `paladines-v20.10`…, un nom jamais utilisé)
+- À chaque mise à jour, changer `VERSION` dans `sw.js` (`paladines-v21.0` → `paladines-v21.1`…, un nom jamais utilisé)
   pour que les téléphones prennent les nouveaux fichiers dès la première ouverture.
   Décrire la nouvelle version en haut de [`data/versions.mjs`](data/versions.mjs) : c'est
   l'historique montré dans l'onglet « Statistiques » de la page de l'équipe.
@@ -238,8 +238,9 @@ Plus tard, pour la mettre dans les stores :
 
 ## Points à connaître
 
-- Le fond de carte vient des serveurs d'OpenStreetMap, qui ne sont pas faits pour un usage
-  intensif : pour un vrai lancement, passer par un fournisseur de tuiles (gratuit ou payant).
+- Le fond de carte est « Dark Matter » de CARTO (données OpenStreetMap) : gratuit pour un
+  usage non commercial, avec la mention « © OpenStreetMap © CARTO » affichée sur la carte.
+  Pour un très grand nombre de visites, demander une clé à CARTO ou changer de fournisseur.
 - « Itinéraire » ouvre Google Maps ; c'est un choix à discuter (voir `docs/IDEES.md`).
 - Les positions sont calculées par GitHub : l'appli n'envoie plus rien au service de géocodage,
   sauf pour un lieu ajouté depuis moins d'une minute (adresse du lieu seulement, jamais la

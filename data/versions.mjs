@@ -3,10 +3,23 @@
  * (/equipe → Statistiques). La plus récente en premier.
  *
  * À chaque nouvelle version : ajouter ici une entrée en haut de la liste. Dans sw.js,
- * VERSION vaut « paladines-v<numéro>.<révision> » (ex. paladines-v20.9) : augmenter la
+ * VERSION vaut « paladines-v<numéro>.<révision> » (ex. paladines-v21.0) : augmenter la
  * révision à chaque mise en ligne, même sans nouvelle version affichée ici.
  */
 export const VERSIONS = [
+  {
+    v: 21,
+    date: "2026-10-12",
+    titre: "Refonte : plus simple, bleu nuit et jaune",
+    nouveautes: [
+      "Un seul style, bleu nuit et jaune, sur un fond uni ; peu de couleurs et de vraies couleurs : jaune pour choisir, vert pour « Ouvert » et « Appeler », rouge pour « Quitter » et les urgences, bleu pour « Itinéraire ».",
+      "Listes plus courtes : un bouton « Près de moi » pour trier du plus proche au plus loin, « Ouvert maintenant », et les autres filtres rangés dans « Plus de filtres ».",
+      "Fini « Je suis près de… » et « Me placer sur la carte » : seul le tri par distance reste.",
+      "Infos pratiques en fiches claires : une phrase pour l'essentiel, le détail en touchant la fiche, et les boutons « Appeler » ou « Voir les lieux » directement dedans.",
+      "Nouvelle carte sombre et sobre (CARTO) : les lieux ouverts en jaune ressortent, les autres en gris.",
+      "Page de l'équipe aux mêmes couleurs."
+    ]
+  },
   {
     v: 20,
     date: "2026-10-12",
