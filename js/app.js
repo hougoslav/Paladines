@@ -1013,7 +1013,7 @@
       [0, 1, 2].map((n) => choix("taille", n, etat.taille === n, '<span class="taille-' + n + '">A' + "+".repeat(n) + "</span>")).join("") +
       "</div></section>" +
       '<section class="section"><h2>' + esc(t("couleurs")) + '</h2><div class="choix">' +
-      [["auto", "themeAuto"], ["light", "themeClair"], ["dark", "themeSombre"]].map((x) => choix("theme", x[0], etat.theme === x[0], esc(t(x[1])))).join("") +
+      [["auto", "themeAuto"], ["light", "themeClair"], ["dark", "themeSombre"], ["paladines", "themePaladines"]].map((x) => choix("theme", x[0], etat.theme === x[0], esc(t(x[1])))).join("") +
       '</div><p class="aide">' + esc(t("themeAstuce")) + "</p></section>" +
       '<section class="section" id="installer"><h2>' + esc(t("installer")) + '</h2><p class="aide">' + esc(t("installerAide")) + "</p>" + htmlInstallation() + "</section>" +
       htmlOuvrirTelephone() +

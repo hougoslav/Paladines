@@ -7,6 +7,17 @@
  */
 export const VERSIONS = [
   {
+    v: 27,
+    date: "2026-10-12",
+    titre: "Nouveau style « Paladines »",
+    nouveautes: [
+      "Réglages → Couleurs : un 4e choix, « Paladines », avec le bleu nuit et le jaune lampe du début.",
+      "Il garde tout le style actuel : verre, police, mise en page, transitions, couleurs lisibles.",
+      "« Bonjour. » et le bouton « Ouvert maintenant » en jaune ; sur la carte, repères jaunes pour les lieux ouverts.",
+      "Les sélecteurs des réglages n'ont plus de coche (la surbrillance suffit) et passent sur deux lignes si le texte est très grand."
+    ]
+  },
+  {
     v: 26,
     date: "2026-10-12",
     titre: "Carte, réglages et petits détails",
