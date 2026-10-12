@@ -6,7 +6,7 @@ Appli web gratuite pour les femmes à la rue à Lille : les lieux ouverts mainte
 - `index.html` : en-tête, onglets, pictogrammes SVG. `js/app.js` : vues (routage par `#vue-param`), horaires, distances, carte, infos du moment. `js/i18n.js` : textes FR, EN, AR.
 - `css/style.css` puis `css/theme.css` (style « Nuit raffinée »). `fonts/`, `icons/`, `vendor/` (Leaflet, qrcode).
 - `data/lieux.js` : 56 lieux, 11 besoins, infos saisonnières, urgences. `data/coordonnees.js` : généré par `outils/geocoder.mjs` via `.github/workflows/positions.yml` (faire un pull avant de pousser).
-- `functions/api/signalement.js` : reçoit les signalements (Cloudflare Pages Functions, stockage KV `SIGNALEMENTS`, page de l'équipe protégée par `MOT_DE_PASSE`, voir README).
+- `functions/api/signalement.js` : reçoit les signalements (Cloudflare Pages Functions, stockage KV `SIGNALEMENTS`, page de l'équipe sur `/equipe` protégée par `MOT_DE_PASSE`, voir README).
 - `sw.js` (hors ligne), `manifest.webmanifest`, `_headers`, `affiche.html` (affiches QR), `docs/` (idées, lieux et sources, identité, kit Instagram).
 
 ## Technologies

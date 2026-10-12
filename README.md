@@ -186,7 +186,8 @@ un stockage privé de Cloudflare. Pour l'activer, dans le tableau de bord Cloudf
 4. Refaire une mise en ligne (*Deployments* → ⋯ → *Retry deployment*) pour que ce soit pris
    en compte.
 
-**Lire les signalements** : ouvrir <https://paladines.pages.dev/api/signalement>, taper
+**Lire les signalements** : ouvrir <https://paladines.pages.dev/equipe> (lien aussi dans la page
+« À propos »), taper
 n'importe quel nom d'utilisateur et le mot de passe. Chaque message a un bouton
 « Traité : supprimer ». Tant que l'étape 2 n'est pas faite, les messages restent en attente
 sur les téléphones (dix au plus) et partiront une fois le stockage branché.
