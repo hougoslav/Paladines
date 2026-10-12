@@ -7,6 +7,18 @@
  */
 export const VERSIONS = [
   {
+    v: 21,
+    date: "2026-10-12",
+    titre: "Liquid Glass, comme sur iPhone",
+    nouveautes: [
+      "Tout est en verre transparent : cartes, besoins, boutons, filtres, bandeaux, listes, menus, en-tête, barre d'onglets et boutons de la carte.",
+      "Nouveau fond coloré (bleu, lilas, pêche, menthe, rose) qu'on voit à travers le verre ; fond profond en mode sombre.",
+      "Couleurs système d'Apple : boutons bleus, « Appeler » vert, « Quitter » rouge ; l'onglet choisi est une lentille de verre.",
+      "Titres en police système (celle de l'iPhone) ; le texte reste en Atkinson Hyperlegible pour bien se lire.",
+      "Page de l'équipe au même style. Tous les textes ont été vérifiés lisibles sur le verre, en clair et en sombre."
+    ]
+  },
+  {
     v: 20,
     date: "2026-10-12",
     titre: "Nouveau look : verre et lumière",

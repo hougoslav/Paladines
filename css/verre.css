@@ -1,78 +1,205 @@
-/* Paladines — couche « Verre » (style moderne façon iOS : verre dépoli, reflets, lumière douce)
- * Se charge APRÈS theme.css. Mêmes couleurs (bleu nuit, lampe jaune, prune), mêmes polices.
- * - Fond : lueurs douces de la lampe, de la prune et du bleu, fixes derrière le contenu.
- * - Barres (en-tête, onglets flottants, menus, boutons sur la carte) : verre flouté.
- * - Cartes et boutons : verre translucide avec reflet, SANS flou (rapide sur les vieux téléphones).
- * - « Réduire la transparence » (iOS, macOS) ou navigateur sans flou : surfaces opaques.
- * Aucun changement de HTML ni de JS. Contrastes vérifiés en clair et en sombre.
+/* Paladines — « Liquid Glass » (style iOS 26 : verre transparent, lumière, couleurs système Apple)
+ * Se charge APRÈS theme.css et redéfinit ses jetons : les surfaces deviennent du verre transparent,
+ * le « bleu nuit » devient du verre clair, les couleurs passent à la palette système d'Apple.
+ * - Fond : dégradé maillé coloré, fixe, qu'on voit à travers le verre.
+ * - Verre : très transparent, flouté et saturé, liseré de lumière, reflet en biais.
+ * - Titres : police système (SF Pro sur iPhone) ; texte courant : Atkinson Hyperlegible (lisibilité).
+ * - « Réduire la transparence » ou navigateur sans flou : surfaces opaques et lisibles.
+ * Aucun changement de HTML ni de JS. Contrastes AA vérifiés sur les zones les plus colorées du fond.
  */
 
-/* ============ 1. Jetons du verre ============ */
+/* ============ 1. Jetons ============ */
 :root {
-  --fond-base: #eef1f7;
-  --lueur-lampe: rgb(244 182 63 / 0.30);
-  --lueur-prune: rgb(123 47 134 / 0.13);
-  --lueur-bleu: rgb(36 82 143 / 0.16);
+  /* Fond maillé */
+  --fond-base: #e8edf8;
+  --tache-1: rgb(98 160 255 / 0.5);
+  --tache-2: rgb(190 150 255 / 0.48);
+  --tache-3: rgb(255 170 130 / 0.42);
+  --tache-4: rgb(110 220 190 / 0.38);
+  --tache-5: rgb(255 140 190 / 0.32);
 
-  --verre: rgb(255 255 255 / 0.62);
-  --verre-survol: rgb(255 255 255 / 0.8);
-  --verre-fort: rgb(255 255 255 / 0.8);
-  --verre-filet: rgb(255 255 255 / 0.85);
-  --verre-bord: rgb(20 35 58 / 0.08);
-  --verre-reflet: rgb(255 255 255 / 0.9);
-  --verre-nuit: rgb(20 35 58 / 0.86);
-  --flou: blur(24px) saturate(180%);
-  --ombre-verre: 0 1px 1px rgb(20 35 58 / 0.04), 0 8px 24px -10px rgb(20 35 58 / 0.18);
-  --ombre-flottante: 0 2px 6px rgb(20 35 58 / 0.08), 0 18px 40px -12px rgb(20 35 58 / 0.35);
+  /* Verre */
+  --verre: rgb(255 255 255 / 0.3);
+  --verre-survol: rgb(255 255 255 / 0.46);
+  --verre-barre: rgb(255 255 255 / 0.42);
+  --verre-lentille: rgb(255 255 255 / 0.6);
+  --verre-bord: rgb(255 255 255 / 0.55);
+  --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.5) 0%, rgb(255 255 255 / 0.1) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.14) 100%);
+  --liseré: inset 0 1px 0 rgb(255 255 255 / 0.85), inset 0 -1px 0 rgb(255 255 255 / 0.28), inset 0 0 0 1px rgb(255 255 255 / 0.16);
+  --ombre-verre: 0 1px 2px rgb(30 40 80 / 0.06), 0 12px 32px -14px rgb(30 40 80 / 0.28);
+  --flou: blur(22px) saturate(190%) brightness(1.04);
 
-  --r: 22px;
-  --r-btn: 16px;
-  --r-petit: 12px;
+  /* Couleurs système (texte AA sur le verre le plus coloré) */
+  --encre: #1c1c1e;
+  --encre-douce: #48484c;
+  --lien: #0050b3;
+  --focus: #007aff;
+  --accent: #007aff;
+  --accent-texte: #0050b3;
+  --accent-chaud: #934600;
+  --accent-bouton: #0058cc;
+  --vert-bouton: #1a6b2f;
+  --rouge-bouton: #d1200f;
+  --logo: #e8a000;
+  --trait: rgb(60 60 67 / 0.16);
+  --trait-fort: rgb(60 60 67 / 0.26);
+  --ok: #17692d;
+  --ok-fond: rgb(52 199 89 / 0.18);
+  --bientot: #9a4500;
+  --bientot-fond: rgb(255 149 0 / 0.18);
+  --ferme: #5a5a60;
+  --ferme-fond: rgb(120 120 128 / 0.16);
+  --urgent: #c0000e;
+  --urgent-fond: rgb(255 59 48 / 0.16);
+  --femmes: #7a2d9c;
+  --femmes-fond: rgb(175 82 222 / 0.18);
+  --femmes-trait: rgb(175 82 222 / 0.35);
+  --femmes-encre: #ffffff;
+  --lampe: #ffcc00;
+  --lampe-encre: #1c1c1e;
+  --lampe-voile: rgb(255 204 0 / 0.2);
+  --quitter: var(--rouge-bouton);
+
+  /* L'ancien « bleu nuit » devient du verre clair */
+  --nuit: var(--verre-barre);
+  --nuit-2: var(--verre);
+  --nuit-3: var(--verre-survol);
+  --sur-nuit: var(--encre);
+  --sur-nuit-doux: var(--encre-douce);
+  --sur-nuit-voile: rgb(0 0 0 / 0.05);
+  --sur-nuit-filet: rgb(255 255 255 / 0.5);
+
+  /* Surfaces : du verre */
+  --papier: rgb(255 255 255 / 0.22);
+  --surface: var(--verre);
+  --surface-2: var(--verre-survol);
+  --ombre-1: var(--liseré), var(--ombre-verre);
+  --ombre-2: var(--liseré), 0 2px 4px rgb(30 40 80 / 0.08), 0 18px 40px -16px rgb(30 40 80 / 0.35);
+  --ombre-flot: var(--liseré), 0 2px 6px rgb(30 40 80 / 0.1), 0 22px 48px -16px rgb(30 40 80 / 0.4);
+  --teinte-fond: 20%;
+  --clair-ic: 0%;
+
+  --f-titre: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Geeza Pro", system-ui, sans-serif;
+  --r: 24px;
+  --r-btn: 999px;
+  --r-petit: 14px;
   --h-onglets: 64px;
-  --marge-onglets: 10px;
+  --marge-onglets: 12px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --fond-base: #080e1c;
-    --lueur-lampe: rgb(246 195 90 / 0.14);
-    --lueur-prune: rgb(150 70 165 / 0.20);
-    --lueur-bleu: rgb(59 90 170 / 0.32);
-    --verre: rgb(30 44 72 / 0.52);
-    --verre-survol: rgb(40 56 88 / 0.66);
-    --verre-fort: rgb(18 28 48 / 0.76);
-    --verre-filet: rgb(255 255 255 / 0.1);
-    --verre-bord: rgb(255 255 255 / 0.08);
-    --verre-reflet: rgb(255 255 255 / 0.12);
-    --verre-nuit: rgb(12 20 38 / 0.7);
-    --ombre-verre: 0 1px 1px rgb(0 0 0 / 0.25), 0 10px 28px -12px rgb(0 0 0 / 0.6);
-    --ombre-flottante: 0 2px 8px rgb(0 0 0 / 0.35), 0 20px 44px -12px rgb(0 0 0 / 0.75);
+    --fond-base: #05070f;
+    --tache-1: rgb(37 99 235 / 0.45);
+    --tache-2: rgb(124 58 237 / 0.42);
+    --tache-3: rgb(245 140 40 / 0.2);
+    --tache-4: rgb(14 165 233 / 0.26);
+    --tache-5: rgb(219 39 119 / 0.3);
+    --verre: rgb(255 255 255 / 0.08);
+    --verre-survol: rgb(255 255 255 / 0.14);
+    --verre-barre: rgb(28 28 36 / 0.42);
+    --verre-lentille: rgb(255 255 255 / 0.18);
+    --verre-bord: rgb(255 255 255 / 0.16);
+    --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0.03) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.06) 100%);
+    --liseré: inset 0 1px 0 rgb(255 255 255 / 0.24), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
+    --flou: blur(22px) saturate(180%) brightness(0.92);
+    --encre: #f5f5f7;
+    --encre-douce: #c4c4cc;
+    --lien: #6cb4ff;
+    --focus: #0a84ff;
+    --accent: #0a84ff;
+    --accent-texte: #6cb4ff;
+    --accent-chaud: #ffd60a;
+    --vert-bouton: #1a6b2f;
+    --rouge-bouton: #d1200f;
+    --accent-bouton: #0058cc;
+    --logo: #ffd60a;
+    --trait: rgb(255 255 255 / 0.12);
+    --trait-fort: rgb(255 255 255 / 0.2);
+    --ok: #4ade80;
+    --ok-fond: rgb(48 209 88 / 0.18);
+    --bientot: #ffb340;
+    --bientot-fond: rgb(255 159 10 / 0.18);
+    --ferme: #a1a1aa;
+    --ferme-fond: rgb(152 152 157 / 0.16);
+    --urgent: #ff7b72;
+    --urgent-fond: rgb(255 69 58 / 0.18);
+    --femmes: #e3a6ff;
+    --femmes-fond: rgb(191 90 242 / 0.2);
+    --femmes-trait: rgb(191 90 242 / 0.4);
+    --femmes-encre: #1c1c1e;
+    --lampe: #ffd60a;
+    --lampe-voile: rgb(255 214 10 / 0.16);
+    --sur-nuit-voile: rgb(255 255 255 / 0.08);
+    --sur-nuit-filet: rgb(255 255 255 / 0.14);
+    --papier: rgb(255 255 255 / 0.06);
+    --teinte-fond: 30%;
+    --clair-ic: 40%;
+    --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
+    --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
   }
 }
 :root[data-theme="dark"] {
-  --fond-base: #080e1c;
-  --lueur-lampe: rgb(246 195 90 / 0.14);
-  --lueur-prune: rgb(150 70 165 / 0.20);
-  --lueur-bleu: rgb(59 90 170 / 0.32);
-  --verre: rgb(30 44 72 / 0.52);
-  --verre-survol: rgb(40 56 88 / 0.66);
-  --verre-fort: rgb(18 28 48 / 0.76);
-  --verre-filet: rgb(255 255 255 / 0.1);
-  --verre-bord: rgb(255 255 255 / 0.08);
-  --verre-reflet: rgb(255 255 255 / 0.12);
-  --verre-nuit: rgb(12 20 38 / 0.7);
-  --ombre-verre: 0 1px 1px rgb(0 0 0 / 0.25), 0 10px 28px -12px rgb(0 0 0 / 0.6);
-  --ombre-flottante: 0 2px 8px rgb(0 0 0 / 0.35), 0 20px 44px -12px rgb(0 0 0 / 0.75);
+  --fond-base: #05070f;
+  --tache-1: rgb(37 99 235 / 0.45);
+  --tache-2: rgb(124 58 237 / 0.42);
+  --tache-3: rgb(245 140 40 / 0.2);
+  --tache-4: rgb(14 165 233 / 0.26);
+  --tache-5: rgb(219 39 119 / 0.3);
+  --verre: rgb(255 255 255 / 0.08);
+  --verre-survol: rgb(255 255 255 / 0.14);
+  --verre-barre: rgb(28 28 36 / 0.42);
+  --verre-lentille: rgb(255 255 255 / 0.18);
+  --verre-bord: rgb(255 255 255 / 0.16);
+  --reflet: linear-gradient(135deg, rgb(255 255 255 / 0.16) 0%, rgb(255 255 255 / 0.03) 38%, rgb(255 255 255 / 0) 60%, rgb(255 255 255 / 0.06) 100%);
+  --liseré: inset 0 1px 0 rgb(255 255 255 / 0.24), inset 0 -1px 0 rgb(255 255 255 / 0.06), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  --ombre-verre: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 36px -14px rgb(0 0 0 / 0.7);
+  --flou: blur(22px) saturate(180%) brightness(0.92);
+  --encre: #f5f5f7;
+  --encre-douce: #c4c4cc;
+  --lien: #6cb4ff;
+  --focus: #0a84ff;
+  --accent: #0a84ff;
+  --accent-texte: #6cb4ff;
+  --accent-chaud: #ffd60a;
+  --accent-bouton: #0058cc;
+  --vert-bouton: #1a6b2f;
+  --rouge-bouton: #d1200f;
+  --logo: #ffd60a;
+  --trait: rgb(255 255 255 / 0.12);
+  --trait-fort: rgb(255 255 255 / 0.2);
+  --ok: #4ade80;
+  --ok-fond: rgb(48 209 88 / 0.18);
+  --bientot: #ffb340;
+  --bientot-fond: rgb(255 159 10 / 0.18);
+  --ferme: #a1a1aa;
+  --ferme-fond: rgb(152 152 157 / 0.16);
+  --urgent: #ff7b72;
+  --urgent-fond: rgb(255 69 58 / 0.18);
+  --femmes: #e3a6ff;
+  --femmes-fond: rgb(191 90 242 / 0.2);
+  --femmes-trait: rgb(191 90 242 / 0.4);
+  --femmes-encre: #1c1c1e;
+  --lampe: #ffd60a;
+  --lampe-voile: rgb(255 214 10 / 0.16);
+  --sur-nuit-voile: rgb(255 255 255 / 0.08);
+  --sur-nuit-filet: rgb(255 255 255 / 0.14);
+  --papier: rgb(255 255 255 / 0.06);
+  --teinte-fond: 30%;
+  --clair-ic: 40%;
+  --ombre-2: var(--liseré), 0 2px 4px rgb(0 0 0 / 0.3), 0 20px 44px -16px rgb(0 0 0 / 0.8);
+  --ombre-flot: var(--liseré), 0 2px 8px rgb(0 0 0 / 0.35), 0 24px 52px -16px rgb(0 0 0 / 0.85);
 }
 
-/* ============ 2. Fond lumineux ============ */
+/* ============ 2. Fond maillé, vu à travers le verre ============ */
 html {
   background: var(--fond-base);
 }
 body {
   background: transparent;
+  -webkit-font-smoothing: antialiased;
 }
-/* Fixé à l'écran (iOS ignore background-attachment: fixed) */
 body::before {
   content: "";
   position: fixed;
@@ -80,119 +207,311 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(60vmax 45vmax at 100% 0%, var(--lueur-lampe), transparent 70%),
-    radial-gradient(55vmax 50vmax at 0% 45%, var(--lueur-prune), transparent 70%),
-    radial-gradient(70vmax 50vmax at 70% 100%, var(--lueur-bleu), transparent 70%),
+    radial-gradient(48vmax 40vmax at 8% 4%, var(--tache-1), transparent 70%),
+    radial-gradient(45vmax 38vmax at 96% 12%, var(--tache-2), transparent 70%),
+    radial-gradient(42vmax 36vmax at 0% 62%, var(--tache-3), transparent 70%),
+    radial-gradient(50vmax 40vmax at 100% 78%, var(--tache-4), transparent 70%),
+    radial-gradient(46vmax 36vmax at 40% 104%, var(--tache-5), transparent 70%),
     var(--fond-base);
 }
+h1,
+h2,
+h3,
+.marque-nom,
+.hero-titre,
+.urg-num,
+.urg-rapide-num {
+  letter-spacing: -0.02em;
+}
 
-/* ============ 3. Verre des cartes (translucide, sans flou) ============ */
+/* ============ 3. Le verre, partout ============ */
+.entete,
+.onglets,
+.hero,
 .tuile,
+.im-carte,
 .urg-rapide,
 .liens-bas,
 .liste,
 .liste-urg,
-.adresse-masquee,
 .fiches,
 .horaires,
-.criteres li,
 .verifie,
 .signaler form,
 .installer-bandeau,
 .adresse,
+.adresse-masquee,
+.action,
+.puce,
+.btn,
+.btn--doux,
+.choix-repere select,
+.badge-fictif,
+.menu-langue,
+.alerte,
+.rappel,
+.encart-femmes,
+.criteres li,
+.btn-quitter,
+.btn-entete,
+.cta-proche,
+.btn-localiser,
+.btn-placer,
+.btn-tel-carte,
+.carte-tel,
+.carte-msg,
+.leaflet-bar a,
+.leaflet-popup-content-wrapper,
+.leaflet-control-attribution {
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+}
+.hero,
+.tuile,
+.im-carte,
+.urg-rapide,
+.liens-bas,
+.liste,
+.liste-urg,
+.fiches,
+.horaires,
+.verifie,
+.signaler form,
+.installer-bandeau,
+.adresse,
+.adresse-masquee,
 .action,
 .puce,
 .btn--doux,
 .choix-repere select,
-.badge-fictif {
-  background-color: var(--verre);
+.badge-fictif,
+.menu-langue,
+.alerte,
+.rappel,
+.encart-femmes,
+.criteres li,
+.carte-tel,
+.carte-msg,
+.leaflet-popup-content-wrapper {
+  background-image: var(--reflet);
   border-color: var(--verre-bord);
-  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-verre);
+  box-shadow: var(--liseré), var(--ombre-verre);
 }
 .tuile:hover,
 .action:hover,
 .puce:hover,
 .btn--doux:hover,
-.liens-bas a:hover {
+.liens-bas a:hover,
+.im-carte:hover,
+.urg-rapide:hover {
   background-color: var(--verre-survol);
+  background-image: var(--reflet);
 }
-.tuile {
-  border-radius: var(--r);
+/* Les fonds teintés gardent leur couleur, en verre */
+.tuile--femmes,
+.im--femmes,
+.sommaire-femmes .puce {
+  border-color: var(--femmes-trait);
+}
+.im--alerte {
+  border-color: color-mix(in srgb, var(--bientot) 35%, transparent);
+}
+
+/* Pression : le verre s'enfonce un peu, comme sur iPhone */
+.tuile,
+.action,
+.btn,
+.cta-proche,
+.urg-rapide,
+.puce,
+.im-carte {
+  transition: transform 0.18s cubic-bezier(0.3, 0.7, 0.4, 1.4), background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .tuile:active,
 .action:active,
 .btn:active,
 .cta-proche:active,
-.urg-rapide:active {
-  transform: scale(0.98);
-}
-.tuile,
-.action,
-.btn,
-.cta-proche,
-.urg-rapide {
-  transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-}
-/* Puces de filtre : capsules */
-.puce {
-  border-radius: 999px;
-}
-.puce[aria-pressed="true"] {
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), var(--ombre-verre);
+.urg-rapide:active,
+.puce:active,
+.im-carte:active {
+  transform: scale(0.97);
 }
 
-/* ============ 4. Boutons : brillance douce ============ */
-.btn,
-.cta-proche,
-.btn-quitter {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 55%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 1px 2px rgb(0 0 0 / 0.12), 0 8px 20px -10px rgb(0 0 0 / 0.35);
-}
-.btn--doux {
-  background-image: none;
-}
-.btn {
-  border-radius: var(--r-btn);
-}
-.cta-proche {
-  border-radius: var(--r);
-}
-
-/* ============ 5. En-tête en verre ============ */
+/* ============ 4. En-tête : barre de verre ============ */
 .entete {
-  background: var(--verre-nuit);
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
-  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.08);
+  background: var(--verre-barre);
+  background-image: var(--reflet);
+  color: var(--encre);
+  box-shadow: inset 0 -1px 0 var(--trait);
 }
 body:has(.hero) .entete {
-  background: rgb(20 35 58 / 0.86);
+  box-shadow: inset 0 -1px 0 var(--trait);
+}
+.logo-lanterne {
+  fill: var(--logo);
+}
+.marque-nom {
+  font-family: var(--f-titre);
+  font-weight: 700;
 }
 .btn-entete {
   border-radius: 999px;
+  color: var(--encre);
+}
+.btn-entete:hover {
+  background: var(--verre-survol);
 }
 .btn-quitter {
   border-radius: 999px;
+  background: color-mix(in srgb, var(--rouge-bouton) 92%, transparent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0) 60%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -1px 0 rgb(0 0 0 / 0.1), 0 6px 16px -6px rgb(217 35 24 / 0.6);
 }
 .menu-langue {
-  background: var(--verre-fort);
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
-  border: 1px solid var(--verre-filet);
-  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-flottante);
+  background-color: var(--verre-barre);
+  border: 1px solid var(--verre-bord);
+  box-shadow: var(--ombre-flot);
+}
+.menu-langue button {
+  color: var(--encre);
 }
 
-/* ============ 6. Accueil : panneau nuit avec la lumière de la lampe ============ */
+/* ============ 5. Accueil : grand titre sur une plaque de verre ============ */
 .hero {
-  background:
-    radial-gradient(120% 80% at 100% 0%, rgb(244 182 63 / 0.22), transparent 60%),
-    radial-gradient(90% 70% at 0% 100%, rgb(123 47 134 / 0.28), transparent 65%),
-    linear-gradient(170deg, #1f3354, #14233a 70%);
-  border-radius: 0 0 32px 32px;
-  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.08), 0 18px 40px -22px rgb(20 35 58 / 0.6);
+  margin: 4px 0 0;
+  padding: 22px 18px 18px;
+  border: 1px solid var(--verre-bord);
+  border-radius: 30px;
+  background-color: var(--verre);
+  color: var(--encre);
+}
+.hero-pour {
+  color: var(--accent-chaud);
+}
+.hero-titre {
+  font-family: var(--f-titre);
+  font-weight: 800;
+}
+.hero-titre span {
+  color: var(--accent-chaud);
+}
+.proto {
+  background: var(--sur-nuit-voile);
+  border-color: var(--trait);
+  color: var(--encre-douce);
+}
+/* Bouton principal : verre teinté jaune, comme un bouton « rempli » d'iOS */
+.cta-proche {
+  border: 1px solid rgb(255 255 255 / 0.5);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--lampe) 86%, transparent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0) 55%);
+  color: var(--lampe-encre);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 0 rgb(0 0 0 / 0.06), 0 12px 28px -12px rgb(200 150 0 / 0.55);
+}
+.cta-ic {
+  border-radius: 16px;
+  background: #1c1c1e;
+  color: #ffd60a;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+}
+.titre-bloc {
+  color: var(--encre-douce);
 }
 
-/* ============ 7. Onglets du bas : barre flottante en verre ============ */
+/* ============ 6. Pastilles : verre teinté de la couleur du besoin ============ */
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .pastille,
+  .tete .pastille {
+    background: color-mix(in srgb, var(--c, var(--accent)) var(--teinte-fond), transparent);
+    background-image: linear-gradient(160deg, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0) 60%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), inset 0 0 0 1px color-mix(in srgb, var(--c, var(--accent)) 30%, transparent);
+  }
+}
+.tuile--femmes .pastille,
+.tete.tete--femmes .pastille {
+  background: var(--femmes);
+  color: var(--femmes-encre);
+}
+
+/* ============ 7. Boutons ============ */
+/* Bouton « rempli » : verre teinté bleu système, texte blanc */
+.btn {
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 45%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -1px 0 rgb(0 0 0 / 0.08), 0 10px 24px -12px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.btn:hover {
+  background-color: var(--accent-bouton);
+  border-color: rgb(255 255 255 / 0.35);
+}
+/* Bouton « doux » : verre clair */
+.btn--doux,
+.btn--doux:hover {
+  background-color: var(--verre);
+  border-color: var(--verre-bord);
+  color: var(--encre);
+  box-shadow: var(--liseré), var(--ombre-verre);
+}
+.btn--doux:hover {
+  background-color: var(--verre-survol);
+}
+.btn--danger,
+.btn--danger:hover {
+  background: color-mix(in srgb, var(--rouge-bouton) 90%, transparent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
+  color: #fff;
+}
+.btn--appel,
+.actions--principales .action--appel,
+.leaflet-container a.btn--appel {
+  background: color-mix(in srgb, var(--vert-bouton) 96%, transparent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
+  border-color: rgb(255 255 255 / 0.35);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 10px 24px -12px rgb(31 122 54 / 0.7);
+}
+.actions--principales .action--appel .ic {
+  color: #fff;
+}
+.leaflet-container a.btn {
+  color: #fff;
+}
+/* Puces (filtres, réglages) : capsules de verre ; choisie = bleu système */
+.puce {
+  border-radius: 999px;
+  border-color: var(--verre-bord);
+  color: var(--encre);
+}
+.puce[aria-pressed="true"],
+.barre-carte .puce[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 45%);
+  border-color: rgb(255 255 255 / 0.35);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 18px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.choix-repere select {
+  border-radius: 18px;
+  color: var(--encre);
+}
+.action {
+  border-radius: 20px;
+}
+a,
+.lien-carte,
+.lien-fleche {
+  color: var(--lien);
+}
+.im-point[aria-current="true"]::before {
+  background: var(--encre);
+}
+
+/* ============ 8. Barre d'onglets : capsule de verre flottante, onglet choisi en lentille ============ */
 .onglets {
   left: var(--marge-onglets);
   right: var(--marge-onglets);
@@ -200,28 +519,41 @@ body:has(.hero) .entete {
   max-width: 34rem;
   margin-inline: auto;
   min-height: var(--h-onglets);
-  padding: 0 4px;
-  border: 1px solid var(--verre-filet);
-  border-radius: 28px;
-  background: var(--verre-fort);
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
-  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-flottante);
+  padding: 4px;
+  border: 1px solid var(--verre-bord);
+  border-radius: 999px;
+  background: var(--verre-barre);
+  background-image: var(--reflet);
+  box-shadow: var(--ombre-flot);
 }
 .onglets a {
-  border-radius: 22px;
-}
-.onglets a[aria-current="page"] .ic {
   border-radius: 999px;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 12px -4px rgb(244 182 63 / 0.7);
+  color: var(--encre);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.onglets a[aria-current="page"] {
+  background: var(--verre-lentille);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -1px 0 rgb(255 255 255 / 0.2), 0 4px 14px -6px rgb(0 0 0 / 0.25);
+  color: var(--accent-texte);
+}
+.onglets a[aria-current="page"] .ic,
+.onglets .ic {
+  padding: 2px;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+}
+.onglets .onglet-urg {
+  color: var(--urgent);
 }
 .vue {
   padding-bottom: calc(var(--h-onglets) + var(--marge-onglets) + 40px + env(safe-area-inset-bottom, 0px));
 }
 
-/* ============ 8. Carte : jusqu'en bas, sous la barre flottante ============ */
+/* ============ 9. Carte : jusqu'en bas, contrôles en verre ============ */
 .vue-carte {
   bottom: 0;
+  background: transparent;
 }
 .vue-carte .leaflet-bottom {
   bottom: calc(var(--h-onglets) + var(--marge-onglets) + 8px + env(safe-area-inset-bottom, 0px));
@@ -238,41 +570,75 @@ body:has(.hero) .entete {
 }
 .btn-localiser,
 .btn-placer:not([aria-pressed="true"]),
-.btn-tel-carte,
-.carte-tel,
-.carte-msg,
+.btn-tel-carte:not([aria-expanded="true"]),
 .barre-carte .puce:not([aria-pressed="true"]),
 .leaflet-bar a {
-  background-color: var(--verre-fort);
-  -webkit-backdrop-filter: var(--flou);
-  backdrop-filter: var(--flou);
-  border-color: var(--verre-filet);
-  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-flottante);
+  background-color: var(--verre-barre);
+  background-image: var(--reflet);
+  border-color: var(--verre-bord);
+  color: var(--encre);
+  box-shadow: var(--ombre-flot);
+}
+.btn-tel-carte[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--accent-bouton) 95%, transparent);
+  border-color: rgb(255 255 255 / 0.35);
+  color: #fff;
 }
 .btn-localiser,
-.btn-placer {
+.btn-placer,
+.btn-tel-carte {
   border-radius: 999px;
 }
+.leaflet-bar {
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: var(--ombre-flot);
+}
 .leaflet-popup-content-wrapper {
-  border-radius: 18px;
+  border: 1px solid var(--verre-bord);
+  border-radius: 22px;
+  background-color: var(--verre-barre);
+  color: var(--encre);
+}
+.leaflet-popup-tip {
+  background: var(--verre-barre);
 }
 
-/* ============ 9. Confort : moins de transparence ou pas de flou ============ */
+/* ============ 10. Confort : moins de transparence, pas de flou, couleurs forcées ============ */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root {
-    --verre-fort: var(--surface);
-    --verre-nuit: var(--nuit);
+  :root,
+  :root:not([data-theme="light"]),
+  :root[data-theme="dark"] {
+    --verre: rgb(255 255 255 / 0.82);
+    --verre-survol: rgb(255 255 255 / 0.92);
+    --verre-barre: rgb(255 255 255 / 0.9);
+    --papier: rgb(255 255 255 / 0.7);
   }
 }
 @media (prefers-reduced-transparency: reduce) {
   :root {
-    --verre: var(--surface);
-    --verre-survol: var(--surface-2);
-    --verre-fort: var(--surface);
-    --verre-nuit: var(--nuit);
+    --verre: #ffffff;
+    --verre-survol: #f2f2f7;
+    --verre-barre: #f9f9fb;
+    --verre-lentille: #e5e5ea;
+    --papier: #f2f2f7;
+    --reflet: none;
   }
   body::before {
-    background: var(--papier);
+    background: #f2f2f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --verre: #1c1c1e;
+      --verre-survol: #2c2c2e;
+      --verre-barre: #1c1c1e;
+      --verre-lentille: #3a3a3c;
+      --papier: #000000;
+    }
+    :root:not([data-theme="light"]) body::before {
+      background: #000000;
+    }
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -280,7 +646,9 @@ body:has(.hero) .entete {
   .action:active,
   .btn:active,
   .cta-proche:active,
-  .urg-rapide:active {
+  .urg-rapide:active,
+  .puce:active,
+  .im-carte:active {
     transform: none;
   }
 }
