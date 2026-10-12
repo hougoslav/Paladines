@@ -152,18 +152,24 @@ function page(onglet, nbSignalements, corps) {
   const lien = (id, libelle) =>
     '<a href="/equipe' + (id === "statistiques" ? "?onglet=statistiques" : "") + '"' + (onglet === id ? ' aria-current="page"' : "") + ">" + libelle + "</a>";
   return "<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">" +
-    "<meta name=\"robots\" content=\"noindex\"><title>Paladines</title><style>" + CSS + "</style></head><body>" +
-    "<h1>Paladines · équipe</h1>" +
+    "<meta name=\"robots\" content=\"noindex\"><title>Paladines</title>" +
+    '<link rel="icon" href="/icons/equipe.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/equipe-180.png">' +
+    "<style>" + CSS + "</style></head><body>" +
+    '<header class="entete">' + LOGO + "<h1>Paladines · équipe</h1></header>" +
     '<nav class="onglets" aria-label="Rubriques">' +
     lien("signalements", "Signalements" + (nbSignalements ? " (" + nbSignalements + ")" : "")) +
     lien("statistiques", "Statistiques") +
     "</nav><main>" + corps + "</main></body></html>";
 }
 
+// Logo engrenage (même dessin que icons/equipe.svg), en haut à gauche comme la lanterne de l'appli
+const LOGO = '<svg class="logo" aria-hidden="true" viewBox="0 0 100 100"><defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9ccd2"/><stop offset="1" stop-color="#7d828c"/></linearGradient><linearGradient id="e" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4e57"/><stop offset="1" stop-color="#2b2e35"/></linearGradient><linearGradient id="m" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9ebef"/><stop offset="1" stop-color="#a7abb3"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#f)"/><path fill="url(#e)" fill-rule="evenodd" d="M45.09 17.37L45.69 10.23L54.31 10.23L54.91 17.37L57.96 17.97L61.24 11.61L69.20 14.91L67.02 21.73L69.61 23.46L75.07 18.83L81.17 24.93L76.54 30.39L78.27 32.98L85.09 30.80L88.39 38.76L82.03 42.04L82.63 45.09L89.77 45.69L89.77 54.31L82.63 54.91L82.03 57.96L88.39 61.24L85.09 69.20L78.27 67.02L76.54 69.61L81.17 75.07L75.07 81.17L69.61 76.54L67.02 78.27L69.20 85.09L61.24 88.39L57.96 82.03L54.91 82.63L54.31 89.77L45.69 89.77L45.09 82.63L42.04 82.03L38.76 88.39L30.80 85.09L32.98 78.27L30.39 76.54L24.93 81.17L18.83 75.07L23.46 69.61L21.73 67.02L14.91 69.20L11.61 61.24L17.97 57.96L17.37 54.91L10.23 54.31L10.23 45.69L17.37 45.09L17.97 42.04L11.61 38.76L14.91 30.80L21.73 32.98L23.46 30.39L18.83 24.93L24.93 18.83L30.39 23.46L32.98 21.73L30.80 14.91L38.76 11.61L42.04 17.97ZM25.00 50a25 25 0 1 0 50 0a25 25 0 1 0 -50 0Z"/><path fill="url(#m)" fill-rule="evenodd" d="M47.91 29.10L48.36 25.05L51.64 25.05L52.09 29.10L53.39 29.28L54.88 25.48L58.04 26.33L57.42 30.36L58.64 30.86L61.06 27.58L63.89 29.21L62.25 32.95L63.30 33.75L66.48 31.20L68.80 33.52L66.25 36.70L67.05 37.75L70.79 36.11L72.42 38.94L69.14 41.36L69.64 42.58L73.67 41.96L74.52 45.12L70.72 46.61L70.90 47.91L74.95 48.36L74.95 51.64L70.90 52.09L70.72 53.39L74.52 54.88L73.67 58.04L69.64 57.42L69.14 58.64L72.42 61.06L70.79 63.89L67.05 62.25L66.25 63.30L68.80 66.48L66.48 68.80L63.30 66.25L62.25 67.05L63.89 70.79L61.06 72.42L58.64 69.14L57.42 69.64L58.04 73.67L54.88 74.52L53.39 70.72L52.09 70.90L51.64 74.95L48.36 74.95L47.91 70.90L46.61 70.72L45.12 74.52L41.96 73.67L42.58 69.64L41.36 69.14L38.94 72.42L36.11 70.79L37.75 67.05L36.70 66.25L33.52 68.80L31.20 66.48L33.75 63.30L32.95 62.25L29.21 63.89L27.58 61.06L30.86 58.64L30.36 57.42L26.33 58.04L25.48 54.88L29.28 53.39L29.10 52.09L25.05 51.64L25.05 48.36L29.10 47.91L29.28 46.61L25.48 45.12L26.33 41.96L30.36 42.58L30.86 41.36L27.58 38.94L29.21 36.11L32.95 37.75L33.75 36.70L31.20 33.52L33.52 31.20L36.70 33.75L37.75 32.95L36.11 29.21L38.94 27.58L41.36 30.86L42.58 30.36L41.96 26.33L45.12 25.48L46.61 29.28ZM41.00 50a9 9 0 1 0 18 0a9 9 0 1 0 -18 0Z"/><path fill="url(#e)" d="M44.00 50a6 6 0 1 0 12 0a6 6 0 1 0 -12 0Z"/></svg>';
+
 const CSS =
   ":root{--fond:#f1f3f6;--surface:#fff;--encre:#14233a;--douce:#546175;--trait:#d7dde6;--accent:#24528f;--barre:#24528f;--rail:#e4e8ef;color-scheme:light}" +
   "@media (prefers-color-scheme:dark){:root{--fond:#0e1626;--surface:#16213a;--encre:#eef1f6;--douce:#a9b5c7;--trait:#2a3958;--accent:#9cc3ff;--barre:#7fb0f5;--rail:#22304d;color-scheme:dark}}" +
   "*{box-sizing:border-box}body{font:16px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;max-width:760px;margin:0 auto;padding:16px;background:var(--fond);color:var(--encre)}" +
+  ".entete{display:flex;align-items:center;gap:12px;margin:4px 0 16px}.logo{width:44px;height:44px;flex:none}.entete h1{margin:0}" +
   "h1{font-size:1.5rem;margin:8px 0 16px}h2{font-size:1.15rem;margin:28px 0 10px}a{color:var(--accent)}" +
   ".onglets{display:flex;gap:8px;border-bottom:1px solid var(--trait);margin-bottom:16px}" +
   ".onglets a{display:flex;align-items:center;min-height:44px;padding:0 14px;text-decoration:none;color:var(--douce);font-weight:600;border-bottom:3px solid transparent;margin-bottom:-1px}" +
