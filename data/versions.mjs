@@ -7,6 +7,17 @@
  */
 export const VERSIONS = [
   {
+    v: 20,
+    date: "2026-10-12",
+    titre: "Nouveau look : verre et lumière",
+    nouveautes: [
+      "Style moderne façon iPhone : fond lumineux (lampe, prune, bleu), cartes en verre translucide avec reflets, coins plus arrondis.",
+      "En-tête en verre dépoli et barre d'onglets flottante ; la carte va jusqu'en bas de l'écran, sous la barre.",
+      "Page de l'équipe au même style, avec des onglets façon iOS (« À traiter », « Historique », « Statistiques »).",
+      "Si le téléphone demande moins de transparence, tout redevient opaque ; le flou est réservé aux barres pour rester fluide sur les vieux téléphones."
+    ]
+  },
+  {
     v: 19,
     date: "2026-10-12",
     titre: "Page de l'équipe : signalements et statistiques",

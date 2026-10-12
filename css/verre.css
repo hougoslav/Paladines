@@ -1,0 +1,291 @@
+/* Paladines — couche « Verre » (style moderne façon iOS : verre dépoli, reflets, lumière douce)
+ * Se charge APRÈS theme.css. Mêmes couleurs (bleu nuit, lampe jaune, prune), mêmes polices.
+ * - Fond : lueurs douces de la lampe, de la prune et du bleu, fixes derrière le contenu.
+ * - Barres (en-tête, onglets flottants, menus, boutons sur la carte) : verre flouté.
+ * - Cartes et boutons : verre translucide avec reflet, SANS flou (rapide sur les vieux téléphones).
+ * - « Réduire la transparence » (iOS, macOS) ou navigateur sans flou : surfaces opaques.
+ * Aucun changement de HTML ni de JS. Contrastes vérifiés en clair et en sombre.
+ */
+
+/* ============ 1. Jetons du verre ============ */
+:root {
+  --fond-base: #eef1f7;
+  --lueur-lampe: rgb(244 182 63 / 0.30);
+  --lueur-prune: rgb(123 47 134 / 0.13);
+  --lueur-bleu: rgb(36 82 143 / 0.16);
+
+  --verre: rgb(255 255 255 / 0.62);
+  --verre-survol: rgb(255 255 255 / 0.8);
+  --verre-fort: rgb(255 255 255 / 0.8);
+  --verre-filet: rgb(255 255 255 / 0.85);
+  --verre-bord: rgb(20 35 58 / 0.08);
+  --verre-reflet: rgb(255 255 255 / 0.9);
+  --verre-nuit: rgb(20 35 58 / 0.86);
+  --flou: blur(24px) saturate(180%);
+  --ombre-verre: 0 1px 1px rgb(20 35 58 / 0.04), 0 8px 24px -10px rgb(20 35 58 / 0.18);
+  --ombre-flottante: 0 2px 6px rgb(20 35 58 / 0.08), 0 18px 40px -12px rgb(20 35 58 / 0.35);
+
+  --r: 22px;
+  --r-btn: 16px;
+  --r-petit: 12px;
+  --h-onglets: 64px;
+  --marge-onglets: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fond-base: #080e1c;
+    --lueur-lampe: rgb(246 195 90 / 0.14);
+    --lueur-prune: rgb(150 70 165 / 0.20);
+    --lueur-bleu: rgb(59 90 170 / 0.32);
+    --verre: rgb(30 44 72 / 0.52);
+    --verre-survol: rgb(40 56 88 / 0.66);
+    --verre-fort: rgb(18 28 48 / 0.76);
+    --verre-filet: rgb(255 255 255 / 0.1);
+    --verre-bord: rgb(255 255 255 / 0.08);
+    --verre-reflet: rgb(255 255 255 / 0.12);
+    --verre-nuit: rgb(12 20 38 / 0.7);
+    --ombre-verre: 0 1px 1px rgb(0 0 0 / 0.25), 0 10px 28px -12px rgb(0 0 0 / 0.6);
+    --ombre-flottante: 0 2px 8px rgb(0 0 0 / 0.35), 0 20px 44px -12px rgb(0 0 0 / 0.75);
+  }
+}
+:root[data-theme="dark"] {
+  --fond-base: #080e1c;
+  --lueur-lampe: rgb(246 195 90 / 0.14);
+  --lueur-prune: rgb(150 70 165 / 0.20);
+  --lueur-bleu: rgb(59 90 170 / 0.32);
+  --verre: rgb(30 44 72 / 0.52);
+  --verre-survol: rgb(40 56 88 / 0.66);
+  --verre-fort: rgb(18 28 48 / 0.76);
+  --verre-filet: rgb(255 255 255 / 0.1);
+  --verre-bord: rgb(255 255 255 / 0.08);
+  --verre-reflet: rgb(255 255 255 / 0.12);
+  --verre-nuit: rgb(12 20 38 / 0.7);
+  --ombre-verre: 0 1px 1px rgb(0 0 0 / 0.25), 0 10px 28px -12px rgb(0 0 0 / 0.6);
+  --ombre-flottante: 0 2px 8px rgb(0 0 0 / 0.35), 0 20px 44px -12px rgb(0 0 0 / 0.75);
+}
+
+/* ============ 2. Fond lumineux ============ */
+html {
+  background: var(--fond-base);
+}
+body {
+  background: transparent;
+}
+/* Fixé à l'écran (iOS ignore background-attachment: fixed) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60vmax 45vmax at 100% 0%, var(--lueur-lampe), transparent 70%),
+    radial-gradient(55vmax 50vmax at 0% 45%, var(--lueur-prune), transparent 70%),
+    radial-gradient(70vmax 50vmax at 70% 100%, var(--lueur-bleu), transparent 70%),
+    var(--fond-base);
+}
+
+/* ============ 3. Verre des cartes (translucide, sans flou) ============ */
+.tuile,
+.urg-rapide,
+.liens-bas,
+.liste,
+.liste-urg,
+.adresse-masquee,
+.fiches,
+.horaires,
+.criteres li,
+.verifie,
+.signaler form,
+.installer-bandeau,
+.adresse,
+.action,
+.puce,
+.btn--doux,
+.choix-repere select,
+.badge-fictif {
+  background-color: var(--verre);
+  border-color: var(--verre-bord);
+  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-verre);
+}
+.tuile:hover,
+.action:hover,
+.puce:hover,
+.btn--doux:hover,
+.liens-bas a:hover {
+  background-color: var(--verre-survol);
+}
+.tuile {
+  border-radius: var(--r);
+}
+.tuile:active,
+.action:active,
+.btn:active,
+.cta-proche:active,
+.urg-rapide:active {
+  transform: scale(0.98);
+}
+.tuile,
+.action,
+.btn,
+.cta-proche,
+.urg-rapide {
+  transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+/* Puces de filtre : capsules */
+.puce {
+  border-radius: 999px;
+}
+.puce[aria-pressed="true"] {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), var(--ombre-verre);
+}
+
+/* ============ 4. Boutons : brillance douce ============ */
+.btn,
+.cta-proche,
+.btn-quitter {
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0) 55%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 1px 2px rgb(0 0 0 / 0.12), 0 8px 20px -10px rgb(0 0 0 / 0.35);
+}
+.btn--doux {
+  background-image: none;
+}
+.btn {
+  border-radius: var(--r-btn);
+}
+.cta-proche {
+  border-radius: var(--r);
+}
+
+/* ============ 5. En-tête en verre ============ */
+.entete {
+  background: var(--verre-nuit);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.08);
+}
+body:has(.hero) .entete {
+  background: rgb(20 35 58 / 0.86);
+}
+.btn-entete {
+  border-radius: 999px;
+}
+.btn-quitter {
+  border-radius: 999px;
+}
+.menu-langue {
+  background: var(--verre-fort);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+  border: 1px solid var(--verre-filet);
+  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-flottante);
+}
+
+/* ============ 6. Accueil : panneau nuit avec la lumière de la lampe ============ */
+.hero {
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgb(244 182 63 / 0.22), transparent 60%),
+    radial-gradient(90% 70% at 0% 100%, rgb(123 47 134 / 0.28), transparent 65%),
+    linear-gradient(170deg, #1f3354, #14233a 70%);
+  border-radius: 0 0 32px 32px;
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 0.08), 0 18px 40px -22px rgb(20 35 58 / 0.6);
+}
+
+/* ============ 7. Onglets du bas : barre flottante en verre ============ */
+.onglets {
+  left: var(--marge-onglets);
+  right: var(--marge-onglets);
+  bottom: calc(var(--marge-onglets) + env(safe-area-inset-bottom, 0px));
+  max-width: 34rem;
+  margin-inline: auto;
+  min-height: var(--h-onglets);
+  padding: 0 4px;
+  border: 1px solid var(--verre-filet);
+  border-radius: 28px;
+  background: var(--verre-fort);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-flottante);
+}
+.onglets a {
+  border-radius: 22px;
+}
+.onglets a[aria-current="page"] .ic {
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 4px 12px -4px rgb(244 182 63 / 0.7);
+}
+.vue {
+  padding-bottom: calc(var(--h-onglets) + var(--marge-onglets) + 40px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ============ 8. Carte : jusqu'en bas, sous la barre flottante ============ */
+.vue-carte {
+  bottom: 0;
+}
+.vue-carte .leaflet-bottom {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 8px + env(safe-area-inset-bottom, 0px));
+}
+.btn-localiser,
+.btn-placer {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 24px + env(safe-area-inset-bottom, 0px));
+}
+.btn-tel-carte {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 88px + env(safe-area-inset-bottom, 0px));
+}
+.carte-tel {
+  bottom: calc(var(--h-onglets) + var(--marge-onglets) + 146px + env(safe-area-inset-bottom, 0px));
+}
+.btn-localiser,
+.btn-placer:not([aria-pressed="true"]),
+.btn-tel-carte,
+.carte-tel,
+.carte-msg,
+.barre-carte .puce:not([aria-pressed="true"]),
+.leaflet-bar a {
+  background-color: var(--verre-fort);
+  -webkit-backdrop-filter: var(--flou);
+  backdrop-filter: var(--flou);
+  border-color: var(--verre-filet);
+  box-shadow: inset 0 1px 0 var(--verre-reflet), var(--ombre-flottante);
+}
+.btn-localiser,
+.btn-placer {
+  border-radius: 999px;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 18px;
+}
+
+/* ============ 9. Confort : moins de transparence ou pas de flou ============ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --verre-fort: var(--surface);
+    --verre-nuit: var(--nuit);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --verre: var(--surface);
+    --verre-survol: var(--surface-2);
+    --verre-fort: var(--surface);
+    --verre-nuit: var(--nuit);
+  }
+  body::before {
+    background: var(--papier);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tuile:active,
+  .action:active,
+  .btn:active,
+  .cta-proche:active,
+  .urg-rapide:active {
+    transform: none;
+  }
+}
+@media (forced-colors: active) {
+  body::before {
+    display: none;
+  }
+}
