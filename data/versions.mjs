@@ -8,6 +8,18 @@
  */
 export const VERSIONS = [
   {
+    v: 26,
+    date: "2026-10-12",
+    titre: "6 nouvelles langues",
+    nouveautes: [
+      "L'appli parle maintenant 9 langues : français, anglais, arabe, espagnol, roumain, ukrainien, dari, pachto et tigrinya.",
+      "Le dari et le pachto s'écrivent de droite à gauche, comme l'arabe ; les numéros et les heures restent en chiffres habituels.",
+      "La langue du téléphone est choisie toute seule ; on la change avec le globe en haut ou dans Réglages.",
+      "« Écouter » n'apparaît que si le téléphone a une voix pour la langue choisie.",
+      "Traductions à faire relire par des personnes qui parlent ces langues ; les fiches des lieux restent en français."
+    ]
+  },
+  {
     v: 25,
     date: "2026-10-12",
     titre: "Mon carnet, lecture facile, guide pour les pros",

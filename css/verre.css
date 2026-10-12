@@ -339,6 +339,17 @@ body:has(.hero) .entete {
 }
 
 /* Tuiles des besoins : verre, pictogramme jaune */
+.grille-cat > li,
+.grille-cat .tuile {
+  min-width: 0;
+}
+/* Mots longs (ukrainien, roumain…) : ils passent à la ligne au lieu d'élargir la tuile */
+.tuile-nom,
+.tuile-nb {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
 .grille-cat {
   gap: 10px;
 }
