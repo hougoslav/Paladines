@@ -1062,6 +1062,8 @@
       '<ol class="idees">' + IDEES.map((x) => "<li><strong>" + esc(x[0]) + "</strong><span>" + esc(x[1]) + "</span></li>").join("") + "</ol>" +
       "<h2>Outils</h2>" +
       '<p><a class="btn" href="affiche.html">' + icone("i-qr") + "Créer une affiche avec QR code</a></p>" +
+      '<p><a class="btn" href="/equipe" target="_blank" rel="noopener">' + icone("i-drapeau") + "Lire les signalements reçus</a></p>" +
+      "<p>Réservé à l'équipe : le mot de passe est demandé. Adresse directe : <code>paladines.pages.dev/equipe</code></p>" +
       "<p>Les questions à trancher, les sources de données possibles et la feuille de route sont dans <code>docs/IDEES.md</code>. La liste des lieux de Lille, leurs sources et ce qui reste à vérifier par téléphone sont dans <code>docs/LIEUX-LILLE.md</code>.</p>" +
       "</article>"
     );
