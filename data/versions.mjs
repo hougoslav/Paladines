@@ -7,6 +7,17 @@
  */
 export const VERSIONS = [
   {
+    v: 22,
+    date: "2026-10-12",
+    titre: "Liquid Glass en noir et blanc",
+    nouveautes: [
+      "Même verre transparent, en noir et blanc : fond gris clair et blanc (noir profond en mode sombre).",
+      "Boutons, onglet choisi, pastilles des besoins et logo en noir (en blanc en mode sombre).",
+      "Seules couleurs gardées, parce qu'elles ont un sens : vert pour « Ouvert » et « Appeler », rouge pour « Quitter » et les numéros d'urgence ; les repères de la carte gardent la couleur de leur besoin.",
+      "Page de l'équipe et icône de l'engrenage au même style noir et blanc."
+    ]
+  },
+  {
     v: 21,
     date: "2026-10-12",
     titre: "Liquid Glass, comme sur iPhone",
