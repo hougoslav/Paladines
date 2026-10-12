@@ -1729,23 +1729,30 @@
       case "pourvous": html = vuePourVous(h.param); break;
       default: html = vueAccueil();
     }
-    main.innerHTML = html;
-    main.dataset.vue = h.vue;
-    demarrerDefilement();
-    if (h.vue === "reglages") dessinerQrSite();
+    const afficher = () => {
+      main.innerHTML = html;
+      main.dataset.vue = h.vue;
+      demarrerDefilement();
+      if (h.vue === "reglages") dessinerQrSite();
 
-    if (opts.rafraichir) return;
-    const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param)
-      : h.vue === "pourvous" && h.param ? document.getElementById("pv-" + h.param) : null;
-    if (fiche) fiche.scrollIntoView();
-    else window.scrollTo(0, 0);
-    if (etat.navInterne) {
-      const titre = main.querySelector("h1");
-      if (titre) {
-        titre.setAttribute("tabindex", "-1");
-        titre.focus({ preventScroll: true });
+      if (opts.rafraichir) return;
+      const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param)
+        : h.vue === "pourvous" && h.param ? document.getElementById("pv-" + h.param) : null;
+      if (fiche) fiche.scrollIntoView();
+      else window.scrollTo(0, 0);
+      if (etat.navInterne) {
+        const titre = main.querySelector("h1");
+        if (titre) {
+          titre.setAttribute("tabindex", "-1");
+          titre.focus({ preventScroll: true });
+        }
       }
-    }
+    };
+    // Changement d'écran en fondu court (navigateurs récents), sauf si le téléphone demande moins d'animations
+    const fondu = !opts.rafraichir && etat.navInterne && document.startViewTransition &&
+      !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    if (fondu) document.startViewTransition(afficher);
+    else afficher();
   }
 
   // Re-dessine la vue courante sans remonter en haut (après un réglage, la position…)
