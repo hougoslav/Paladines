@@ -191,9 +191,11 @@ un stockage privé de Cloudflare. Pour l'activer, dans le tableau de bord Cloudf
 
 **La page de l'équipe** : ouvrir <https://paladines.pages.dev/equipe> (bouton aussi dans la
 page « À propos ») et taper le mot de passe. Le téléphone reste connecté 90 jours (bouton
-« Se déconnecter » en bas) ; changer `MOT_DE_PASSE` déconnecte tout le monde. Deux onglets :
+« Se déconnecter » en bas) ; changer `MOT_DE_PASSE` déconnecte tout le monde. Trois onglets :
 
-- **Signalements** : chaque message, avec un bouton « Traité : supprimer ». Tant que l'étape 2
+- **À traiter** : les messages reçus, avec un bouton « Marquer comme traité ».
+- **Historique** : les messages traités, rangés par mois, avec la date de réception et de
+  traitement ; « Remettre à traiter » ou « Supprimer définitivement ». Tant que l'étape 2
   n'est pas faite, les messages restent en attente sur les téléphones (dix au plus) et
   partiront une fois le stockage branché.
 - **Statistiques** : la version en ligne et ce qu'elle apporte, les versions précédentes, et
