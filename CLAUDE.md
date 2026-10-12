@@ -18,7 +18,7 @@ HTML, CSS et JavaScript simples, sans framework ni compilation. PWA (service wor
 - Ne jamais montrer l'adresse d'un lieu protégé (`adresseMasquee`) ; ne jamais envoyer la position de la personne.
 - Aucun compte, aucune statistique sur les personnes : seul un compteur anonyme de visites par mois (un téléphone une fois par jour, sans identifiant). Polices hébergées sur le site. Vouvoiement et langage respectueux.
 - Tout nouveau texte va dans `js/i18n.js` en FR, EN et AR (arabe de droite à gauche ; numéros et adresses en `dir="ltr"`).
-- Après toute modification d'un fichier mis en cache, augmenter `VERSION` dans `sw.js` et ajouter la version en haut de `data/versions.mjs` (titre et nouveautés en langage simple).
+- Après toute modification d'un fichier mis en cache, changer `VERSION` dans `sw.js` (`paladines-v<version>.<révision>`, ex. `paladines-v20.9` : augmenter la révision, nom jamais utilisé avant) ; pour une nouvelle version, l'ajouter en haut de `data/versions.mjs` (titre et nouveautés en langage simple). Les versions v20 à v28 ont été réunies dans la v20.
 - Lisibilité : police système du téléphone (SF Pro sur iPhone, Roboto sur Android), échelle de tailles d'Apple (34/28/20/17/15/13/11), pictogrammes, cibles tactiles d'au moins 44 px, contraste AA même sur le verre. Même action = même apparence (« Appeler » toujours vert).
 
 ## Terminé

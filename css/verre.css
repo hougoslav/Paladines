@@ -38,19 +38,19 @@
   --accent-texte: #111113;
   --accent-chaud: #6b6b70;
   --accent-bouton: #111113;
-  --vert-bouton: #047857;
-  --rouge-bouton: #e11d48;
+  --vert-bouton: #2e7d32;
+  --rouge-bouton: #d32f2f;
   --logo: #111113;
   --trait: rgb(0 0 0 / 0.12);
   --trait-fort: rgb(0 0 0 / 0.22);
-  --ok: #03684b;
-  --ok-fond: rgb(16 185 129 / 0.14);
+  --ok: #1e6b25;
+  --ok-fond: rgb(46 125 50 / 0.13);
   --bientot: #3d3d42;
   --bientot-fond: rgb(0 0 0 / 0.06);
   --ferme: #5a5a60;
   --ferme-fond: rgb(0 0 0 / 0.06);
-  --urgent: #be123c;
-  --urgent-fond: rgb(244 63 94 / 0.12);
+  --urgent: #b71c1c;
+  --urgent-fond: rgb(211 47 47 / 0.12);
   --femmes: #111113;
   --femmes-fond: rgb(0 0 0 / 0.07);
   --femmes-trait: rgb(0 0 0 / 0.2);
@@ -121,21 +121,21 @@
     --accent: #f5f5f7;
     --accent-texte: #ffffff;
     --accent-chaud: #a1a1a6;
-    --vert-bouton: #047857;
-    --rouge-bouton: #e11d48;
+    --vert-bouton: #2e7d32;
+    --rouge-bouton: #d32f2f;
     --accent-bouton: #f5f5f7;
     --sur-accent: #111113;
     --logo: #f5f5f7;
     --trait: rgb(255 255 255 / 0.12);
     --trait-fort: rgb(255 255 255 / 0.2);
-    --ok: #34d399;
-    --ok-fond: rgb(52 211 153 / 0.16);
+    --ok: #6fd174;
+    --ok-fond: rgb(76 175 80 / 0.18);
     --bientot: #d1d1d6;
     --bientot-fond: rgb(255 255 255 / 0.08);
     --ferme: #a1a1aa;
     --ferme-fond: rgb(255 255 255 / 0.06);
-    --urgent: #fb7185;
-    --urgent-fond: rgb(251 113 133 / 0.16);
+    --urgent: #ff6b6b;
+    --urgent-fond: rgb(255 82 82 / 0.16);
     --femmes: #f5f5f7;
     --femmes-fond: rgb(255 255 255 / 0.1);
     --femmes-trait: rgb(255 255 255 / 0.28);
@@ -186,19 +186,19 @@
   --accent-chaud: #a1a1a6;
   --accent-bouton: #f5f5f7;
   --sur-accent: #111113;
-  --vert-bouton: #047857;
-  --rouge-bouton: #e11d48;
+  --vert-bouton: #2e7d32;
+  --rouge-bouton: #d32f2f;
   --logo: #f5f5f7;
   --trait: rgb(255 255 255 / 0.12);
   --trait-fort: rgb(255 255 255 / 0.2);
-  --ok: #34d399;
-  --ok-fond: rgb(52 211 153 / 0.16);
+  --ok: #6fd174;
+  --ok-fond: rgb(76 175 80 / 0.18);
   --bientot: #d1d1d6;
   --bientot-fond: rgb(255 255 255 / 0.08);
   --ferme: #a1a1aa;
   --ferme-fond: rgb(255 255 255 / 0.06);
-  --urgent: #fb7185;
-  --urgent-fond: rgb(251 113 133 / 0.16);
+  --urgent: #ff6b6b;
+  --urgent-fond: rgb(255 82 82 / 0.16);
   --femmes: #f5f5f7;
   --femmes-fond: rgb(255 255 255 / 0.1);
   --femmes-trait: rgb(255 255 255 / 0.28);
@@ -400,7 +400,7 @@ body:has(.hero) .entete {
   background: color-mix(in srgb, var(--rouge-bouton) 92%, transparent);
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.28), rgb(255 255 255 / 0) 60%);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -1px 0 rgb(0 0 0 / 0.1), 0 6px 16px -6px rgb(225 29 72 / 0.6);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -1px 0 rgb(0 0 0 / 0.1), 0 6px 16px -6px rgb(211 47 47 / 0.6);
 }
 .menu-langue {
   background-color: var(--verre-barre);
@@ -507,7 +507,7 @@ body:has(.hero) .entete {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
   border-color: rgb(255 255 255 / 0.35);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 10px 24px -12px rgb(4 120 87 / 0.7);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 10px 24px -12px rgb(46 125 50 / 0.7);
 }
 .actions--principales .action--appel .ic {
   color: #fff;
@@ -697,7 +697,7 @@ h2 {
 
 /* En-tête */
 .btn-quitter {
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 4px 12px -6px rgb(225 29 72 / 0.55);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 4px 12px -6px rgb(211 47 47 / 0.55);
 }
 
 /* Accueil : grand titre posé sur le fond, sans plaque ; le bouton principal porte l'action */
@@ -808,7 +808,7 @@ h2 {
 .appel-rapide .ic {
   background: var(--vert-bouton);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 4px 10px -4px rgb(4 120 87 / 0.6);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 4px 10px -4px rgb(46 125 50 / 0.6);
 }
 .appel-rapide:hover {
   background: transparent;
@@ -836,7 +836,7 @@ h2 {
   background-image: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
   border-color: rgb(255 255 255 / 0.35);
   color: #fff;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 6px 16px -8px rgb(4 120 87 / 0.6);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 6px 16px -8px rgb(46 125 50 / 0.6);
 }
 
 /* Pastilles : icône sur un fond neutre plein, sans reflet ni liseré (plus net) */
@@ -1101,19 +1101,19 @@ h2 {
   --lampe: #f4b63f;
   --lampe-encre: #1d1606;
   --lampe-voile: rgb(244 182 63 / 0.16);
-  --vert-bouton: #047857;
-  --rouge-bouton: #e11d48;
+  --vert-bouton: #2e7d32;
+  --rouge-bouton: #d32f2f;
   --quitter: var(--rouge-bouton);
   --trait: rgb(255 255 255 / 0.12);
   --trait-fort: rgb(255 255 255 / 0.2);
-  --ok: #4ade9a;
-  --ok-fond: rgb(74 222 154 / 0.16);
+  --ok: #6fd174;
+  --ok-fond: rgb(76 175 80 / 0.18);
   --bientot: #f6c35a;
   --bientot-fond: rgb(244 182 63 / 0.16);
   --ferme: #aab6c8;
   --ferme-fond: rgb(255 255 255 / 0.06);
-  --urgent: #ff8f9f;
-  --urgent-fond: rgb(255 143 159 / 0.16);
+  --urgent: #ff6b6b;
+  --urgent-fond: rgb(255 82 82 / 0.16);
   --femmes: #e2a8f0;
   --femmes-fond: rgb(123 47 134 / 0.32);
   --femmes-trait: rgb(226 168 240 / 0.35);
