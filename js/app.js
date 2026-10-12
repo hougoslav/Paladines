@@ -62,6 +62,7 @@
     marqueurMoi: null,
     carteCat: "toutes",
     carteOuvert: false,
+    carteEq: { t: false, e: false, s: false },
     carteCadree: false,
     meteo: null
   };
@@ -495,6 +496,7 @@
       "</section>" +
       '<section class="bloc urgences-rapides" aria-labelledby="h-urg">' +
       '<h2 id="h-urg" class="titre-bloc titre-bloc--urg">' + icone("i-tel") + esc(t("urgence")) + "</h2>" +
+      '<a class="btn btn--danger btn--aide" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>" +
       '<div class="urg-rapides">' + rapides + "</div>" +
       '<a class="lien-fleche" href="#urgences">' + esc(t("tousNumeros")) + icone("i-chevron", "chevron") + "</a>" +
       "</section>" +
@@ -699,6 +701,7 @@
       "<div><h1>" + esc(t("cat_" + id)) + '</h1><p class="sous-titre">' + esc(t("catd_" + id)) + "</p></div>" +
       "</header>" +
       rappel +
+      (id === "hygiene" ? '<a class="lien-fleche lien-eq" href="#carte-toilettes">' + icone("i-wc") + esc(t("eq_voirCarte")) + icone("i-chevron", "chevron") + "</a>" : "") +
       htmlOutils({ ouvert: true, filtres: true }) +
       '<div id="resultats">' + htmlListe(preparer(D.lieux.filter((l) => dansCat(l, id))), false) + "</div>"
     );
@@ -824,6 +827,7 @@
       htmlRetour() +
       '<header class="tete tete--urg"><span class="pastille pastille--grande">' + icone("i-tel") + "</span>" +
       "<div><h1>" + esc(t("urgTitre")) + '</h1><p class="sous-titre">' + esc(t("urgIntro")) + "</p></div></header>" +
+      '<a class="btn btn--danger btn--aide" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>" +
       '<ul class="liste-urg">' +
       D.urgences.map((u) =>
         '<li class="urg' + (u.couleur === "urgent" ? " urg--fort" : "") + '">' +
@@ -846,8 +850,8 @@
     sante: { ic: "i-croix", cat: "sante" },
     regles: { ic: "i-goutte", cat: "hygiene" },
     adresse: { ic: "i-papier", cat: "droits" },
-    papiers: { ic: "i-sac", cat: "bagagerie" },
-    securite: { ic: "i-sortie" }
+    papiers: { ic: "i-sac", cat: "bagagerie", lien: "https://www.reconnect.fr", lienTxt: "reconnectLien" },
+    securite: { ic: "i-sortie", aide: true }
   };
 
   function vueInfos(ouvrir) {
@@ -856,7 +860,9 @@
       const x = FICHES[f.id] || {};
       const liens = (x.tel || []).map((n) => '<a class="btn btn--appel" href="' + telLien(n) + '">' + icone("i-tel") + esc(t("appeler")) + ' <span dir="ltr">' + n + "</span></a>")
         .concat(x.sms ? ['<a class="btn btn--doux" href="sms:' + x.sms + '">' + icone("i-sms") + esc(t("envoyerSms")) + ' <span dir="ltr">' + x.sms + "</span></a>"] : [])
-        .concat(x.cat ? ['<a class="btn btn--doux" href="#cat-' + x.cat + '">' + icone(categorie(x.cat).icone) + esc(t("cat_" + x.cat)) + "</a>"] : []);
+        .concat(x.cat ? ['<a class="btn btn--doux" href="#cat-' + x.cat + '">' + icone(categorie(x.cat).icone) + esc(t("cat_" + x.cat)) + "</a>"] : [])
+        .concat(x.lien ? ['<a class="btn btn--doux" href="' + esc(x.lien) + '" target="_blank" rel="noopener noreferrer">' + icone("i-papier") + esc(t(x.lienTxt)) + "</a>"] : []);
+      if (x.aide) liens.push('<a class="btn btn--danger" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>");
       return liens.length ? '<div class="fiche-actions">' + liens.join("") + "</div>" : "";
     };
     return (
@@ -1062,6 +1068,7 @@
     });
     etat.carte = carte;
     etat.coucheLieux = L.layerGroup().addTo(carte);
+    etat.coucheEq = L.layerGroup().addTo(carte);
   }
 
   /* Fond de carte : OpenFreeMap « Positron » (gratuit, sans clé ni limite, données OpenStreetMap).
@@ -1203,6 +1210,9 @@
     barre.innerHTML =
       '<button type="button" class="puce puce--ouvert" data-action="carte-ouvert" aria-pressed="' + etat.carteOuvert + '">' + esc(t("f_ouvert")) + "</button>" +
       '<button type="button" class="puce puce--femmes" data-action="carte-femmes" aria-pressed="' + !!etat.carteFemmes + '">' + icone("i-coeur") + esc(t("carteFemmes")) + "</button>" +
+      [["t", "i-wc", "eq_puceToilettes"], ["e", "i-goutte", "eq_puceEau"], ["s", "i-bouclier", "eq_puceSurs"]].map((x) =>
+        '<button type="button" class="puce puce--eq" data-action="carte-eq" data-valeur="' + x[0] + '" aria-pressed="' + etat.carteEq[x[0]] + '">' + icone(x[1]) + esc(t(x[2])) + "</button>"
+      ).join("") +
       cats.map((c) =>
         '<button type="button" class="puce" data-action="carte-cat" data-valeur="' + c.id + '" aria-pressed="' + (etat.carteCat === c.id) + '"' +
         (c.couleur ? ' style="--c:' + c.couleur + '"' : "") + ">" +
@@ -1269,6 +1279,7 @@
         .on("click", () => ouvrirFicheCarte(p.l, p.acces))
         .addTo(etat.coucheLieux);
     });
+    majEquip();
   }
 
   // Les services sans adresse (115, équipe mobile…) se joignent de partout : un bouton sur la carte les rappelle
@@ -1309,6 +1320,126 @@
       etat.marqueurMoi.setLatLng(ll);
     }
     if (centrer && !document.getElementById("vue-carte").hidden) etat.carte.setView(ll, Math.max(etat.carte.getZoom(), 15));
+  }
+
+  /* ---------- Toilettes, eau potable, lieux sûrs (data/equipements.js, OpenStreetMap) ----------
+   * Identifiants : « eqt3 » (toilettes n° 3), « eqe12 » (eau), « eqs0 » (lieu sûr). */
+  const EQ = window.PALADINES_EQUIP || { t: [], e: [], s: [] };
+  const TYPES_EQ = { t: "toilettes", e: "eau" };
+
+  function equip(id) {
+    const m = /^eq([tes])(\d+)$/.exec(id || "");
+    if (!m) return null;
+    const x = (EQ[m[1]] || [])[Number(m[2])];
+    if (!x) return null;
+    const type = m[1] === "s" ? x[2] : TYPES_EQ[m[1]];
+    return {
+      id: id,
+      groupe: m[1],
+      type: type,
+      lat: x[0],
+      lng: x[1],
+      nom: (m[1] === "s" && x[3]) || t("eq_" + type),
+      tel: m[1] === "s" ? x[4] || "" : "",
+      payant: m[1] === "t" && /p/.test(x[2] || ""),
+      fauteuil: m[1] === "t" && /f/.test(x[2] || "")
+    };
+  }
+
+  const ICONE_EQ = { toilettes: "i-wc", eau: "i-goutte", police: "i-bouclier", urgences: "i-croix" };
+
+  function listeEquip(groupe) {
+    return (EQ[groupe] || []).map((_, i) => equip("eq" + groupe + i));
+  }
+
+  // Les lieux sûrs ouverts jour et nuit, du plus proche au plus loin
+  function lieuxSursProches(n) {
+    const liste = listeEquip("s");
+    if (!etat.position) return liste.slice(0, n);
+    return liste.map((x) => ({ x: x, d: distanceM(etat.position, x) })).sort((a, b) => a.d - b.d).slice(0, n).map((y) => y.x);
+  }
+
+  function majEquip() {
+    if (!etat.coucheEq) return;
+    etat.coucheEq.clearLayers();
+    const montrer = [];
+    if (etat.guide) {
+      const x = equip(etat.guide.id);
+      if (x) montrer.push(x);
+    } else {
+      Object.keys(etat.carteEq).forEach((g) => { if (etat.carteEq[g]) montrer.push(...listeEquip(g)); });
+    }
+    montrer.forEach((x) => {
+      const ic = L.divIcon({
+        className: "marqueur-boite",
+        html: '<span class="marqueur-eq marqueur-eq--' + x.type + (etat.ficheCarte === x.id ? " marqueur--choisi" : "") + '" data-id="' + x.id + '">' + icone(ICONE_EQ[x.type]) + "</span>",
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+      L.marker([x.lat, x.lng], { icon: ic, title: x.nom, alt: x.nom, interactive: !etat.guide })
+        .on("click", () => ouvrirFicheEquip(x))
+        .addTo(etat.coucheEq);
+    });
+  }
+
+  function ouvrirFicheEquip(x) {
+    const boite = document.getElementById("carte-fiche");
+    const details = [];
+    if (x.groupe === "t") {
+      details.push(t(x.payant ? "eq_payantes" : "eq_gratuites"));
+      if (x.fauteuil) details.push(t("eq_fauteuil"));
+    } else if (x.groupe === "e") details.push(t("eq_eauGratuite"));
+    etat.ficheCarte = x.id;
+    boite.style.removeProperty("--c");
+    boite.innerHTML =
+      '<div class="cf-tete"><span class="pastille">' + icone(ICONE_EQ[x.type]) + "</span>" +
+      '<div class="cf-titre">' + (x.nom !== t("eq_" + x.type) ? '<p class="cf-cat">' + esc(t("eq_" + x.type)) + "</p>" : "") + '<h2 class="cf-nom">' + esc(x.nom) + "</h2></div>" +
+      '<button type="button" class="cf-fermer" data-action="fermer-fiche-carte" aria-label="' + esc(t("fermer")) + '">' + SVG_FERMER + "</button></div>" +
+      (x.type === "urgences" ? '<p class="statut statut--ouvert">' + esc(t("h24")) + "</p>" : "") +
+      (details.length ? '<p class="lieu-meta">' + esc(details.join(" · ")) + "</p>" : "") +
+      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, x))) + "</p>" : "") +
+      '<p class="cf-source">' + esc(t("eq_source")) + "</p>" +
+      '<div class="cf-actions">' +
+      '<a class="btn btn--itin" href="#guide-' + x.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" +
+      (x.tel ? '<a class="btn btn--appel" href="' + telLien(x.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+      "</div>";
+    boite.hidden = false;
+    document.getElementById("vue-carte").classList.add("fiche-ouverte");
+    etat.telCarteOuvert = false;
+    majTelCarte();
+    majMarqueurChoisi();
+  }
+
+  /* ---------- « Je ne me sens pas en sécurité » ---------- */
+  function vueAide() {
+    const surs = lieuxSursProches(3);
+    const sms = "sms:114?&body=" + encodeURIComponent(t("aideSmsTexte"));
+    return (
+      htmlRetour() +
+      '<header class="tete tete--urg"><span class="pastille pastille--grande">' + icone("i-bouclier") + "</span>" +
+      "<div><h1>" + esc(t("aideTitre")) + '</h1><p class="sous-titre">' + esc(t("aideIntro")) + "</p></div></header>" +
+      '<ol class="aide-etapes">' +
+      '<li class="aide-etape"><h2>' + esc(t("aideDanger")) + "</h2>" +
+      '<a class="btn btn--appel btn--grand" href="' + telLien("17") + '">' + icone("i-tel") + esc(t("aideAppeler17")) + "</a></li>" +
+      '<li class="aide-etape"><h2>' + esc(t("aideParler")) + "</h2><p>" + esc(t("aideSmsExplique")) + "</p>" +
+      '<a class="btn btn--grand" href="' + esc(sms) + '">' + icone("i-sms") + esc(t("aideSms114")) + "</a></li>" +
+      '<li class="aide-etape"><h2>' + esc(t("aideLieuSur")) + "</h2><p>" + esc(t("aideLieuSurExplique")) + "</p>" +
+      (surs.length
+        ? '<ul class="aide-surs">' + surs.map((x) =>
+            '<li><span class="pastille">' + icone(ICONE_EQ[x.type]) + '</span><span class="aide-sur-txt"><strong>' + esc(x.nom) + "</strong>" +
+            "<small>" + esc(t("eq_" + x.type)) + (etat.position ? " · " + esc(formatDistance(distanceM(etat.position, x))) : "") + "</small></span>" +
+            '<a class="btn btn--itin btn--mini" href="#guide-' + x.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a></li>"
+          ).join("") + "</ul>"
+        : "") +
+      (etat.position ? "" : '<button type="button" class="btn btn--doux" data-action="proche-aide">' + icone("i-position") + esc(t("aidePlusProche")) + "</button>") +
+      "</li>" +
+      '<li class="aide-etape"><h2>' + esc(t("aideCommerce")) + "</h2><p>" + esc(t("aideCommerceExplique")) + "</p>" +
+      '<a class="btn btn--appel" href="' + telLien("3237") + '">' + icone("i-tel") + esc(t("aidePharmacie")) + ' <span dir="ltr">3237</span></a></li>' +
+      '<li class="aide-etape"><h2>' + esc(t("aideEcoute")) + "</h2><p>" + esc(t("urg_3919")) + "</p>" +
+      '<a class="btn btn--appel" href="' + telLien("3919") + '">' + icone("i-tel") + esc(t("appeler")) + ' <span dir="ltr">3919</span></a></li>' +
+      "</ol>" +
+      '<p class="rappel">' + icone("i-sortie") + esc(t("aideQuitter")) + "</p>"
+    );
   }
 
   /* ---------- Fiche d'un lieu sur la carte ----------
@@ -1354,7 +1485,7 @@
   function majMarqueurChoisi() {
     document.querySelectorAll(".marqueur--choisi").forEach((m) => m.classList.remove("marqueur--choisi"));
     if (!etat.ficheCarte) return;
-    const m = document.querySelector('.marqueur[data-id="' + etat.ficheCarte + '"]');
+    const m = document.querySelector('.carte [data-id="' + etat.ficheCarte + '"]');
     if (m) m.classList.add("marqueur--choisi");
   }
 
@@ -1428,14 +1559,17 @@
     if (etat.guide && etat.guide.id === id) return;
     arreterGuide();
     const l = lieu(id);
-    const pt = l ? pointCarte(l) : null;
+    const x = l ? null : equip(id);
+    const pt = l ? pointCarte(l) : x ? { lat: x.lat, lng: x.lng } : null;
     const zone = document.getElementById("vue-carte");
     zone.classList.add("en-guide");
     document.body.classList.add("en-guide");
     fermerFicheCarte();
     const g = (etat.guide = {
       id: id,
-      nomLieu: l ? l.nom : "",
+      nomLieu: l ? l.nom : x ? x.nom : "",
+      tel: l ? l.tel : x ? x.tel : "",
+      fiche: !!l,
       dest: pt ? { lat: pt.lat, lng: pt.lng } : null,
       etat: pt ? "position" : "erreur",
       erreur: pt ? null : "guideSansLieu",
@@ -1630,12 +1764,11 @@
 
     if (g.etat === "erreur") {
       haut.innerHTML = '<p class="guide-msg">' + icone("i-alerte") + esc(t(g.erreur)) + "</p>";
-      const l = lieu(g.id);
       bas.innerHTML =
         '<p class="guide-dest">' + esc(g.nomLieu) + "</p>" +
         '<div class="guide-boutons">' +
         (g.erreur !== "guideSansLieu" ? '<button type="button" class="btn" data-action="guide-reessayer">' + esc(t("guideReessayer")) + "</button>" : "") +
-        (l && l.tel ? '<a class="btn btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+        (g.tel ? '<a class="btn btn--appel" href="' + telLien(g.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
         '<button type="button" class="btn btn--doux" data-action="guide-arreter">' + esc(t("guideArreter")) + "</button></div>" +
         (g.dest && g.erreur !== "guideSansPlan" ? '<a class="guide-autre" target="_blank" rel="noopener noreferrer" href="' + esc(lienItineraire(g.dest)) + '">' + esc(t("guideAutreAppli")) + "</a>" : "");
       return;
@@ -1647,7 +1780,7 @@
     }
     if (g.etat === "arrivee") {
       haut.innerHTML = fleche("arrivee") + '<div class="guide-texte"><p class="guide-dist">' + esc(t("guideArrivee")) + '</p><p class="guide-consigne">' + esc(g.nomLieu) + "</p></div>";
-      bas.innerHTML = '<a class="btn btn--doux" href="#lieu-' + g.id + '">' + esc(t("voirFiche")) + "</a>" + boutonsBas(true);
+      bas.innerHTML = (g.fiche ? '<a class="btn btn--doux" href="#lieu-' + g.id + '">' + esc(t("voirFiche")) + "</a>" : "") + boutonsBas(true);
       return;
     }
     const tr = g.trajet;
@@ -1863,6 +1996,14 @@
         boite.querySelector(".ok").hidden = false;
         break;
       }
+      case "carte-eq":
+        etat.carteEq[el.dataset.valeur] = !etat.carteEq[el.dataset.valeur];
+        rendreBarreCarte();
+        majEquip();
+        break;
+      case "proche-aide":
+        demanderPosition();
+        break;
       case "fermer-fiche-carte":
         fermerFicheCarte();
         break;
@@ -2071,7 +2212,7 @@
   }
 
   function majNav(vue) {
-    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", infos: "infos", favoris: "favoris" };
+    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", aide: "urgences", infos: "infos", favoris: "favoris" };
     const actif = correspond[vue];
     document.querySelectorAll(".onglets a").forEach((a) => {
       if (a.dataset.onglet === actif) a.setAttribute("aria-current", "page");
@@ -2102,7 +2243,12 @@
     majNav(h.vue);
 
     if (h.vue === "carte" || h.vue === "guide") {
-      if (h.vue === "carte") arreterGuide();
+      if (h.vue === "carte") {
+        arreterGuide();
+        // « #carte-toilettes » : la carte avec les toilettes et l'eau potable
+        if (h.param === "toilettes") etat.carteEq.t = etat.carteEq.e = true;
+        if (h.param === "surs") etat.carteEq.s = true;
+      }
       afficherCarte();
       if (h.vue === "guide" && etat.carte) demarrerGuide(h.param);
       return;
@@ -2124,6 +2270,7 @@
       case "apropos": html = vueApropos(); break;
       case "signaler": html = vueSignaler(); break;
       case "pourvous": html = vuePourVous(h.param); break;
+      case "aide": html = vueAide(); break;
       default: html = vueAccueil();
     }
     const afficher = () => {
