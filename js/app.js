@@ -1054,13 +1054,12 @@
     const carte = L.map("carte", { zoomControl: false }).setView([ref.lat, ref.lng], D.ville.zoom);
     L.control.zoom({ position: "bottomright" }).addTo(carte);
     carte.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
-    // Fond CARTO « Dark Matter » : sobre et sombre, les repères jaunes ressortent. Données OpenStreetMap ;
-    // gratuit pour un usage non commercial avec la mention CARTO (voir README).
-    const fond = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      maxZoom: 20,
-      subdomains: "abcd",
+    // Fond OpenStreetMap, sans clé ; couleurs adoucies dans css/verre.css (section Carte) pour que
+    // les repères ressortent. (CARTO demande désormais une clé : refusé sur le site.)
+    const fond = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
       crossOrigin: "anonymous", // pour que le service worker puisse garder les tuiles hors ligne
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
     });
     let erreurs = 0;
     fond.on("tileerror", () => {

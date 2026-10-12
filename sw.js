@@ -1,7 +1,7 @@
 /*
  * Service worker : permet à l'appli de marcher sans internet.
  * - Fichiers de l'appli : servis depuis le cache, puis mis à jour en arrière-plan.
- * - Fonds de carte (CARTO) : gardés au fur et à mesure (300 au plus).
+ * - Fonds de carte (OpenStreetMap) : gardés au fur et à mesure (300 au plus).
  * VERSION = « paladines-v<version>.<révision> » : changer la révision à chaque mise en
  * ligne force la mise à jour du cache ; la version affichée (et ses nouveautés) est en
  * haut de data/versions.mjs (montrée sur /equipe). Le nom doit être nouveau à chaque fois.
@@ -12,8 +12,8 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v21.0";
-const CACHE_TUILES = "paladines-tuiles";
+const VERSION = "paladines-v21.1";
+const CACHE_TUILES = "paladines-tuiles-2"; // nouveau nom : efface les tuiles CARTO refusées gardées en cache
 const MAX_TUILES = 300;
 
 const FICHIERS = [
@@ -69,7 +69,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  if (url.hostname.endsWith(".basemaps.cartocdn.com")) {
+  if (url.hostname === "tile.openstreetmap.org") {
     e.respondWith(tuile(req));
     return;
   }
