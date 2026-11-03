@@ -1,3 +1,6 @@
 docs/bande-annonce/ecrans/
 docs/bande-annonce/images/
 docs/bande-annonce/*.wav
+
+# Fichiers de travail de l équipe (autorisations des lieux) : pas sur le site
+*.xlsx
