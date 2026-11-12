@@ -1,79 +1,79 @@
-/* Paladines — style unique « bleu nuit et jaune », en Liquid Glass
+/* Paladines — style unique « blanc et bleu Paladines »
  * Se charge APRÈS style.css et theme.css et redéfinit leurs jetons (sélecteur
  * :root[data-theme="paladines"], posé dans index.html et par l'appli).
- * - Fond uni bleu nuit, sans lueurs ni dégradés.
- * - Verre : surfaces transparentes floutées, liseré de lumière, reflet discret.
- * - Peu de couleurs, des couleurs franches : jaune (actions principales, choix), vert
- *   (ouvert, appeler), rouge (quitter, urgences), bleu (itinéraire, liens), blanc (texte).
+ * - Fond presque blanc, cartes blanches à bord fin et ombre douce, bandeau bleu Paladines en haut de l'accueil.
+ * - Peu de couleurs, des couleurs franches : bleu Paladines (actions principales, choix), vert
+ *   (ouvert, appeler), rouge (quitter, urgences), bleu vif (itinéraire, position), texte bleu nuit.
  * - Police du téléphone, échelle de tailles d'Apple, cibles de 44 px au moins.
- * - « Réduire la transparence », navigateurs sans flou, couleurs forcées : surfaces opaques.
  * Contraste AA vérifié sur le rendu réel.
  */
 
 /* ============ 1. Jetons ============ */
 :root[data-theme="paladines"] {
-  color-scheme: dark;
+  color-scheme: light;
 
   /* Les couleurs de l'appli, et seulement elles */
-  --fond: #0b1b36;
-  --jaune: #ffc400;
-  --sur-jaune: #0b1b36;
+  --bleu-pal: #0b1b36;      /* le bleu Paladines : bandeau, boutons principaux, choix */
+  --bleu-pal-clair: #e8eef8; /* son voile, pour les pictogrammes et l'onglet choisi */
+  --fond: #f3f6fb;          /* fond de page, presque blanc */
+  --jaune: var(--bleu-pal); /* l'ancien accent jaune devient le bleu Paladines */
+  --sur-jaune: #ffffff;
   --vert: #2e7d32;
-  --vert-texte: #43c759;
+  --vert-texte: #1e6b27;
   --rouge: #d32f2f;
-  --rouge-texte: #ff6b63;
+  --rouge-texte: #c0262a;
   --bleu: #1e63d6;
-  --bleu-texte: #7cb0ff;
+  --bleu-texte: #1a56c0;
   --blanc: #ffffff;
-  --gris: #c3cddd;
+  --gris: #4b5b78;
 
-  /* Verre */
-  --verre: rgb(255 255 255 / 0.06);
-  --verre-survol: rgb(255 255 255 / 0.1);
-  --verre-fort: rgb(255 255 255 / 0.12);
-  --verre-barre: rgb(11 27 54 / 0.72);
-  --verre-bord: rgb(255 255 255 / 0.12);
-  --reflet: linear-gradient(160deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0) 45%);
-  --liseré: inset 0 1px 0 rgb(255 255 255 / 0.16);
-  --ombre-verre: 0 8px 24px -14px rgb(0 0 0 / 0.7);
-  --ombre-flottante: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 12px 32px -12px rgb(0 0 0 / 0.75);
-  --flou: blur(20px) saturate(160%);
+  /* Surfaces : cartes blanches, bord fin, ombre douce */
+  --verre: #ffffff;
+  --verre-survol: #f0f4fa;
+  --verre-fort: #e8eef8;
+  --verre-barre: rgb(255 255 255 / 0.94);
+  --verre-bord: rgb(11 27 54 / 0.12);
+  --reflet: none;
+  --liseré: 0 0 #0000;
+  --ombre-verre: 0 1px 2px rgb(11 27 54 / 0.06), 0 6px 16px -10px rgb(11 27 54 / 0.18);
+  --ombre-flottante: 0 1px 2px rgb(11 27 54 / 0.08), 0 10px 28px -10px rgb(11 27 54 / 0.32);
+  --flou: blur(16px) saturate(140%);
 
   /* Jetons de style.css et theme.css, ramenés à cette palette */
-  --nuit: var(--verre-barre);
+  --nuit: var(--bleu-pal);
   --nuit-2: var(--verre);
   --nuit-3: var(--verre-survol);
   --papier: var(--fond);
   --surface: var(--verre);
   --surface-2: var(--verre-survol);
-  --encre: var(--blanc);
+  --encre: var(--bleu-pal);
   --encre-douce: var(--gris);
-  --trait: rgb(255 255 255 / 0.12);
-  --trait-fort: rgb(255 255 255 / 0.22);
-  --lampe: var(--jaune);
-  --lampe-encre: var(--sur-jaune);
-  --lampe-voile: rgb(255 196 0 / 0.14);
+  --trait: rgb(11 27 54 / 0.1);
+  --trait-fort: rgb(11 27 54 / 0.22);
+  --lampe: var(--bleu-pal);
+  --lampe-encre: #ffffff;
+  --lampe-voile: var(--bleu-pal-clair);
   --lien: var(--bleu-texte);
-  --focus: var(--jaune);
+  --focus: var(--bleu);
   --sur-nuit: var(--blanc);
-  --sur-nuit-doux: var(--gris);
-  --sur-nuit-voile: rgb(255 255 255 / 0.08);
+  --sur-nuit-doux: #c3cddd;
+  --sur-nuit-voile: var(--bleu-pal-clair);
   --sur-nuit-filet: rgb(255 255 255 / 0.14);
   --quitter: var(--rouge);
   --ok: var(--vert-texte);
-  --ok-fond: rgb(67 199 89 / 0.14);
-  --bientot: var(--jaune);
-  --bientot-fond: rgb(255 196 0 / 0.12);
-  --ferme: #a3b2c8;
-  --ferme-fond: rgb(255 255 255 / 0.06);
+  --ok-fond: #e6f3e7;
+  --bientot: #a05300;
+  --bientot-fond: #fff3e0;
+  --ferme: #5d6b84;
+  --ferme-fond: #eef1f6;
   --urgent: var(--rouge-texte);
-  --urgent-fond: rgb(211 47 47 / 0.18);
-  --femmes: var(--jaune);
-  --femmes-fond: rgb(255 196 0 / 0.12);
-  --femmes-trait: rgb(255 196 0 / 0.4);
-  --femmes-encre: var(--sur-jaune);
-  --ombre-1: var(--liseré), var(--ombre-verre);
-  --ombre-2: var(--liseré), var(--ombre-verre);
+  --urgent-fond: #fdeaea;
+  --femmes: var(--bleu-pal);
+  --femmes-fond: var(--bleu-pal-clair);
+  --femmes-trait: rgb(11 27 54 / 0.3);
+  --femmes-encre: #ffffff;
+  --ombre-1: var(--ombre-verre);
+  --ombre-2: var(--ombre-verre);
   --ombre-flot: var(--ombre-flottante);
   --teinte-fond: 0%;
   --clair-ic: 0%;
@@ -93,7 +93,7 @@ body {
   background: var(--fond);
 }
 body {
-  color: var(--blanc);
+  color: var(--encre);
   font-size: 1.0625rem;
   line-height: 1.47;
   letter-spacing: -0.006em;
@@ -144,7 +144,7 @@ a {
   font-weight: 700;
   letter-spacing: -0.017em;
   text-transform: none;
-  color: var(--blanc);
+  color: var(--encre);
 }
 .titre-bloc--urg {
   color: var(--rouge-texte);
@@ -232,7 +232,7 @@ body:has(.hero) .entete {
 }
 .btn-entete {
   border-radius: 999px;
-  color: var(--blanc);
+  color: var(--encre);
 }
 .btn-entete:hover {
   background: var(--verre-survol);
@@ -240,7 +240,7 @@ body:has(.hero) .entete {
 .btn-quitter {
   border-radius: 999px;
   background: var(--rouge);
-  color: var(--blanc);
+  color: var(--encre);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3), 0 4px 12px -6px rgb(211 47 47 / 0.8);
 }
 .menu-langue {
@@ -251,7 +251,7 @@ body:has(.hero) .entete {
   box-shadow: var(--ombre-flottante);
 }
 .menu-langue button {
-  color: var(--blanc);
+  color: var(--encre);
 }
 
 /* ============ 5. Accueil ============ */
@@ -263,7 +263,7 @@ body:has(.hero) .entete {
   border-radius: 0;
   background: none;
   box-shadow: none;
-  color: var(--blanc);
+  color: var(--encre);
 }
 .hero-pour {
   font-size: 0.9375rem;
@@ -306,7 +306,7 @@ body:has(.hero) .entete {
 }
 /* Infos du moment : une alerte = jaune, le reste = verre */
 .im-carte {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .im-ic {
   background: var(--sur-nuit-voile);
@@ -357,7 +357,7 @@ body:has(.hero) .entete {
   gap: 8px;
   padding: 16px 6px 14px;
   border-radius: var(--r);
-  color: var(--blanc);
+  color: var(--encre);
 }
 .tuile-nom {
   font-size: 0.9375rem;
@@ -406,7 +406,7 @@ body:has(.hero) .entete {
 
 /* Urgences rapides : numéros en rouge */
 .urg-rapide {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .urg-rapide-num {
   color: var(--rouge-texte);
@@ -433,7 +433,7 @@ body:has(.hero) .entete {
 .btn--doux {
   border: 1px solid var(--verre-bord);
   background: var(--verre) var(--reflet);
-  color: var(--blanc);
+  color: var(--encre);
   box-shadow: var(--liseré), var(--ombre-verre);
   filter: none;
 }
@@ -449,41 +449,41 @@ body:has(.hero) .entete {
   border: 0;
   background: var(--vert);
   background-image: none;
-  color: var(--blanc);
+  color: var(--encre);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 8px 20px -12px rgb(46 125 50 / 0.8);
 }
 .actions--principales .action--appel .ic {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .btn--danger,
 .btn--danger:hover {
   background: var(--rouge);
-  color: var(--blanc);
+  color: var(--encre);
 }
 .actions--principales .action--principale:not(.action--appel) {
   border: 0;
   background: var(--bleu);
   background-image: none;
-  color: var(--blanc);
+  color: var(--encre);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 8px 20px -12px rgb(30 99 214 / 0.8);
 }
 .actions--principales .action--principale:not(.action--appel) .ic {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .leaflet-container a.btn {
   color: var(--sur-jaune);
 }
 .leaflet-container a.btn--appel {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .leaflet-container a.btn--doux {
-  color: var(--blanc);
+  color: var(--encre);
 }
 
 /* Puces : capsules de verre ; choisie = jaune */
 .puce {
   border-radius: 999px;
-  color: var(--blanc);
+  color: var(--encre);
   font-weight: 600;
 }
 .puce[aria-pressed="true"] {
@@ -567,7 +567,7 @@ body:has(.hero) .entete {
   align-items: center;
   gap: 14px;
   padding: 14px 4px 14px 16px;
-  color: var(--blanc);
+  color: var(--encre);
 }
 .lieu .chevron {
   color: var(--gris);
@@ -613,7 +613,7 @@ body:has(.hero) .entete {
 }
 .appel-rapide .ic {
   background: var(--vert);
-  color: var(--blanc);
+  color: var(--encre);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
 }
 .appel-rapide:hover {
@@ -634,7 +634,7 @@ body:has(.hero) .entete {
   color: var(--gris);
 }
 .rappel {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .rappel .ic {
   color: var(--rouge-texte);
@@ -644,7 +644,7 @@ body:has(.hero) .entete {
 .sommaire-femmes .puce {
   border-color: var(--femmes-trait);
   background-color: var(--femmes-fond);
-  color: var(--blanc);
+  color: var(--encre);
 }
 
 /* ============ 8. Fiche d'un lieu ============ */
@@ -675,7 +675,7 @@ body:has(.hero) .entete {
 }
 .action {
   border-radius: 18px;
-  color: var(--blanc);
+  color: var(--encre);
   font-weight: 600;
 }
 .action .ic {
@@ -775,7 +775,7 @@ body:has(.hero) .entete {
   border-radius: var(--r);
 }
 .urg-num {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .urg--fort .urg-num {
   color: var(--rouge-texte);
@@ -801,7 +801,7 @@ body:has(.hero) .entete {
 .onglets a {
   gap: 2px;
   border-radius: 999px;
-  color: var(--blanc);
+  color: var(--encre);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0;
@@ -832,11 +832,6 @@ body:has(.hero) .entete {
 .carte {
   background: #f2f3f0;
 }
-/* Sur le fond clair de la carte, le verre est plus foncé pour que le texte blanc reste lisible */
-.vue-carte {
-  --verre: rgb(11 27 54 / 0.9);
-  --verre-barre: rgb(11 27 54 / 0.9);
-}
 /* Tuiles OpenStreetMap (secours) : couleurs adoucies, proches du fond OpenFreeMap « Positron » */
 .carte .fond-tuiles {
   filter: saturate(0.45) contrast(0.95);
@@ -865,7 +860,7 @@ body:has(.hero) .entete {
 .leaflet-bar a {
   border: 1px solid var(--verre-bord);
   background-color: var(--verre-barre);
-  color: var(--blanc);
+  color: var(--encre);
   box-shadow: var(--ombre-flottante);
   -webkit-backdrop-filter: var(--flou);
   backdrop-filter: var(--flou);
@@ -908,7 +903,7 @@ body:has(.hero) .entete {
 .leaflet-popup-content-wrapper {
   border-radius: 20px;
   background-color: var(--verre-barre);
-  color: var(--blanc);
+  color: var(--encre);
 }
 .leaflet-popup-tip {
   background: var(--verre-barre);
@@ -924,7 +919,7 @@ body:has(.hero) .entete {
   color: var(--gris) !important;
 }
 .leaflet-control-attribution a {
-  color: var(--blanc) !important;
+  color: var(--encre) !important;
 }
 /* Repères : jaune = ouvert maintenant ; gris bleuté = fermé ou horaires inconnus */
 .marqueur {
@@ -936,9 +931,9 @@ body:has(.hero) .entete {
 .marqueur--ferme {
   filter: none;
   opacity: 1;
-  background: #33435e;
-  color: #dbe2ee;
-  border-color: rgb(255 255 255 / 0.35);
+  background: #d5dce8;
+  color: #3d4b63;
+  border-color: #ffffff;
 }
 .marqueur--protege {
   border-style: dashed;
@@ -964,7 +959,7 @@ body:has(.hero) .entete {
   border: 1px solid var(--verre-bord);
   border-radius: 24px;
   background: var(--verre-barre) var(--reflet);
-  color: var(--blanc);
+  color: var(--encre);
   box-shadow: var(--liseré), var(--ombre-flottante);
   -webkit-backdrop-filter: var(--flou);
   backdrop-filter: var(--flou);
@@ -1001,8 +996,8 @@ body:has(.hero) .entete {
   margin: -6px -8px 0 0;
   border: 0;
   border-radius: 50%;
-  background: rgb(255 255 255 / 0.1);
-  color: var(--blanc);
+  background: var(--verre-fort);
+  color: var(--encre);
   cursor: pointer;
 }
 [dir="rtl"] .cf-fermer {
@@ -1309,7 +1304,7 @@ body.en-guide .onglets,
   border: 1px solid rgb(255 196 0 / 0.45);
   border-radius: var(--r-petit, 14px);
   background: rgb(255 196 0 / 0.1);
-  color: var(--blanc);
+  color: var(--encre);
 }
 .note-equipe .ic {
   flex: none;
@@ -1421,10 +1416,10 @@ body.en-guide .onglets,
   padding: 10px 12px;
   border: 1px solid var(--verre-bord);
   border-radius: 12px;
-  background: rgb(255 255 255 / 0.08);
-  color: var(--blanc);
+  background: var(--verre-fort);
+  color: var(--encre);
   font: inherit;
-  color-scheme: dark;
+  color-scheme: light;
 }
 .form-carnet .btn {
   justify-self: start;
@@ -1442,7 +1437,7 @@ body.en-guide .onglets,
   gap: 10px;
   align-items: center;
   margin: 0 0 14px;
-  color: var(--blanc);
+  color: var(--encre);
   text-decoration: none;
 }
 .rappel-rdv .ic:first-child {
@@ -1523,7 +1518,7 @@ html[data-facile] .hero-pour {
   max-width: 26rem;
   padding: 3px;
   border-radius: 24px;
-  background: rgb(255 255 255 / 0.08);
+  background: var(--verre-fort);
 }
 .choix .puce,
 .choix .puce:hover {
@@ -1535,7 +1530,7 @@ html[data-facile] .hero-pour {
   border: 0;
   background: none;
   box-shadow: none;
-  color: var(--blanc);
+  color: var(--encre);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -1561,7 +1556,7 @@ html[data-facile] .hero-pour {
   border-radius: var(--r);
 }
 .liens-bas a {
-  color: var(--blanc);
+  color: var(--encre);
 }
 .liens-bas .ic {
   color: var(--jaune);
@@ -1577,16 +1572,12 @@ html[data-facile] .hero-pour {
 /* ============ 15. Confort ============ */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root[data-theme="paladines"] {
-    --verre: #172843;
-    --verre-survol: #1e3252;
-    --verre-barre: #0e2042;
+    --verre-barre: #ffffff;
   }
 }
 @media (prefers-reduced-transparency: reduce) {
   :root[data-theme="paladines"] {
-    --verre: #172843;
-    --verre-survol: #1e3252;
-    --verre-barre: #0e2042;
+    --verre-barre: #ffffff;
     --reflet: none;
   }
 }
@@ -1603,4 +1594,203 @@ html[data-facile] .hero-pour {
   .fiche > summary .chevron {
     transition: none;
   }
+}
+
+/* ============ 16. Blanc et bleu Paladines ============ */
+/* Texte blanc sur les boutons de couleur pleine */
+.btn-quitter,
+.btn--appel,
+.actions--principales .action--appel,
+.actions--principales .action--appel .ic,
+.btn--danger,
+.btn--danger:hover,
+.liste-urg .btn,
+.actions--principales .action--principale:not(.action--appel),
+.actions--principales .action--principale:not(.action--appel) .ic,
+.leaflet-container a.btn--appel,
+.appel-rapide .ic,
+.puce[aria-pressed="true"],
+.choix .puce[aria-pressed="true"] {
+  color: #fff;
+}
+.btn,
+.btn:hover {
+  box-shadow: 0 6px 16px -10px rgb(11 27 54 / 0.6);
+  filter: none;
+}
+.btn:hover {
+  background: #17305e;
+}
+.btn--doux,
+.btn--doux:hover {
+  box-shadow: var(--ombre-verre);
+}
+.btn--doux:hover {
+  background: var(--verre-survol);
+}
+.btn--appel:hover {
+  background: #276b2b;
+}
+
+/* En-tête blanc, logo bleu */
+.entete {
+  background: var(--verre-barre);
+  box-shadow: inset 0 -1px 0 var(--trait);
+}
+body:has(.hero) .entete {
+  box-shadow: none;
+}
+.logo-lanterne {
+  fill: var(--bleu-pal);
+}
+.marque-nom {
+  color: var(--bleu-pal);
+}
+.btn-entete:hover {
+  background: var(--verre-survol);
+}
+
+/* Accueil : bandeau bleu Paladines sur toute la largeur, comme une page d'accueil de site */
+.hero {
+  position: relative;
+  margin-top: -16px;
+  padding: 26px 0 30px;
+  background: var(--bleu-pal);
+  box-shadow: 0 0 0 100vmax var(--bleu-pal);
+  clip-path: inset(0 -100vmax);
+  color: #fff;
+}
+.hero-pour {
+  color: #c3cddd;
+}
+.hero-titre,
+.hero-titre span {
+  color: #fff;
+}
+.cta-proche,
+.cta-proche:hover {
+  min-height: 76px;
+  background: #fff;
+  color: var(--bleu-pal);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.55);
+}
+.cta-ic {
+  background: var(--bleu);
+  color: #fff;
+}
+.cta-txt small {
+  color: var(--gris);
+  opacity: 1;
+}
+
+/* Tuiles des besoins : cartes blanches, pictogramme bleu dans un rond bleu clair */
+.tuile {
+  padding: 18px 6px 14px;
+  border-radius: 18px;
+}
+.pastille,
+.tete .pastille {
+  --c: var(--bleu-pal) !important;
+  border-radius: 50%;
+  background: var(--bleu-pal-clair) !important;
+  color: var(--bleu-pal) !important;
+}
+.tuile--femmes,
+.im--femmes {
+  border-color: var(--femmes-trait);
+  background-color: #fff;
+  box-shadow: inset 0 0 0 1px var(--femmes-trait), var(--ombre-verre);
+}
+.tuile--femmes .tuile-nom {
+  color: var(--bleu-pal);
+}
+.tuile--femmes .pastille,
+.tete--femmes .pastille,
+.tete--proche .pastille,
+.im--alerte .im-ic,
+.im--femmes .im-ic {
+  background: var(--bleu-pal) !important;
+  color: #fff !important;
+}
+.im--alerte {
+  border-color: #f0b46a;
+  background-color: var(--bientot-fond);
+}
+.im--alerte .im-ic {
+  background: var(--bientot) !important;
+}
+.tuile-nb--inconnu {
+  color: var(--gris);
+}
+.statut--bientot {
+  color: var(--bientot);
+}
+.horaires tr.auj th,
+.horaires tr.auj td {
+  color: var(--bleu-pal);
+  background: var(--bleu-pal-clair);
+}
+
+/* Barre d'onglets : capsule blanche, onglet choisi en bleu clair */
+.onglets {
+  background: rgb(255 255 255 / 0.96);
+}
+.onglets a {
+  color: var(--gris);
+}
+.onglets a[aria-current="page"] {
+  background: var(--bleu-pal-clair);
+  color: var(--bleu-pal);
+}
+
+/* Carte : repères ouverts en bleu Paladines, fiche et barres blanches */
+.marqueur {
+  background: var(--bleu-pal);
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 3px 10px -3px rgb(11 27 54 / 0.6);
+}
+.marqueur--choisi {
+  box-shadow: 0 0 0 4px var(--bleu), 0 6px 16px -4px rgb(11 27 54 / 0.6);
+}
+.marqueur--protege {
+  box-shadow: 0 0 0 3px rgb(30 99 214 / 0.4), 0 3px 10px -3px rgb(11 27 54 / 0.6);
+}
+.btn-tel-carte[aria-expanded="true"] {
+  color: #fff;
+}
+.guide-haut--erreur {
+  color: var(--encre);
+}
+.guide-attente {
+  border-color: rgb(11 27 54 / 0.2);
+  border-top-color: var(--bleu-pal);
+}
+.guide-haut:not(.guide-haut--erreur) .guide-attente {
+  border-color: rgb(255 255 255 / 0.3);
+  border-top-color: #fff;
+}
+.guide-msg .ic {
+  color: var(--bleu);
+}
+.guide-voix[aria-pressed="true"] {
+  color: #fff;
+}
+
+/* Notes de l'équipe et lecture à voix haute */
+.note-equipe {
+  border-color: rgb(11 27 54 / 0.2);
+  background: var(--bleu-pal-clair);
+}
+.note-equipe--ferme {
+  border-color: rgb(211 47 47 / 0.4);
+  background: var(--urgent-fond);
+}
+.btn-lire-page {
+  color: #fff;
+}
+.btn-lire-page[aria-pressed="true"] {
+  background: #fff;
+  color: var(--bleu-pal);
+  box-shadow: inset 0 0 0 2px var(--bleu-pal), var(--ombre-flottante);
 }

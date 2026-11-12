@@ -8,6 +8,17 @@
  */
 export const VERSIONS = [
   {
+    v: 28,
+    date: "2026-11-12",
+    titre: "Nouveau style : blanc et bleu Paladines",
+    nouveautes: [
+      "L'appli passe du fond bleu nuit à un fond blanc, plus clair et plus lisible en plein jour, inspiré des sites d'aide comme Soliguide.",
+      "Sur l'accueil, un bandeau bleu Paladines avec le grand bouton blanc « Ouvert maintenant, près de moi ».",
+      "Les besoins sont des cartes blanches avec leur pictogramme bleu ; le jaune disparaît, le bleu Paladines sert aux boutons et aux choix.",
+      "Les couleurs d'action ne changent pas : vert pour appeler, rouge pour quitter et les urgences, bleu vif pour l'itinéraire."
+    ]
+  },
+  {
     v: 27,
     date: "2026-11-12",
     titre: "157 lieux de plus à Lille, Lomme et Hellemmes",
