@@ -121,7 +121,7 @@ pouvoir la remplacer.
 
 ## Sources de données possibles
 
-Le prototype contient **56 vrais lieux de Lille**, relevés sur internet en octobre 2026 et
+Le prototype contient **213 vrais lieux de Lille** (56 relevés en octobre, 157 ajoutés en novembre depuis la liste Soliguide), tous relevés sur des sources publiques et
 contre-vérifiés, mais **pas encore confirmés par téléphone**. La liste, les sources et ce qui
 reste à vérifier sont dans [`LIEUX-LILLE.md`](LIEUX-LILLE.md).
 
