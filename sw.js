@@ -13,7 +13,7 @@
  * on la recopie donc sans redirection avant de la garder, et /index.html partage
  * l'entrée de /.
  */
-const VERSION = "paladines-v29.0";
+const VERSION = "paladines-v30.0";
 const CACHE_TUILES = "paladines-tuiles-2"; // nouveau nom : efface les tuiles CARTO refusées gardées en cache
 const MAX_TUILES = 600;
 // Plan des rues pour le guidage (≈ 1 Mo) : gardé à part, pour ne pas le retélécharger à chaque
@@ -25,9 +25,7 @@ const FICHIERS = [
   "./",
   "affiche.html",
   "manifest.webmanifest",
-  "css/style.css",
-  "css/theme.css",
-  "css/verre.css",
+  "css/app.css",
   "js/app.js",
   "js/i18n.js",
   "js/chemins.js",

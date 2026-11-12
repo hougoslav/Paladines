@@ -68,6 +68,7 @@
     carteEq: { t: false, e: false, s: false },
     carteCadree: false,
     recherche: "",
+    focusRecherche: false,
     panneau: null, // sur ordinateur : les lieux de la liste, montrés sur la carte à côté
     panneauCle: "",
     meteo: null
@@ -613,10 +614,10 @@
   function htmlFormRecherche() {
     return (
       '<form class="recherche" role="search" data-recherche action="#recherche">' +
-      '<label class="recherche-titre" for="q">' + esc(t("rechTitre")) + "</label>" +
+      '<label class="visuellement-cache" for="q">' + esc(t("rechTitre")) + "</label>" +
       '<div class="recherche-champ">' + icone("i-loupe") +
-      '<input id="q" name="q" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" maxlength="60" placeholder="' + esc(t("rechExemple")) + '" value="' + esc(etat.recherche) + '">' +
-      '<button type="submit" class="recherche-btn">' + icone("i-loupe") + "<span>" + esc(t("rechBouton")) + "</span></button>" +
+      '<input id="q" name="q" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" maxlength="60" placeholder="' + esc(t("rechTitre")) + '" value="' + esc(etat.recherche) + '">' +
+      '<button type="submit" class="visuellement-cache">' + esc(t("rechBouton")) + "</button>" +
       "</div></form>"
     );
   }
@@ -642,39 +643,23 @@
     // « Pour les femmes » en premier, puis les grandes catégories (comme Soliguide), puis « Toutes »
     const tuiles = htmlTuilesFamilles(maintenant, tuile);
 
-    const rapides = [
-      { num: "115", txt: t("urg115") },
-      { num: "3919", txt: t("urg3919") },
-      { num: "17", txt: t("urg17") }
-    ].map((u) => '<a class="urg-rapide" href="' + telLien(u.num) + '"><span class="urg-rapide-num">' + u.num + '</span><span class="urg-rapide-txt">' + esc(u.txt) + "</span></a>").join("");
-
-    const epingles = ["i-lit", "i-bol", "i-coeur", "i-goutte", "i-croix"]
-      .map((ic, i) => '<span class="epingle epingle--' + i + '">' + icone(ic) + "</span>").join("");
-
+    // Accueil épuré : le titre, la recherche, « près de moi », les catégories, et le bouton de sécurité
     return (
-      '<section class="hero">' +
-      '<div class="hero-epingles" aria-hidden="true">' + epingles + "</div>" +
-      '<p class="hero-pour">' + esc(t("heroPour")) + "</p>" +
-      '<h1 class="hero-titre"><span>' + esc(t("bonjour")) + "</span> " + esc(t("besoin")) + "</h1>" +
+      '<header class="accueil-tete"><p class="accueil-pour">' + esc(t("heroPour")) + "</p>" +
+      "<h1>" + esc(t("bonjour")) + " " + esc(t("besoin")) + "</h1></header>" +
       htmlFormRecherche() +
       '<a class="cta-proche" href="#proche">' +
       '<span class="cta-ic">' + icone("i-position") + "</span>" +
       '<span class="cta-txt"><strong>' + esc(t("procheCta")) + "</strong><small>" + esc(t("procheSous")) + "</small></span>" +
       icone("i-chevron", "chevron") + "</a>" +
-      "</section>" +
-      '<section class="bloc bloc--categories" aria-labelledby="h-cherche">' +
+      htmlRappelRdv() +
+      htmlBandeauInstallation() +
+      htmlAlertes(maintenant) +
+      '<section class="bloc" aria-labelledby="h-cherche">' +
       '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
       '<ul class="grille-cat">' + tuiles + "</ul>" +
       "</section>" +
-      htmlRappelRdv() +
-      htmlBandeauInstallation() +
-      htmlInfosMoment(maintenant) +
-      '<section class="bloc urgences-rapides" aria-labelledby="h-urg">' +
-      '<h2 id="h-urg" class="titre-bloc titre-bloc--urg">' + icone("i-tel") + esc(t("urgence")) + "</h2>" +
-      '<a class="btn btn--danger btn--aide" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>" +
-      '<div class="urg-rapides">' + rapides + "</div>" +
-      '<a class="lien-fleche" href="#urgences">' + esc(t("tousNumeros")) + icone("i-chevron", "chevron") + "</a>" +
-      "</section>" +
+      '<a class="ligne-aide" href="#aide">' + icone("i-bouclier") + "<span>" + esc(t("aideBouton")) + "</span>" + icone("i-chevron", "chevron") + "</a>" +
       '<p class="maj">' + esc(t("prototype")) + "<br>" + esc(t("donneesDu", { date: formatDate(D.majDonnees) })) + "</p>"
     );
   }
@@ -682,28 +667,9 @@
 
   /* ---------- Infos du moment ----------
    * Calculées à chaque affichage : la période de l'année (data/lieux.js, « infos »), la météo de Lille
-   * (Open-Meteo, gardée 3 h sur le téléphone) et les lieux ouverts ou qui ouvrent bientôt.
-   * Elles défilent toutes seules ; on peut mettre en pause ou glisser du doigt. */
+   * (Open-Meteo, gardée 3 h sur le téléphone). Une ligne par alerte sur l'accueil. */
   const METEO_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.63&longitude=3.06&daily=temperature_2m_min,temperature_2m_max,precipitation_sum&timezone=Europe%2FParis&forecast_days=3";
   const DEFILEMENT_MS = 6000;
-
-  // Ouvert maintenant ({ ouvert: true, fin }) ou prochaine ouverture aujourd'hui ({ ouvert: false, debut, dans } en minutes)
-  function momentLieu(l, maintenant) {
-    if (!l.horaires || l.horaires === "24/7") return null;
-    const jour = maintenant.getDay();
-    const m = maintenant.getHours() * 60 + maintenant.getMinutes();
-    for (const p of plages(l, JOURS[(jour + 6) % 7])) {
-      if (enMinutes(p[1]) <= enMinutes(p[0]) && m < enMinutes(p[1])) return { ouvert: true, fin: p[1] };
-    }
-    let prochain = null;
-    for (const p of plages(l, JOURS[jour])) {
-      const d = enMinutes(p[0]);
-      const f = enMinutes(p[1]);
-      if ((f > d && m >= d && m < f) || (f <= d && m >= d)) return { ouvert: true, fin: p[1] };
-      if (d > m && (!prochain || d - m < prochain.dans)) prochain = { ouvert: false, debut: p[0], dans: d - m };
-    }
-    return prochain;
-  }
 
   // Une période « MM-JJ » à « MM-JJ » (qui peut passer le nouvel an, comme le plan hiver)
   function dansPeriode(x, maintenant) {
@@ -750,93 +716,19 @@
       infos.push({ type: x.type || "info", icone: x.type === "alerte" ? "i-alerte" : "i-info", texte: x.texte[etat.langue] || x.texte.fr, lien: x.lien });
     });
 
-    // Les lieux : le plus proche d'abord si la position est connue
-    const proche = (a, b) => (etat.position && aCoord(a.l) && aCoord(b.l) ? distanceM(etat.position, a.l) - distanceM(etat.position, b.l) : 0);
-    const candidats = (filtre) => D.lieux.filter(filtre).map((l) => ({ l: l, mo: momentLieu(l, maintenant) })).filter((x) => x.mo);
-    const ouvertDabord = (liste) => liste.filter((x) => x.mo.ouvert).sort(proche)[0];
-    const bientot = (liste, max) => liste.filter((x) => !x.mo.ouvert && x.mo.dans <= max).sort((a, b) => a.mo.dans - b.mo.dans)[0];
-    const lieuInfo = (cat, cle, x, h) => ({ type: "lieu", icone: categorie(cat).icone, c: categorie(cat).couleur, texte: t(cle, { nom: x.l.nom, h: formatHeure(h) }), lien: "#lieu-" + x.l.id });
-
-    const dormir = candidats((l) => dansCat(l, "dormir"));
-    const dOuvert = ouvertDabord(dormir);
-    const dSoir = bientot(dormir, 600);
-    if (dOuvert) infos.push(lieuInfo("dormir", "im_dormirOuvert", dOuvert, dOuvert.mo.fin));
-    else if (dSoir) infos.push(lieuInfo("dormir", "im_dormirSoir", dSoir, dSoir.mo.debut));
-
-    const manger = candidats((l) => dansCat(l, "manger"));
-    const mOuvert = ouvertDabord(manger);
-    const mBientot = bientot(manger, 180);
-    if (mOuvert) infos.push(lieuInfo("manger", "im_mangerOuvert", mOuvert, mOuvert.mo.fin));
-    else if (mBientot) infos.push(lieuInfo("manger", "im_mangerBientot", mBientot, mBientot.mo.debut));
-
-    const laver = D.lieux.filter((l) => dansCat(l, "hygiene") && statut(l, maintenant).ouvert === true).length;
-    if (laver) infos.push({ type: "lieu", icone: categorie("hygiene").icone, c: categorie("hygiene").couleur, texte: t(laver === 1 ? "im_laver1" : "im_laver", { n: laver }), lien: "#cat-hygiene" });
-
-    const femmes = ouvertDabord(candidats((l) => { const f = pourFemmes(l); return f && f.niveau !== "specialise"; }));
-    if (femmes) infos.push({ type: "femmes", icone: "i-coeur", texte: t("im_femmes", { nom: femmes.l.nom, h: formatHeure(femmes.mo.fin) }), lien: "#lieu-" + femmes.l.id });
     return infos;
   }
 
-  function htmlInfosMoment(maintenant) {
+  // Les alertes du moment (froid, chaleur, plan hiver…) : une ligne chacune, sans défilement
+  function htmlAlertes(maintenant) {
     const infos = infosDuMoment(maintenant);
     if (!infos.length) return "";
-    const n = infos.length;
-    const cartes = infos.map((x, i) => {
-      const contenu = '<span class="im-ic"' + (x.c ? ' style="--c:' + x.c + '"' : "") + ">" + icone(x.icone) + "</span><span class=\"im-txt\">" + esc(x.texte) + "</span>" + (x.lien ? icone("i-chevron", "chevron") : "");
-      const attrs = ' class="im-carte im--' + x.type + '" role="group" aria-roledescription="info" aria-label="' + esc(t("im_numero", { i: i + 1, n: n })) + '"';
-      return x.lien ? "<a" + attrs + ' href="' + esc(x.lien) + '">' + contenu + "</a>" : "<div" + attrs + ">" + contenu + "</div>";
-    }).join("");
-    return (
-      '<section class="infos-moment" aria-roledescription="carrousel" aria-label="' + esc(t("im_titre")) + '">' +
-      '<div class="im-piste">' + cartes + "</div>" +
-      (n > 1
-        ? '<div class="im-ctrl">' +
-          infos.map((x, i) => '<button type="button" class="im-point" data-action="im-aller" data-i="' + i + '" aria-label="' + esc(t("im_numero", { i: i + 1, n: n })) + '"></button>').join("") +
-          "</div>"
-        : "") +
-      "</section>"
-    );
+    return '<ul class="alertes" aria-label="' + esc(t("im_titre")) + '">' + infos.map((x) => {
+      const contenu = '<span class="alerte-ic">' + icone(x.icone) + '</span><span class="alerte-txt">' + esc(x.texte) + "</span>" + (x.lien ? icone("i-chevron", "chevron") : "");
+      return '<li class="alerte alerte--' + x.type + '">' + (x.lien ? '<a href="' + esc(x.lien) + '">' + contenu + "</a>" : "<div>" + contenu + "</div>") + "</li>";
+    }).join("") + "</ul>";
   }
 
-  // Défilement : toutes les 6 s, en pause quand on touche, survole ou lit l'info, ou si l'on préfère moins d'animations
-  const im = { minuterie: null, index: 0, retenue: false };
-  function demarrerDefilement() {
-    clearInterval(im.minuterie);
-    const boite = document.querySelector("#vue .infos-moment");
-    if (!boite) return;
-    const piste = boite.querySelector(".im-piste");
-    const n = piste.children.length;
-    const doux = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    const sens = getComputedStyle(piste).direction === "rtl" ? -1 : 1;
-    const courant = () => Math.round(Math.abs(piste.scrollLeft) / Math.max(1, piste.clientWidth));
-    const marquer = () => {
-      im.index = courant();
-      boite.querySelectorAll(".im-point").forEach((b, k) => b.setAttribute("aria-current", String(k === im.index)));
-    };
-    im.aller = (i, anime) => {
-      piste.scrollTo({ left: sens * i * piste.clientWidth, behavior: anime && doux ? "smooth" : "auto" });
-      im.index = i;
-      boite.querySelectorAll(".im-point").forEach((b, k) => b.setAttribute("aria-current", String(k === i)));
-    };
-    // Après un rafraîchissement de l'accueil, reprendre là où l'on en était
-    im.aller(Math.min(im.index, n - 1), false);
-    let attente = null;
-    piste.addEventListener("scroll", () => { clearTimeout(attente); attente = setTimeout(marquer, 100); }, { passive: true });
-    const retenir = (oui) => () => { im.retenue = oui; };
-    boite.addEventListener("pointerenter", retenir(true));
-    boite.addEventListener("pointerleave", retenir(false));
-    boite.addEventListener("focusin", retenir(true));
-    boite.addEventListener("focusout", retenir(false));
-    piste.addEventListener("touchstart", retenir(true), { passive: true });
-    piste.addEventListener("touchend", () => setTimeout(retenir(false), 4000), { passive: true });
-    if (n < 2 || !doux) return;
-    im.minuterie = setInterval(() => {
-      if (im.retenue || document.hidden || !document.body.contains(piste)) return;
-      im.aller((courant() + 1) % n, true);
-    }, DEFILEMENT_MS);
-  }
-
-  // « Pour les femmes » : les lieux réservés, les créneaux, la santé et les droits, les protections périodiques
   function vuePourVous(ancre) {
     const groupes = ["reserve", "creneau", "specialise"].map((niveau) => {
       const lieux = D.lieux.filter((l) => { const f = pourFemmes(l); return f && f.niveau === niveau; });
@@ -1448,7 +1340,7 @@
   function fondTuiles(carte) {
     const fond = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      className: "fond-tuiles", // couleurs adoucies dans css/verre.css
+      className: "fond-tuiles", // couleurs adoucies dans css/app.css
       crossOrigin: "anonymous", // pour que le service worker puisse garder les tuiles hors ligne
       attribution: ATTRIB_OSM
     });
@@ -2477,8 +2369,6 @@
         } else if (etat.position && etat.position.source === "gps") majMoiSurCarte(true);
         else demanderPosition();
         break;
-      case "im-aller":
-        if (im.aller) im.aller(Number(el.dataset.i), true);
         break;
       case "tel-carte":
         etat.telCarteOuvert = !etat.telCarteOuvert;
@@ -2636,7 +2526,7 @@
     remplirMenuLangue();
     html.style.fontSize = Math.round([100, 115, 132][etat.taille] * (etat.facile ? 1.1 : 1)) + "%";
     html.toggleAttribute("data-facile", !!etat.facile);
-    // Un seul style : bleu nuit et jaune (« Paladines »)
+    // Un seul style (css/app.css), clair ou sombre selon le téléphone
     html.setAttribute("data-theme", "paladines");
     document.querySelectorAll("[data-t]").forEach((el) => {
       el.textContent = t(el.dataset.t);
@@ -2745,9 +2635,17 @@
       main.innerHTML = html;
       main.dataset.vue = h.vue;
       majBoutonLirePage();
-      demarrerDefilement();
       if (h.vue === "reglages") dessinerQrSite();
       majPanneau();
+      if (etat.focusRecherche) {
+        etat.focusRecherche = false;
+        const q = document.getElementById("q");
+        if (q) {
+          q.focus({ preventScroll: true });
+          q.setSelectionRange(q.value.length, q.value.length);
+          return;
+        }
+      }
 
       if (opts.rafraichir) return;
       const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param)
@@ -2777,6 +2675,8 @@
 
   /* ---------- Démarrage ---------- */
   function demarrer() {
+    // L'appli remet chaque page en haut elle-même (pas de reprise du défilement au rechargement)
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     chargerMeteo();
     lirePositionQR();
     chargerCorrections();
@@ -2792,7 +2692,14 @@
     let minuterieNote = null;
     let minuterieRecherche = null;
     document.addEventListener("input", (e) => {
-      if (e.target.id === "q" && vueCourante().vue === "recherche") {
+      if (e.target.id === "q" && vueCourante().vue !== "recherche") {
+        // Comme sur iPhone : dès qu'on tape, la page de recherche s'ouvre et garde le clavier
+        etat.recherche = e.target.value.slice(0, 60);
+        etat.focusRecherche = true;
+        location.hash = "#recherche";
+        return;
+      }
+      if (e.target.id === "q") {
         clearTimeout(minuterieRecherche);
         minuterieRecherche = setTimeout(() => {
           etat.recherche = e.target.value.trim().slice(0, 60);

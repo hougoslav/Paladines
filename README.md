@@ -33,9 +33,7 @@ Pour tester un QR code d'affiche : `http://localhost:3000/?pres=50.6366,3.0707&n
 ```
 index.html             la page de l'appli (en-tête, onglets, pictogrammes)
 affiche.html           générateur d'affiches et d'autocollants avec QR code
-css/style.css          toute la mise en forme (thème clair et sombre)
-css/theme.css          le style choisi par le groupe (« Nuit raffinée »), chargé après style.css
-css/verre.css          le style de l'appli : « Liquid Glass » bleu nuit et jaune, chargé en dernier
+css/app.css            toute la mise en forme : style Apple épuré, clair ou sombre (aussi pour affiche.html)
 js/app.js              la logique : vues, horaires, distances, carte, réglages
 js/i18n.js             les textes en 9 langues : français, anglais, arabe, espagnol, roumain, ukrainien, dari, pachto, tigrinya
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence
