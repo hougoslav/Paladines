@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Paladines — bande-annonce</title>
+<style>
+  :root { --fond: #0b1b36; --jaune: #ffc400; --rouge: #ff5a4e; --gris: #c3cddd; --bleu: #1e63d6; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+  body { font-family: "Inter Display", Inter, system-ui, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  #scene { position: absolute; inset: 0; background: radial-gradient(1200px 900px at 60% 45%, #10284f 0%, var(--fond) 60%, #08152b 100%); overflow: hidden; }
+  .abs { position: absolute; will-change: transform, opacity; }
+  /* Titres */
+  .kicker { font-size: 30px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--jaune); }
+  .titre { font-size: 92px; font-weight: 700; line-height: 1.04; letter-spacing: -.03em; }
+  .sous { font-size: 38px; font-weight: 400; line-height: 1.35; color: var(--gris); }
+  .bloc-texte { left: 170px; top: 50%; width: 900px; transform: translateY(-50%); }
+  .bloc-texte .titre { margin: 18px 0 22px; }
+  .centre { left: 0; right: 0; text-align: center; }
+  /* Téléphone */
+  .tel { width: 452px; height: 942px; border-radius: 74px; background: #04101f; padding: 16px;
+    box-shadow: 0 0 0 2px rgb(255 255 255 / .16), 0 0 0 9px #0e1c33, 0 0 0 11px rgb(255 255 255 / .08), 0 60px 120px -30px rgb(0 0 0 / .8), 0 0 140px -20px rgb(255 196 0 / .12); }
+  .ecran { position: relative; width: 420px; height: 910px; border-radius: 58px; overflow: hidden; background: #0b1b36; }
+  .ecran img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ile { position: absolute; top: 14px; left: 50%; width: 120px; height: 34px; margin-left: -60px; border-radius: 20px; background: #000; z-index: 5; }
+  .doigt { width: 90px; height: 90px; border-radius: 50%; border: 5px solid #fff; background: rgb(255 255 255 / .25); z-index: 6; }
+  .anneau { border: 6px solid var(--jaune); border-radius: 999px; z-index: 6; box-shadow: 0 0 40px rgb(255 196 0 / .6); }
+  .logo { width: 220px; height: 220px; }
+  .mot { font-size: 150px; font-weight: 800; letter-spacing: -.04em; }
+  .langues { font-size: 40px; color: var(--gris); letter-spacing: .02em; }
+  .langues b { color: #fff; font-weight: 600; }
+  .noir { inset: 0; background: #000; }
+  .qr { width: 230px; height: 230px; padding: 14px; border-radius: 22px; background: #fff; }
+  .url { font-size: 54px; font-weight: 700; color: var(--jaune); letter-spacing: -.01em; }
+</style>
+</head>
+<body>
+<div id="scene">
+  <!-- 1. Accroche -->
+  <div class="abs centre" id="a1" style="top:400px">
+    <p class="kicker" style="font-size:36px">Chaque soir, à Lille,</p>
+    <p class="titre" style="margin-top:24px">des femmes cherchent<br>où dormir.</p>
+  </div>
+  <!-- 2. Les besoins -->
+  <div class="abs centre mot" id="m0" style="top:430px">Dormir.</div>
+  <div class="abs centre mot" id="m1" style="top:430px">Manger.</div>
+  <div class="abs centre mot" id="m2" style="top:430px">Se laver.</div>
+  <div class="abs centre mot" id="m3" style="top:430px;color:var(--jaune)">Être en sécurité.</div>
+  <!-- 3. Logo -->
+  <div class="abs centre" id="logo" style="top:250px">
+    <img class="logo" src="logo.svg" alt="">
+    <p class="titre" style="font-size:150px;margin-top:20px">Paladines</p>
+    <p class="sous" style="font-size:44px;margin-top:8px">Les lieux ouverts maintenant, près de vous.</p>
+  </div>
+  <!-- Textes des écrans -->
+  <div class="abs bloc-texte" id="t4"><p class="kicker">Ouvert maintenant, près de moi</p><p class="titre">L'essentiel,<br>tout de suite.</p><p class="sous">56 lieux à Lille, du plus proche<br>au plus loin, ouverts ou non.</p></div>
+  <div class="abs bloc-texte" id="t5"><p class="kicker">La carte</p><p class="titre">Un lieu,<br>trois gestes.</p><p class="sous">Y aller · Appeler · Voir la fiche</p></div>
+  <div class="abs bloc-texte" id="t6"><p class="kicker">Guidage à pied</p><p class="titre">Guidée<br>pas à pas.</p><p class="sous">Même sans réseau.<br>La position ne quitte jamais le téléphone.</p></div>
+  <div class="abs bloc-texte" id="t7"><p class="kicker">Au quotidien</p><p class="titre">Toilettes, eau,<br>lieux sûrs.</p><p class="sous">Sur la carte, avec le chemin<br>pour y aller.</p></div>
+  <div class="abs bloc-texte" id="t8"><p class="kicker" style="color:var(--rouge)">En danger</p><p class="titre">Un seul<br>bouton.</p><p class="sous">Le 17, un SMS au 114 déjà écrit,<br>le lieu sûr le plus proche.</p></div>
+  <div class="abs bloc-texte" id="t10"><p class="kicker">Discrète</p><p class="titre">Sans compte.<br>Gratuite.</p><p class="sous">« Quitter » ferme tout, d'un geste.</p></div>
+  <!-- Téléphone principal -->
+  <div class="abs tel" id="tel" style="left:1210px;top:69px">
+    <div class="ecran"><div class="ile"></div><img id="ecA" alt=""><img id="ecB" alt=""></div>
+  </div>
+  <div class="abs doigt" id="doigt"></div>
+  <div class="abs anneau" id="anneau"></div>
+  <!-- 9. Langues : trois téléphones -->
+  <div class="abs centre" id="t9" style="top:70px"><p class="titre" style="font-size:84px">9 langues.</p></div>
+  <div class="abs tel" id="tl0" style="left:330px;top:120px"><div class="ecran"><div class="ile"></div><img src="ecrans/08-ar.png" alt=""></div></div>
+  <div class="abs tel" id="tl1" style="left:734px;top:95px"><div class="ecran"><div class="ile"></div><img src="ecrans/08-uk.png" alt=""></div></div>
+  <div class="abs tel" id="tl2" style="left:1138px;top:120px"><div class="ecran"><div class="ile"></div><img src="ecrans/08-ti.png" alt=""></div></div>
+  <div class="abs centre langues" id="lg" style="top:985px"><b>Français</b> · English · <bdi>العربية</bdi> · Español · Română · Українська · <bdi>دری</bdi> · <bdi>پښتو</bdi> · ትግርኛ</div>
+  <!-- 11. Fin -->
+  <div class="abs centre" id="fin" style="top:170px">
+    <img class="logo" style="width:170px;height:170px" src="logo.svg" alt="">
+    <p class="titre" style="font-size:120px;margin-top:14px">Paladines</p>
+    <p class="sous" style="margin-top:6px">Pour les femmes à la rue, à Lille.</p>
+    <div style="display:flex;gap:56px;align-items:center;justify-content:center;margin-top:54px">
+      <canvas class="qr" id="qr" width="460" height="460"></canvas>
+      <div style="text-align:left"><p class="url">paladines.pages.dev</p><p class="sous" style="margin-top:12px">Gratuite · sans compte · sans internet<br>Scannez, c'est ouvert.</p></div>
+    </div>
+  </div>
+  <div class="abs noir" id="noir"></div>
+</div>
+<script src="qrcode.js"></script>
+<script>
+// Bande-annonce image par image : rendre(t) place tout pour l'instant t (en secondes).
+const DUREE = 64;
+const $ = (id) => document.getElementById(id);
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const ease = (x) => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const out = (x) => 1 - Math.pow(1 - clamp(x), 3);
+// Apparition (de a, durée d) et disparition (à b, durée d)
+const fenetre = (t, a, b, d = .6) => Math.min(out((t - a) / d), out((b - t) / d));
+function pose(id, o, tx = 0, ty = 0, s = 1, extra = "") {
+  const e = $(id);
+  e.style.opacity = o;
+  e.style.visibility = o <= 0.001 ? "hidden" : "visible";
+  const base = e.classList.contains("bloc-texte") ? "translateY(-50%) " : "";
+  e.style.transform = base + `translate(${tx}px, ${ty}px) scale(${s}) ${extra}`;
+}
+
+// Écrans du téléphone principal, de t0 à t1
+const ECRANS = [
+  [15, 19.2, "ecrans/01-accueil.png"],
+  [19.2, 22.5, "ecrans/02-proche.png"],
+  [22.5, 28.5, "ecrans/04b-carte-fiche.png"],
+  [28.5, 35, "ecrans/05-guide.png"],
+  [35, 40.5, "ecrans/06-equipements.png"],
+  [40.5, 47, "ecrans/07-aide.png"],
+  [52, 58, "ecrans/01-accueil.png"]
+];
+function ecransA(t) {
+  let i = ECRANS.findIndex((x) => t >= x[0] && t < x[1]);
+  if (i === -1) i = t < 15 ? 0 : t < 52 ? 5 : 6;
+  const [a, , src] = ECRANS[i];
+  const prec = i > 0 && i !== 6 ? ECRANS[i - 1][2] : src;
+  const f = out((t - a) / .5);
+  if ($("ecA").getAttribute("src") !== prec) $("ecA").setAttribute("src", prec);
+  if ($("ecB").getAttribute("src") !== src) $("ecB").setAttribute("src", src);
+  $("ecB").style.opacity = f;
+  $("ecB").style.transform = `translateX(${(1 - f) * 40}px)`;
+}
+
+// Doigt qui touche un endroit de l'écran (coordonnées de l'appli 390×844)
+function doigt(t, at, x, y) {
+  const k = 420 / 390, tel = $("tel").getBoundingClientRect();
+  const d = t - at, o = d < -0.4 || d > 0.7 ? 0 : d < 0 ? out((d + .4) / .4) : 1 - out(d / .7);
+  const s = d < 0 ? 1.15 - .15 * out((d + .4) / .4) : 1 + .5 * out(d / .7);
+  $("doigt").style.left = (tel.left + 16 + x * k - 45) + "px";
+  $("doigt").style.top = (tel.top + 16 + y * k - 45) + "px";
+  pose("doigt", o, 0, 0, s);
+}
+
+function rendre(t) {
+  // 1. Accroche
+  pose("a1", fenetre(t, .6, 4.6, .9), 0, (1 - out((t - .6) / 1.2)) * 30);
+  // 2. Les besoins, un mot par seconde
+  ["m0", "m1", "m2", "m3"].forEach((id, i) => {
+    const a = 5 + i * 1.15, b = i === 3 ? 9.7 : a + 1.15;
+    pose(id, fenetre(t, a, b, .3), 0, 0, .94 + .06 * out((t - a) / .5));
+  });
+  // 3. Logo
+  const l = fenetre(t, 10.2, 14.6, .9);
+  pose("logo", l, 0, (1 - out((t - 10.2) / 1.4)) * 40, .96 + .04 * out((t - 10.2) / 2));
+  // Téléphone : entre à 15, sort à 47 ; revient à 52, sort à 57.6
+  const p1 = Math.min(ease((t - 15) / 1), ease((47.2 - t) / .8));
+  const p2 = Math.min(ease((t - 52) / .9), ease((57.8 - t) / .7));
+  const p = t < 50 ? p1 : p2;
+  const flotte = Math.sin(t * 1.1) * 6;
+  pose("tel", clamp(p * 1.4), (1 - p) * 500, flotte + (1 - p) * 60, 1);
+  ecransA(t);
+  if (t < 22) doigt(t, 18.7, 160, 222);  // « Ouvert maintenant, près de moi »
+  else doigt(t, 25.6, 112, 658);         // « Y aller »
+  // Anneau sur « Quitter »
+  const k = 420 / 390, tr = $("tel").getBoundingClientRect();
+  const an = fenetre(t, 53.6, 57.3, .5);
+  Object.assign($("anneau").style, { left: (tr.left + 16 + 262 * k) + "px", top: (tr.top + 16 + 4 * k) + "px", width: (114 * k) + "px", height: (46 * k) + "px" });
+  pose("anneau", an, 0, 0, 1 + .06 * Math.sin(t * 6));
+  // Textes à gauche
+  [["t4", 15.4, 22.4], ["t5", 22.8, 28.4], ["t6", 28.8, 34.9], ["t7", 35.3, 40.4], ["t8", 40.8, 46.8], ["t10", 52.4, 57.5]].forEach(([id, a, b]) => {
+    pose(id, fenetre(t, a, b, .55), (1 - out((t - a) / .8)) * -40);
+  });
+  // 9. Langues
+  const lg = fenetre(t, 47.4, 51.9, .7);
+  pose("t9", lg, 0, (1 - out((t - 47.4) / 1)) * 20);
+  pose("lg", lg);
+  ["tl0", "tl1", "tl2"].forEach((id, i) => {
+    const a = 47.6 + i * .25, q = Math.min(ease((t - a) / .9), ease((51.9 - t) / .6));
+    const rot = (i - 1) * 6 * q;
+    pose(id, clamp(q * 1.3), 0, (1 - q) * 300, i === 1 ? .82 : .76, `rotate(${rot}deg)`);
+  });
+  // 11. Fin
+  pose("fin", fenetre(t, 58.2, 70, 1), 0, (1 - out((t - 58.2) / 1.4)) * 30);
+  // Fondus au noir : début et fin
+  const n = Math.max(1 - out(t / .8), out((t - 62.6) / 1.4));
+  $("noir").style.opacity = n;
+}
+
+// QR code de l'adresse de l'appli
+(function () {
+  const q = qrcode(0, "M"); q.addData("https://paladines.pages.dev/"); q.make();
+  const c = $("qr"), n = q.getModuleCount(), m = 2, s = c.width / (n + 2 * m), x = c.getContext("2d");
+  x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.fillStyle = "#0b1b36";
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (q.isDark(i, j)) x.fillRect((j + m) * s, (i + m) * s, Math.ceil(s), Math.ceil(s));
+})();
+window.rendre = rendre;
+window.DUREE = DUREE;
+rendre(Number(new URLSearchParams(location.search).get("t") || 0));
+</script>
+</body>
+</html>

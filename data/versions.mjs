@@ -8,6 +8,18 @@
  */
 export const VERSIONS = [
   {
+    v: 27,
+    date: "2026-11-12",
+    titre: "157 lieux de plus à Lille, Lomme et Hellemmes",
+    nouveautes: [
+      "213 lieux au lieu de 56 : accueils, distributions des Restos du Cœur, épiceries solidaires, permanences du CIDFF, points-justice, mairies de quartier, Maisons Nord Solidarités, médiathèques, musées gratuits…",
+      "Repérés à partir de la liste Soliguide, puis chacun revérifié sur les sites officiels (Ville, Département, associations), avec les sources sur la fiche.",
+      "Lieux réservés aux femmes bien rangés : accueil santé de l'ADSF, lits de soins pour femmes d'Eole, Maison des Marraines.",
+      "Les lieux fermés en ce moment (centres des Restos du Cœur avant la campagne d'hiver) affichent « Fermé en ce moment ».",
+      "41 lieux encore peu sûrs sont à confirmer par téléphone (liste dans docs/LIEUX-LILLE.md)."
+    ]
+  },
+  {
     v: 26,
     date: "2026-10-12",
     titre: "6 nouvelles langues",
