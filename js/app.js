@@ -67,6 +67,9 @@
     carteOuvert: false,
     carteEq: { t: false, e: false, s: false },
     carteCadree: false,
+    recherche: "",
+    panneau: null, // sur ordinateur : les lieux de la liste, montrés sur la carte à côté
+    panneauCle: "",
     meteo: null
   };
 
@@ -109,6 +112,44 @@
 
   function lieu(id) {
     return D.lieux.find((l) => l.id === id);
+  }
+
+  // Les grandes catégories de l'accueil (comme Soliguide) : chacune regroupe un ou plusieurs besoins
+  function famille(id) {
+    return D.familles.find((f) => f.id === id);
+  }
+  function dansFamille(l, f) {
+    return f.cats.some((c) => dansCat(l, c));
+  }
+  function nomFamille(f) {
+    return t(f.cats.length === 1 && f.id === "ecoute" ? "cat_ecoute" : "fam_" + f.id);
+  }
+  function lienFamille(f) {
+    return f.cats.length === 1 ? "#cat-" + f.cats[0] : "#rubrique-" + f.id;
+  }
+
+  /* Recherche dans les lieux : nom, structure, services, conditions, adresse et nom du besoin.
+   * Le mot cherché reste en mémoire, jamais dans l'adresse de la page (discrétion). */
+  function sansAccents(s) {
+    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
+  function texteRecherche(l) {
+    if (!l._texte) {
+      const cats = [l.cat].concat(l.autresCats || []);
+      l._texte = sansAccents([l.nom, l.structure, l.adresseMasquee ? "" : l.adresse, (l.services || []).join(" "), l.conditions]
+        .concat(cats.map((c) => (TR.fr["cat_" + c] || "") + " " + (TR.fr["catd_" + c] || ""))).join(" "));
+    }
+    const cats = [l.cat].concat(l.autresCats || []);
+    return l._texte + " " + sansAccents(cats.map((c) => t("cat_" + c) + " " + t("catd_" + c)).join(" "));
+  }
+  function chercher(q) {
+    const mots = sansAccents(q).split(/[^\p{L}\p{N}]+/u).filter((m) => m.length > 1)
+      .map((m) => (m.length > 3 ? m.replace(/[sx]$/, "") : m));
+    if (!mots.length) return [];
+    return D.lieux.filter((l) => {
+      const txt = texteRecherche(l);
+      return mots.every((m) => txt.indexOf(m) !== -1);
+    });
   }
 
   // Un lieu n'apparaît sur la carte et n'a de distance que si ses coordonnées sont connues et publiques
@@ -559,6 +600,27 @@
   }
 
   /* ---------- Vues ---------- */
+  // Les tuiles des catégories : « Pour les femmes », les grandes catégories, puis « Toutes les catégories »
+  function htmlTuilesFamilles(maintenant, tuile) {
+    return tuile("#pourvous", t("femmesTitre"), t("femmesSous"), "i-coeur", D.lieux.filter(pourFemmes), 'class="tuile tuile--femmes"') +
+      D.familles.map((f) =>
+        tuile(lienFamille(f), nomFamille(f), "", f.icone, D.lieux.filter((l) => dansFamille(l, f)), 'class="tuile"')
+      ).join("") +
+      tuile("#rubrique-toutes", t("fam_toutes"), "", "i-grille", D.lieux, 'class="tuile tuile--toutes"');
+  }
+
+  // « Que recherchez-vous ? » : sur l'accueil et en haut de la page de recherche
+  function htmlFormRecherche() {
+    return (
+      '<form class="recherche" role="search" data-recherche action="#recherche">' +
+      '<label class="recherche-titre" for="q">' + esc(t("rechTitre")) + "</label>" +
+      '<div class="recherche-champ">' + icone("i-loupe") +
+      '<input id="q" name="q" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" maxlength="60" placeholder="' + esc(t("rechExemple")) + '" value="' + esc(etat.recherche) + '">' +
+      '<button type="submit" class="recherche-btn">' + icone("i-loupe") + "<span>" + esc(t("rechBouton")) + "</span></button>" +
+      "</div></form>"
+    );
+  }
+
   function vueAccueil() {
     const maintenant = new Date();
 
@@ -572,16 +634,13 @@
         '<li><a href="' + lien + '" ' + attrs + ' aria-label="' + esc(nom + (aide ? " (" + aide + ")" : "") + " : " + nbLong) + '">' +
         '<span class="pastille">' + icone(ic) + "</span>" +
         '<span class="tuile-nom">' + esc(nom) + "</span>" +
+        (aide ? '<span class="tuile-aide" aria-hidden="true">' + esc(aide) + "</span>" : "") +
         '<span class="tuile-nb' + (n ? " tuile-nb--ouvert" : inconnus ? " tuile-nb--inconnu" : "") + '" aria-hidden="true">' + esc(nb) + "</span>" +
         "</a></li>"
       );
     };
-    // « Pour les femmes » en premier, dans sa couleur prune, puis les besoins
-    const tuiles =
-      tuile("#pourvous", t("femmesTitre"), t("femmesSous"), "i-coeur", D.lieux.filter(pourFemmes), 'class="tuile tuile--femmes"') +
-      D.categories.map((c) =>
-        tuile("#cat-" + c.id, t("cat_" + c.id), "", c.icone, D.lieux.filter((l) => dansCat(l, c.id)), 'class="tuile" style="--c:' + c.couleur + '"')
-      ).join("");
+    // « Pour les femmes » en premier, puis les grandes catégories (comme Soliguide), puis « Toutes »
+    const tuiles = htmlTuilesFamilles(maintenant, tuile);
 
     const rapides = [
       { num: "115", txt: t("urg115") },
@@ -589,22 +648,27 @@
       { num: "17", txt: t("urg17") }
     ].map((u) => '<a class="urg-rapide" href="' + telLien(u.num) + '"><span class="urg-rapide-num">' + u.num + '</span><span class="urg-rapide-txt">' + esc(u.txt) + "</span></a>").join("");
 
+    const epingles = ["i-lit", "i-bol", "i-coeur", "i-goutte", "i-croix"]
+      .map((ic, i) => '<span class="epingle epingle--' + i + '">' + icone(ic) + "</span>").join("");
+
     return (
       '<section class="hero">' +
+      '<div class="hero-epingles" aria-hidden="true">' + epingles + "</div>" +
       '<p class="hero-pour">' + esc(t("heroPour")) + "</p>" +
       '<h1 class="hero-titre"><span>' + esc(t("bonjour")) + "</span> " + esc(t("besoin")) + "</h1>" +
+      htmlFormRecherche() +
       '<a class="cta-proche" href="#proche">' +
       '<span class="cta-ic">' + icone("i-position") + "</span>" +
       '<span class="cta-txt"><strong>' + esc(t("procheCta")) + "</strong><small>" + esc(t("procheSous")) + "</small></span>" +
       icone("i-chevron", "chevron") + "</a>" +
       "</section>" +
-      htmlRappelRdv() +
-      htmlBandeauInstallation() +
-      htmlInfosMoment(maintenant) +
-      '<section class="bloc" aria-labelledby="h-cherche">' +
+      '<section class="bloc bloc--categories" aria-labelledby="h-cherche">' +
       '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
       '<ul class="grille-cat">' + tuiles + "</ul>" +
       "</section>" +
+      htmlRappelRdv() +
+      htmlBandeauInstallation() +
+      htmlInfosMoment(maintenant) +
       '<section class="bloc urgences-rapides" aria-labelledby="h-urg">' +
       '<h2 id="h-urg" class="titre-bloc titre-bloc--urg">' + icone("i-tel") + esc(t("urgence")) + "</h2>" +
       '<a class="btn btn--danger btn--aide" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>" +
@@ -802,6 +866,8 @@
   function vueCategorie(id) {
     const c = categorie(id);
     if (!c) return vueAccueil();
+    // Besoin qui forme à lui seul une grande catégorie de l'accueil : on garde le nom de la tuile
+    const fam = D.familles.find((f) => f.cats.length === 1 && f.cats[0] === id);
     const rappel = (id === "dormir" || id === "ecoute")
       ? '<p class="rappel">' + icone("i-tel") + esc(t("rappel_" + id)) + "</p>"
       : "";
@@ -809,13 +875,67 @@
       htmlRetour() +
       '<header class="tete" style="--c:' + c.couleur + '">' +
       '<span class="pastille pastille--grande">' + icone(c.icone) + "</span>" +
-      "<div><h1>" + esc(t("cat_" + id)) + '</h1><p class="sous-titre">' + esc(t("catd_" + id)) + "</p></div>" +
+      "<div><h1>" + esc(fam ? nomFamille(fam) : t("cat_" + id)) + '</h1><p class="sous-titre">' + esc(t("catd_" + id)) + "</p></div>" +
       "</header>" +
       rappel +
       (id === "hygiene" ? '<a class="lien-fleche lien-eq" href="#carte-toilettes">' + icone("i-wc") + esc(t("eq_voirCarte")) + icone("i-chevron", "chevron") + "</a>" : "") +
       htmlOutils({ ouvert: true, filtres: true }) +
       '<div id="resultats">' + htmlListe(preparer(D.lieux.filter((l) => dansCat(l, id))), false) + "</div>"
     );
+  }
+
+  // Une grande catégorie de plusieurs besoins (Matériel, Technologie) ou toutes les catégories
+  function vueRubrique(id) {
+    const f = id === "toutes" ? { id: "toutes", icone: "i-grille", cats: D.categories.map((c) => c.id) } : famille(id);
+    if (!f) return vueAccueil();
+    const raccourcis = f.cats.map((c) => '<a class="puce" href="#cat-' + c + '">' + icone(categorie(c).icone) + esc(t("cat_" + c)) + "</a>").join("");
+    return (
+      htmlRetour() +
+      '<header class="tete"><span class="pastille pastille--grande">' + icone(f.icone) + "</span>" +
+      "<div><h1>" + esc(id === "toutes" ? t("fam_toutes") : nomFamille(f)) + '</h1><p class="sous-titre">' + esc(t("famd_" + f.id)) + "</p></div></header>" +
+      '<nav class="sous-cats" aria-label="' + esc(t("jeCherche")) + '">' + raccourcis + "</nav>" +
+      htmlOutils({ ouvert: true, filtres: true }) +
+      '<div id="resultats">' + htmlListe(preparer(lieuxDeLaVue(vueCourante())), true) + "</div>"
+    );
+  }
+
+  function htmlResultatsRecherche() {
+    if (!etat.recherche.trim()) return '<p class="vide vide--recherche">' + esc(t("rechVide")) + "</p>";
+    const prepares = preparer(lieuxDeLaVue(vueCourante()));
+    if (!prepares.length) return '<p class="vide">' + esc(t("rechAucun")) + "</p>";
+    return htmlListe(prepares, true);
+  }
+
+  function vueRecherche() {
+    const maintenant = new Date();
+    const tuile = (lien, nom, aide, ic) => '<li><a href="' + lien + '" class="puce">' + icone(ic) + esc(nom) + "</a></li>";
+    return (
+      htmlRetour() +
+      '<header class="tete tete--recherche"><span class="pastille pastille--grande">' + icone("i-loupe") + "</span>" +
+      "<div><h1>" + esc(t("rechBouton")) + "</h1></div></header>" +
+      htmlFormRecherche() +
+      htmlOutils({ ouvert: true, filtres: true }) +
+      '<div id="resultats">' + htmlResultatsRecherche() + "</div>" +
+      '<section class="bloc" aria-labelledby="h-ou"><h2 id="h-ou" class="titre-bloc">' + esc(t("rechOu")) + "</h2>" +
+      '<ul class="puces-cat">' + htmlTuilesFamilles(maintenant, tuile) + "</ul></section>"
+    );
+  }
+
+  // Les lieux d'une liste, avant les filtres (pour la liste et pour la carte à côté sur ordinateur)
+  function lieuxDeLaVue(h) {
+    switch (h.vue) {
+      case "cat": return D.lieux.filter((l) => dansCat(l, h.param));
+      case "rubrique": {
+        const f = famille(h.param);
+        return h.param === "toutes" ? D.lieux : f ? D.lieux.filter((l) => dansFamille(l, f)) : [];
+      }
+      case "recherche": return chercher(etat.recherche);
+      case "proche": return D.lieux;
+      case "pourvous": return D.lieux.filter((l) => pourFemmes(l) || l.protections);
+      case "favoris": return etat.favoris.map(lieu).filter(Boolean);
+      case "lieu": { const l = lieu(h.param); return l ? [l] : []; }
+      default: return null;
+    }
   }
 
   function vueProche() {
@@ -1152,6 +1272,9 @@
 
   /* ---------- Carte (Leaflet) ---------- */
   function afficherCarte() {
+    document.body.classList.remove("avec-panneau");
+    etat.panneau = null;
+    etat.panneauCle = "";
     document.getElementById("vue").hidden = true;
     const zone = document.getElementById("vue-carte");
     zone.hidden = false;
@@ -1169,6 +1292,46 @@
     setTimeout(() => {
       etat.carte.invalidateSize();
       cadrerCarte();
+    }, 0);
+  }
+
+  /* ---------- Sur ordinateur : la carte à côté de la liste ----------
+   * Écran large : les listes (besoin, catégorie, recherche, près de moi, femmes, gardés) et la fiche
+   * d'un lieu montrent leurs lieux sur la carte, à droite. Mêmes filtres que la liste. */
+  const BUREAU = window.matchMedia ? window.matchMedia("(min-width: 1024px)") : { matches: false };
+
+  function majPanneau() {
+    const h = vueCourante();
+    if (h.vue === "carte" || h.vue === "guide") return;
+    const zone = document.getElementById("vue-carte");
+    const base = BUREAU.matches && window.L ? lieuxDeLaVue(h) : null;
+    document.body.classList.toggle("avec-panneau", !!base);
+    if (!base) {
+      etat.panneau = null;
+      etat.panneauCle = "";
+      zone.hidden = true;
+      return;
+    }
+    const lieux = h.vue === "lieu" ? base : preparer(base, h.vue === "proche").map((x) => x.l);
+    etat.panneau = new Set(lieux.map((l) => l.id));
+    zone.hidden = false;
+    if (!etat.carte) creerCarte();
+    const cle = h.vue + h.param + "|" + lieux.map((l) => l.id).join(",");
+    const nouvelle = cle !== etat.panneauCle;
+    if (nouvelle) {
+      etat.panneauCle = cle;
+      fermerFicheCarte();
+      // Fiche d'un lieu : son repère est mis en avant
+      etat.ficheCarte = h.vue === "lieu" ? h.param : null;
+    }
+    majMarqueurs();
+    majMoiSurCarte(false);
+    if (!nouvelle) return;
+    setTimeout(() => {
+      etat.carte.invalidateSize();
+      const pts = lieux.map(pointCarte).filter(Boolean).map((p) => [p.lat, p.lng]);
+      if (pts.length === 1) etat.carte.setView(pts[0], 16);
+      else if (pts.length) etat.carte.fitBounds(pts, { padding: [48, 48], maxZoom: 16 });
     }, 0);
   }
 
@@ -1325,7 +1488,7 @@
 
   function rendreBarreCarte() {
     const barre = document.getElementById("barre-carte");
-    const cats = [{ id: "toutes" }].concat(D.categories);
+    const cats = [{ id: "toutes" }].concat(D.familles);
     barre.innerHTML =
       '<button type="button" class="puce puce--ouvert" data-action="carte-ouvert" aria-pressed="' + etat.carteOuvert + '">' + esc(t("f_ouvert")) + "</button>" +
       '<button type="button" class="puce puce--femmes" data-action="carte-femmes" aria-pressed="' + !!etat.carteFemmes + '">' + icone("i-coeur") + esc(t("carteFemmes")) + "</button>" +
@@ -1333,9 +1496,8 @@
         '<button type="button" class="puce puce--eq" data-action="carte-eq" data-valeur="' + x[0] + '" aria-pressed="' + etat.carteEq[x[0]] + '">' + icone(x[1]) + esc(t(x[2])) + "</button>"
       ).join("") +
       cats.map((c) =>
-        '<button type="button" class="puce" data-action="carte-cat" data-valeur="' + c.id + '" aria-pressed="' + (etat.carteCat === c.id) + '"' +
-        (c.couleur ? ' style="--c:' + c.couleur + '"' : "") + ">" +
-        (c.icone ? icone(c.icone) : "") + esc(c.id === "toutes" ? t("carteToutes") : t("cat_" + c.id)) + "</button>"
+        '<button type="button" class="puce" data-action="carte-cat" data-valeur="' + c.id + '" aria-pressed="' + (etat.carteCat === c.id) + '">' +
+        (c.icone ? icone(c.icone) : "") + esc(c.id === "toutes" ? t("carteToutes") : nomFamille(c)) + "</button>"
       ).join("");
     document.getElementById("btn-localiser").setAttribute("aria-label", t("centrerSurMoi"));
     document.getElementById("btn-localiser").title = t("centrerSurMoi");
@@ -1376,13 +1538,13 @@
     cadrerCarte();
     const points = [];
     D.lieux
-      .filter((l) => etat.guide || etat.carteCat === "toutes" || dansCat(l, etat.carteCat))
+      .filter((l) => etat.guide || (etat.panneau ? etat.panneau.has(l.id) : etat.carteCat === "toutes" || dansFamille(l, famille(etat.carteCat))))
       .forEach((l) => {
         const pt = pointCarte(l);
         const s = statut(l, maintenant);
         if (!pt) return;
         // Pendant le guidage : seulement le lieu où l'on va
-        if (etat.guide ? l.id !== etat.guide.id || pt.acces : (etat.carteOuvert && s.ouvert !== true) || (etat.carteFemmes && !pourFemmes(l))) return;
+        if (etat.guide ? l.id !== etat.guide.id || pt.acces : !etat.panneau && ((etat.carteOuvert && s.ouvert !== true) || (etat.carteFemmes && !pourFemmes(l)))) return;
         points.push({ l: l, s: s, acces: pt.acces, lat: pt.lat, lng: pt.lng, dx: 0, dy: 0 });
       });
     ecarter(points);
@@ -1406,7 +1568,7 @@
     const btn = document.getElementById("btn-tel-carte");
     const boite = document.getElementById("carte-tel");
     if (!btn || !boite) return;
-    const liste = D.lieux.filter((l) => !l.adresse && !l.adresseMasquee && l.tel && (etat.carteCat === "toutes" || dansCat(l, etat.carteCat)) && (!etat.carteFemmes || pourFemmes(l)));
+    const liste = D.lieux.filter((l) => !l.adresse && !l.adresseMasquee && l.tel && (etat.carteCat === "toutes" || dansFamille(l, famille(etat.carteCat))) && (!etat.carteFemmes || pourFemmes(l)));
     const ouvert = !!etat.telCarteOuvert && liste.length > 0;
     btn.hidden = !liste.length;
     btn.querySelector("span").textContent = t("parTelephone", { n: liste.length });
@@ -2341,6 +2503,9 @@
     const h = vueCourante();
     if (h.vue === "cat") zone.innerHTML = htmlListe(preparer(D.lieux.filter((l) => dansCat(l, h.param))), false);
     else if (h.vue === "proche") zone.innerHTML = htmlListe(preparer(D.lieux, true), true);
+    else if (h.vue === "rubrique") zone.innerHTML = htmlListe(preparer(lieuxDeLaVue(h)), true);
+    else if (h.vue === "recherche") zone.innerHTML = htmlResultatsRecherche();
+    majPanneau();
   }
 
   /* ---------- Signalements ----------
@@ -2388,6 +2553,13 @@
 
   async function surEnvoi(e) {
     const form = e.target;
+    if (form.hasAttribute && form.hasAttribute("data-recherche")) {
+      e.preventDefault();
+      etat.recherche = form.elements.q.value.trim().slice(0, 60);
+      if (vueCourante().vue === "recherche") majResultats();
+      else location.hash = "#recherche";
+      return;
+    }
     if (form.classList && form.classList.contains("form-carnet")) {
       e.preventDefault();
       const c = carnet();
@@ -2500,7 +2672,7 @@
   }
 
   function majNav(vue) {
-    const correspond = { accueil: "accueil", cat: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", aide: "urgences", carnet: "favoris", infos: "infos", favoris: "favoris" };
+    const correspond = { accueil: "accueil", cat: "accueil", rubrique: "accueil", recherche: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", aide: "urgences", carnet: "favoris", infos: "infos", favoris: "favoris" };
     const actif = correspond[vue];
     document.querySelectorAll(".onglets a").forEach((a) => {
       if (a.dataset.onglet === actif) a.setAttribute("aria-current", "page");
@@ -2548,12 +2720,14 @@
     }
     arreterGuide();
     fermerFicheCarte();
-    document.getElementById("vue-carte").hidden = true;
+    if (!BUREAU.matches) document.getElementById("vue-carte").hidden = true;
     main.hidden = false;
 
     let html;
     switch (h.vue) {
       case "cat": html = vueCategorie(h.param); break;
+      case "rubrique": html = vueRubrique(h.param); break;
+      case "recherche": html = vueRecherche(); break;
       case "proche": html = vueProche(); break;
       case "lieu": html = vueLieu(h.param); break;
       case "urgences": html = vueUrgences(); break;
@@ -2573,6 +2747,7 @@
       majBoutonLirePage();
       demarrerDefilement();
       if (h.vue === "reglages") dessinerQrSite();
+      majPanneau();
 
       if (opts.rafraichir) return;
       const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param)
@@ -2615,7 +2790,16 @@
     });
     document.addEventListener("click", surClic);
     let minuterieNote = null;
+    let minuterieRecherche = null;
     document.addEventListener("input", (e) => {
+      if (e.target.id === "q" && vueCourante().vue === "recherche") {
+        clearTimeout(minuterieRecherche);
+        minuterieRecherche = setTimeout(() => {
+          etat.recherche = e.target.value.trim().slice(0, 60);
+          majResultats();
+        }, 200);
+        return;
+      }
       if (e.target.id !== "carnet-note") return;
       clearTimeout(minuterieNote);
       const texte = e.target.value;
@@ -2626,6 +2810,7 @@
       }, 400);
     });
     document.addEventListener("submit", surEnvoi);
+    if (BUREAU.addEventListener) BUREAU.addEventListener("change", majPanneau);
 
     document.getElementById("btn-quitter").addEventListener("click", quitter);
     let dernierEchap = 0;
@@ -2681,7 +2866,7 @@
     // Rafraîchir les statuts « ouvert / fermé » chaque minute
     setInterval(() => {
       const v = vueCourante().vue;
-      if (["accueil", "cat", "proche", "favoris"].indexOf(v) !== -1 && !document.activeElement.closest("#vue .filtres")) rafraichir();
+      if (["accueil", "cat", "rubrique", "proche", "favoris"].indexOf(v) !== -1 && !document.activeElement.closest("#vue .filtres")) rafraichir();
       if (v === "carte" || v === "guide") majMarqueurs();
     }, 60000);
 

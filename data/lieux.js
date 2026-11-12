@@ -174,6 +174,22 @@ window.PALADINES_DATA = {
     { id: "wifi",      icone: "i-wifi",     couleur: "#11806A" }
   ],
 
+  /* Les grandes catégories de l'accueil, comme sur Soliguide. Chacune regroupe un ou plusieurs
+   * besoins ci-dessus (cats). Une catégorie d'un seul besoin ouvre directement ce besoin (#cat-<besoin>),
+   * les autres ouvrent #rubrique-<id> avec tous leurs lieux et un raccourci vers chaque besoin.
+   * « Écoute et violences » n'existe pas sur Soliguide : gardée à part, c'est l'essentiel pour les femmes. */
+  familles: [
+    { id: "hebergement", icone: "i-lit",      cats: ["dormir"] },
+    { id: "alimentation", icone: "i-bol",     cats: ["manger"] },
+    { id: "hygiene",     icone: "i-goutte",   cats: ["hygiene"] },
+    { id: "sante",       icone: "i-croix",    cats: ["sante"] },
+    { id: "accueil",     icone: "i-tasse",    cats: ["accueil"] },
+    { id: "ecoute",      icone: "i-bouclier", cats: ["ecoute"] },
+    { id: "conseil",     icone: "i-papier",   cats: ["droits"] },
+    { id: "materiel",    icone: "i-cintre",   cats: ["vetements", "bagagerie"] },
+    { id: "technologie", icone: "i-wifi",     cats: ["recharge", "wifi"] }
+  ],
+
   /*
    * Lieux.
    * cat : besoin principal ; autresCats : autres besoins couverts (le lieu apparaît aussi dans ces listes).
