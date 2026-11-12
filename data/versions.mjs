@@ -8,6 +8,19 @@
  */
 export const VERSIONS = [
   {
+    v: 30,
+    date: "2026-11-12",
+    titre: "Appli refaite de zéro : style Apple, simple et clair",
+    nouveautes: [
+      "Une seule mise en forme, refaite de zéro dans le style des applis Apple : fond gris clair, cartes blanches, grands titres, listes simples.",
+      "Accueil épuré : la recherche, « Ouvert maintenant, près de moi », les catégories et « Je ne me sens pas en sécurité ». Les infos qui défilaient sont remplacées par une ligne par alerte (froid, plan hiver…).",
+      "Dès qu'on tape dans « Que recherchez-vous ? », la page de recherche s'ouvre avec les résultats.",
+      "Fiche d'un lieu comme dans Plans : Itinéraire et Appeler en grand, puis Envoyer, Garder, Écouter ; les infos rangées dans des cartes.",
+      "Le mode sombre du téléphone est suivi automatiquement.",
+      "Sur ordinateur : le menu passe dans une barre à gauche, la carte reste à droite des listes."
+    ]
+  },
+  {
     v: 29,
     date: "2026-11-12",
     titre: "Nouvelle appli : recherche, catégories comme Soliguide, Liquid Glass et version ordinateur",
