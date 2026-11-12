@@ -8,6 +8,18 @@
  */
 export const VERSIONS = [
   {
+    v: 29,
+    date: "2026-11-12",
+    titre: "Nouvelle appli : recherche, catégories comme Soliguide, Liquid Glass et version ordinateur",
+    nouveautes: [
+      "Sur l'accueil, « Que recherchez-vous ? » : on tape un mot (repas, douche, médecin…) et les lieux qui correspondent s'affichent. Le mot n'apparaît jamais dans l'adresse de la page.",
+      "Les catégories reprennent celles de Soliguide : Hébergement et logement, Alimentation, Hygiène et bien-être, Santé, Accueil de jour, Conseil et démarches, Matériel, Technologie, plus « Violences, écoute » et « Pour les femmes » mis en avant. « Toutes les catégories » montre les 213 lieux.",
+      "Nouveau style Liquid Glass blanc et bleu Paladines : verre translucide, bandeau bleu avec des repères qui flottent, panneau des catégories qui le chevauche.",
+      "Sur ordinateur : le menu passe en haut, l'accueil s'élargit, et chaque liste ou fiche montre ses lieux sur la carte, à droite.",
+      "La carte, le GPS, le guidage à pied et l'appli sans connexion marchent comme avant."
+    ]
+  },
+  {
     v: 28,
     date: "2026-11-12",
     titre: "Nouveau style : blanc et bleu Paladines",
