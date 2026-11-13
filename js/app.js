@@ -1672,6 +1672,7 @@
   function vueRubrique(id) {
     const f = id === "toutes" ? { id: "toutes", icone: "i-grille", cats: D.categories.map((c) => c.id) } : famille(id);
     if (!f) return vueAccueil();
+    if (f.cats.length === 1) return vueCategorie(f.cats[0]); // une famille d'un seul besoin : sa page
     const raccourcis = '<nav class="puces puces--sous" aria-label="' + esc(t("jeCherche")) + '">' +
       f.cats.map((c) => '<a class="puce" href="#cat-' + c + '">' + icone(categorie(c).icone) + esc(t("cat_" + c)) + "</a>").join("") + "</nav>";
     return pageListe({

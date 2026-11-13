@@ -158,8 +158,8 @@ async function toutLire(kv) {
 
 /* ---------- Onglet « Signalements » ---------- */
 function htmlSignalements(items) {
-  if (!items.length) return "<p>Aucun signalement à traiter. Les signalements déjà traités sont dans l'onglet « Historique ».</p>";
-  return "<p>" + items.length + " signalement" + (items.length > 1 ? "s" : "") + " à traiter.</p><ul class=\"cartes\">" +
+  if (!items.length) return "<p class=\"vide\">Aucun signalement à traiter. Les signalements déjà traités sont dans l'onglet « Historique ».</p>";
+  return "<ul class=\"cartes\">" +
     items.map(({ cle, s }) =>
       "<li>" + htmlUnSignalement(s) +
       bouton("traite", cle, "Marquer comme traité", "principal") + "</li>"
@@ -170,7 +170,7 @@ function htmlSignalements(items) {
 function htmlHistorique(items, total) {
   const intro = '<p class="discret">' + total + " signalement" + (total > 1 ? "s" : "") + " reçu" + (total > 1 ? "s" : "") +
     " en tout, dont " + items.length + " traité" + (items.length > 1 ? "s" : "") + ". Chaque signalement s'efface seul un an après sa réception.</p>";
-  if (!items.length) return intro + "<p>Aucun signalement traité pour l'instant.</p>";
+  if (!items.length) return intro + "<p class=\"vide\">Aucun signalement traité pour l'instant.</p>";
   // Regroupés par mois de traitement
   let mois = "";
   let html = intro;
@@ -195,10 +195,12 @@ function htmlUnSignalement(s) {
     (s.lieu ? '<p><a class="lien-corriger" href="/equipe?onglet=lieux#lieu-' + esc(s.lieu) + '">Corriger ce lieu</a></p>' : "");
 }
 
+// Les boutons de l'appli : « principal » en bleu nuit, les autres en gris, « danger » écrit en rouge
 function bouton(action, cle, libelle, classe, confirmer) {
+  const classes = "bouton bouton--petit" + (classe === "principal" ? "" : " bouton--gris") + (classe === "danger" ? " bouton--danger" : "");
   return '<form method="post"' + (confirmer ? " onsubmit=\"return confirm('" + confirmer.replace(/'/g, "\\'") + "')\"" : "") + ">" +
     '<input type="hidden" name="action" value="' + action + '"><input type="hidden" name="cle" value="' + esc(cle) + '">' +
-    '<button type="submit"' + (classe ? ' class="' + classe + '"' : "") + ">" + esc(libelle) + "</button></form>";
+    '<button type="submit" class="' + classes + '">' + esc(libelle) + "</button></form>";
 }
 
 function dateHeure(iso) {
@@ -343,7 +345,7 @@ function htmlAvis(avis) {
   const lignes = Object.keys(avis).map((id) => ({ id: id, ...avis[id] })).sort((a, b) => b.non - a.non || b.oui - a.oui);
   if (!lignes.length) return '<p class="discret">Pas encore d\'avis. Sur chaque fiche, la personne peut répondre « Oui » ou « Non », une fois par mois et par lieu, sans rien écrire.</p>';
   return '<p class="discret">12 derniers mois. Un avis par téléphone, par lieu et par mois, sans rien sur la personne. Beaucoup de « Non » : lieu à appeler pour vérifier.</p>' +
-    '<table class="visites avis"><thead><tr><th scope="col">Lieu</th><th scope="col">Oui</th><th scope="col">Non</th></tr></thead><tbody>' +
+    '<table class="visites table-avis"><thead><tr><th scope="col">Lieu</th><th scope="col">Oui</th><th scope="col">Non</th></tr></thead><tbody>' +
     lignes.map((x) => '<tr><th scope="row"><a href="/equipe?onglet=lieux#lieu-' + esc(x.id) + '" data-nom-lieu="' + esc(x.id) + '">' + esc(x.id) + '</a></th><td class="oui">' + x.oui + '</td><td class="' + (x.non > x.oui ? "danger" : "") + '">' + x.non + "</td></tr>").join("") +
     "</tbody></table>";
 }
@@ -396,122 +398,139 @@ function dateCourte(iso) {
   return j + " " + MOIS[m - 1] + " " + a;
 }
 
-/* ---------- Mise en page ---------- */
+/* ---------- Mise en page ----------
+ * Le même style que l'appli : sa feuille /css/app.css (bandeau bleu nuit avec le plan des rues de Lille,
+ * feuille gris clair, cartes blanches, boutons, onglets en capsule de verre), plus les quelques règles
+ * propres à l'équipe (CSS plus bas : chiffres clés, tableaux, formulaires des lieux). */
+const RUBRIQUES = {
+  signalements: { libelle: "À traiter", icone: "i-drapeau" },
+  historique: { libelle: "Historique", icone: "i-horloge", sous: "Les signalements déjà traités" },
+  lieux: { libelle: "Lieux", icone: "i-carte", sous: "Corriger un lieu ou en ajouter un" },
+  statistiques: { libelle: "Statistiques", icone: "i-stats", sous: "Visites, avis et versions de l'appli" }
+};
+
 function page(onglet, nbSignalements, corps) {
-  const lien = (id, libelle) =>
-    '<a href="/equipe' + (id !== "signalements" ? "?onglet=" + id : "") + '"' + (onglet === id ? ' aria-current="page"' : "") + ">" + libelle + "</a>";
-  return debut() +
-    '<nav class="onglets" aria-label="Rubriques">' +
-    lien("signalements", "À traiter" + (nbSignalements ? ' <span class="compte" aria-label="' + nbSignalements + ' à traiter">' + nbSignalements + "</span>" : "")) +
-    lien("historique", "Historique") +
-    lien("lieux", "Lieux") +
-    lien("statistiques", "Statistiques") +
-    "</nav><main>" + corps + "</main>" +
+  const r = RUBRIQUES[onglet];
+  const sous = onglet !== "signalements" ? r.sous
+    : nbSignalements ? nbSignalements + " signalement" + (nbSignalements > 1 ? "s" : "") + " à traiter" : "Rien à traiter";
+  const lien = (id) =>
+    '<a href="/equipe' + (id !== "signalements" ? "?onglet=" + id : "") + '"' + (onglet === id ? ' aria-current="page"' : "") + ">" +
+    icone(RUBRIQUES[id].icone) + "<span>" + RUBRIQUES[id].libelle + "</span>" +
+    (id === "signalements" && nbSignalements ? '<b class="onglet-nb">' + nbSignalements + '<span class="visuellement-cache"> à traiter</span></b>' : "") + "</a>";
+  return debut(r.libelle, sous, icone(r.icone)) +
+    '<main class="feuille feuille--etroite">' + corps +
+    '<form method="post" class="sortie"><input type="hidden" name="action" value="deconnexion">' +
+    '<button type="submit" class="bouton bouton--gris">' + icone("i-sortie") + "Se déconnecter</button></form></main>" +
+    '<nav class="onglets" aria-label="Rubriques">' + ONGLETS.map(lien).join("") + "</nav>" +
     // Noms des lieux et formulaires de l'onglet « Lieux » : dessinés dans le navigateur avec /data/lieux.js
     '<script src="/data/lieux.js"></script><script src="/js/i18n.js"></script><script src="/js/equipe.js"></script>' +
-    '<form method="post" class="sortie"><input type="hidden" name="action" value="deconnexion"><button type="submit">Se déconnecter</button></form>' +
     "</body></html>";
 }
 
-function debut() {
-  return "<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">" +
+// Début de page : en-tête, puis le bandeau de l'appli (la lanterne, le titre de la rubrique)
+function debut(titre, sous, pictogramme, classeIc) {
+  return "<!doctype html><html lang=\"fr\" dir=\"ltr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">" +
     "<meta name=\"robots\" content=\"noindex\"><title>Paladines</title>" +
     '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">' +
+    '<meta name="apple-mobile-web-app-title" content="Équipe"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">' +
     '<meta name="theme-color" content="#0b1b36">' +
-    '<link rel="icon" href="/icons/equipe.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/equipe-180.png">' +
-    "<style>" + CSS + "</style></head><body>" +
-    '<header class="entete">' + LOGO + "<h1>Paladines · équipe</h1></header>";
+    '<link rel="icon" href="/icons/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/icon-180.png">' +
+    '<link rel="stylesheet" href="/css/app.css"><style>' + CSS + "</style></head>" +
+    '<body class="equipe"><div class="teinte-haut" aria-hidden="true"></div><div class="fond-page" aria-hidden="true"></div>' + SPRITE +
+    '<header class="bande bande--page"><div class="bande-in">' +
+    '<div class="bande-haut"><a class="marque" href="/equipe"><svg class="marque-logo" viewBox="8 2 48 60" aria-hidden="true"><use href="#logo"></use></svg><span>Paladines · équipe</span></a></div>' +
+    '<div class="page-tete"><span class="page-ic' + (classeIc ? " " + classeIc : "") + '">' + pictogramme + "</span>" +
+    "<div><h1>" + esc(titre) + "</h1>" + (sous ? '<p class="page-sous">' + esc(sous) + "</p>" : "") + "</div></div>" +
+    "</div></header>";
 }
 
 function pageConnexion(env, erreur) {
   const corps = !env.MOT_DE_PASSE
-    ? "<p>Le mot de passe de l'équipe n'est pas encore réglé : ajoutez le secret MOT_DE_PASSE dans Cloudflare.</p>"
-    : '<form method="post" class="connexion"><input type="hidden" name="action" value="connexion">' +
+    ? "<p class=\"carte\">Le mot de passe de l'équipe n'est pas encore réglé : ajoutez le secret MOT_DE_PASSE dans Cloudflare.</p>"
+    : '<form method="post" class="carte connexion"><input type="hidden" name="action" value="connexion">' +
       '<label for="mdp">Mot de passe de l\'équipe</label>' +
       '<input id="mdp" type="password" name="mot_de_passe" autocomplete="current-password" required autofocus>' +
       (erreur ? '<p class="erreur" role="alert">' + esc(erreur) + "</p>" : "") +
-      '<button type="submit" class="principal">Entrer</button>' +
+      '<button type="submit" class="bouton bouton--large">Entrer</button>' +
       '<p class="discret">Ce téléphone restera connecté 90 jours.</p></form>';
-  return reponse(debut() + "<main>" + corps + "</main></body></html>", erreur ? 401 : 200, "text/html; charset=utf-8");
+  const lanterne = '<svg class="logo-tete" viewBox="8 2 48 60" aria-hidden="true"><use href="#logo"></use></svg>';
+  return reponse(debut("Espace de l'équipe", "Signalements, lieux et statistiques", lanterne, "page-ic--blanc") +
+    '<main class="feuille feuille--etroite">' + corps + "</main></body></html>", erreur ? 401 : 200, "text/html; charset=utf-8");
 }
 
-// Logo engrenage (même dessin que icons/equipe.svg), en haut à gauche comme la lanterne de l'appli
-const LOGO = '<svg class="logo" aria-hidden="true" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0b1b36"/><path fill="#ffc400" stroke="#ffc400" stroke-width="28" stroke-linejoin="round" d="M220.3 133.1L229.7 90.1L282.3 90.1L291.7 133.1L317.7 143.8L354.7 120.1L391.9 157.3L368.2 194.3L378.9 220.3L421.9 229.7L421.9 282.3L378.9 291.7L368.2 317.7L391.9 354.7L354.7 391.9L317.7 368.2L291.7 378.9L282.3 421.9L229.7 421.9L220.3 378.9L194.3 368.2L157.3 391.9L120.1 354.7L143.8 317.7L133.1 291.7L90.1 282.3L90.1 229.7L133.1 220.3L143.8 194.3L120.1 157.3L157.3 120.1L194.3 143.8Z"/><circle cx="256" cy="256" r="58" fill="#0b1b36"/></svg>';
+function icone(id) {
+  return '<svg class="ic" aria-hidden="true"><use href="#' + id + '"></use></svg>';
+}
 
-const CSS =
-  // Ancien style de l'appli (bleu nuit, verre transparent flouté),
-  // peu de couleurs : jaune (accent), vert (fait), rouge (supprimer), blanc (texte)
-  ":root{--fond-base:#0b1b36;--verre:rgb(255 255 255/.06);--verre-barre:rgb(11 27 54/.72);--bord:rgb(255 255 255/.12);" +
-  "--reflet:linear-gradient(180deg,rgb(255 255 255/.06),rgb(255 255 255/0) 40%);--liseré:inset 0 .5px 0 rgb(255 255 255/.14);" +
-  "--ombre:0 1px 1px rgb(0 0 0/.25),0 10px 24px -14px rgb(0 0 0/.7);--flou:blur(20px) saturate(160%);" +
-  "--segment:rgb(255 255 255/.06);--encre:#fff;--douce:#c3cddd;--accent:#ffc400;--lien:#ffc400;--barre:#ffc400;--rail:rgb(255 255 255/.1);" +
-  "--trait:rgb(255 255 255/.12);--ok:#43c759;--danger:#ff8077;--sur-accent:#0b1b36;--actuelle:rgb(255 196 0/.12);color-scheme:dark}" +
-  "*{box-sizing:border-box}html{background:var(--fond-base)}" +
-  "body{font:16px/1.5 -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,system-ui,sans-serif;max-width:760px;margin:0 auto;padding:0 16px 24px;color:var(--encre);-webkit-font-smoothing:antialiased}" +
-  "h1,h2{letter-spacing:-.02em;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,system-ui,sans-serif}" +
-  ".entete{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;margin:0 -16px 16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;" +
-  "background:var(--verre-barre) var(--reflet);-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou);box-shadow:inset 0 -1px 0 var(--trait)}" +
-  ".logo{width:40px;height:40px;flex:none;filter:drop-shadow(0 6px 12px rgb(0 0 0/.3))}.entete h1{margin:0;font-size:1.25rem;font-weight:700}" +
-  "h1{font-size:1.5rem;margin:8px 0 16px}h2{font-size:1.375rem;font-weight:700;margin:28px 4px 10px}a{color:var(--lien)}" +
-  ".onglets,.cartes>li,.carte,.visites,.connexion,button{-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou)}" +
-  ".onglets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:4px;margin-bottom:16px;border:1px solid var(--bord);border-radius:999px;" +
-  "background:var(--segment) var(--reflet);box-shadow:var(--liseré),var(--ombre)}" +
-  ".onglets a{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:0 6px;border-radius:999px;text-decoration:none;" +
-  "color:var(--encre);font-weight:600;font-size:.875rem;white-space:nowrap;transition:background-color .25s ease,box-shadow .25s ease}" +
-  ".onglets a[aria-current]{background:rgb(255 196 0/.16);color:var(--accent);box-shadow:inset 0 0 0 1px rgb(255 196 0/.35)}" +
-  ".kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:4px 0 8px}" +
-  ".kpi{display:flex;flex-direction:column;gap:2px;min-width:0;padding:14px 16px;border:1px solid var(--bord);border-radius:20px;background:var(--verre) var(--reflet);" +
-  "-webkit-backdrop-filter:var(--flou);backdrop-filter:var(--flou);box-shadow:var(--liseré),var(--ombre);color:var(--encre);text-decoration:none}" +
-  "a.kpi:active{transform:scale(.98)}" +
-  ".kpi-libelle{font-size:.8125rem;font-weight:600;color:var(--douce)}" +
-  ".kpi-valeur{font-size:1.875rem;font-weight:700;line-height:1.15;letter-spacing:-.025em;font-variant-numeric:tabular-nums}" +
-  ".kpi-note{font-size:.8125rem;color:var(--douce);overflow-wrap:anywhere}" +
-  ".cartes{list-style:none;padding:0;margin:0}" +
-  ".cartes>li,.carte,.visites,.connexion{background:var(--verre) var(--reflet);border:1px solid var(--bord);border-radius:24px;box-shadow:var(--liseré),var(--ombre)}" +
-  ".cartes>li,.carte{padding:16px 18px;margin:12px 0}" +
-  ".carte--actuelle{background:linear-gradient(135deg,var(--actuelle),transparent 55%),var(--reflet),var(--verre)}.version-titre{margin:0}" +
-  ".discret{color:var(--douce);font-size:.875rem;margin:0}" +
-  "blockquote{margin:10px 0;padding:10px 14px;background:var(--rail);border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere}" +
-  "button{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--bord);background:var(--verre) var(--reflet);color:var(--encre);font:inherit;font-weight:600;cursor:pointer;" +
-  "box-shadow:var(--liseré),var(--ombre);transition:transform .18s cubic-bezier(.3,.7,.4,1.4)}button:active{transform:scale(.97)}" +
-  "summary{min-height:44px;padding:10px 0;cursor:pointer}" +
-  ".nouveautes{margin:8px 0 4px;padding-left:20px}.nouveautes li{margin:4px 0}" +
-  ".total{margin:8px 4px 12px}" +
-  ".visites{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden}" +
-  ".visites caption{text-align:left;padding:0 4px 6px}" +
-  ".visites th,.visites td{padding:9px 16px;text-align:left;border-top:1px solid var(--trait);font-weight:normal}" +
-  ".visites thead th{font-weight:600;color:var(--douce);font-size:.8125rem;border-top:0}" +
-  ".visites tbody th{white-space:nowrap;width:1%}" +
-  ".visites td{display:flex;align-items:center;gap:10px}" +
-  ".barre-zone{flex:1;height:10px;background:var(--rail);border-radius:999px;overflow:hidden}" +
-  ".barre{display:block;height:100%;background:var(--barre);border-radius:999px}" +
-  ".nb{min-width:3ch;text-align:right;font-variant-numeric:tabular-nums}" +
-  ".connexion{display:grid;gap:12px;max-width:380px;padding:22px}" +
-  ".connexion label{font-weight:600}" +
-  ".connexion input{width:100%;min-width:0;min-height:50px;padding:10px 16px;border:1px solid var(--bord);border-radius:16px;background:var(--rail);color:var(--encre);font:inherit}" +
-  ".principal{background:var(--accent);border-color:var(--accent);color:var(--sur-accent);box-shadow:0 10px 24px -12px rgb(0 0 0/.7)}" +
-  ".erreur{color:var(--danger);margin:0;font-weight:600}" +
-  ".sortie{margin:32px 0 8px}" +
-  ".compte{display:inline-block;min-width:20px;padding:0 6px;border-radius:999px;background:var(--accent);color:var(--sur-accent);font-size:.75rem;line-height:20px;text-align:center}" +
-  ".form-lieu{display:grid;gap:12px;margin-top:8px}.form-lieu fieldset{display:grid;gap:8px;margin:0;padding:12px;border:1px solid var(--bord);border-radius:16px}" +
-  ".form-lieu legend{padding:0 6px;font-weight:600}.form-lieu label{display:grid;gap:4px;font-weight:600;font-size:.9375rem}" +
-  ".form-lieu .case{display:flex;gap:10px;align-items:center;min-height:44px}.form-lieu .case input{width:22px;height:22px;accent-color:var(--accent)}" +
-  ".form-lieu input:not([type=checkbox]),.form-lieu select,.form-lieu textarea,.chercher{width:100%;min-width:0;min-height:44px;padding:8px 12px;border:1px solid var(--bord);border-radius:12px;background:var(--rail);color:var(--encre);font:inherit;font-weight:400}" +
-  ".form-lieu textarea{min-height:70px}.jours{display:grid;grid-template-columns:3.2em 1fr;gap:6px 8px;align-items:center}.jours span{font-weight:600}" +
-  ".badges{display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:6px}.badge{padding:1px 8px;border-radius:999px;font-size:.75rem;font-weight:700;background:var(--accent);color:var(--sur-accent)}" +
-  ".badge--ferme{background:var(--danger);color:#0b1b36}.ok-msg{margin:0 0 8px;color:var(--ok);font-weight:700}.lien-corriger{font-weight:600}" +
-  ".chercher{margin:0 0 8px}.avis tbody th{white-space:normal;width:auto;overflow-wrap:anywhere}.avis td{display:table-cell;width:3.5em;text-align:right;font-variant-numeric:tabular-nums}.avis td.oui{color:var(--ok)}" +
-  "summary.lieu-titre{font-weight:600}" +
-  "@media (max-width:420px){.onglets a{font-size:.8125rem;padding:0 2px}}" +
-  "@media (max-width:360px){body{padding:0 12px 24px}.entete{margin:0 -12px 16px;padding-inline:12px}.onglets a{font-size:.8125rem;padding:0 3px}}" +
-  ".statut{margin:0 0 4px;font-weight:600;color:var(--ok)}" +
-  ".traite{box-shadow:inset 4px 0 0 var(--ok),var(--liseré),var(--ombre)!important}" +
-  ".actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}" +
-  ".danger{color:var(--danger)}" +
-  "@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:root{--verre:#16294a;--verre-barre:#0b1b36}}" +
-  "@media (prefers-reduced-transparency:reduce){:root{--verre:#16294a;--verre-barre:#0b1b36;--segment:#16294a;--reflet:none}}" +
-  "@media (prefers-reduced-motion:reduce){button:active{transform:none}}" +
-  "@media (forced-colors:active){.barre{background:CanvasText}}";
+// Les pictogrammes de l'appli (index.html) dont la page a besoin, et la lanterne
+const SPRITE = '<svg xmlns="http://www.w3.org/2000/svg" class="sprite" aria-hidden="true"><defs>' +
+  '<symbol id="logo" viewBox="8 2 48 60"><path fill-rule="evenodd" d="M28 7A4 4 0 1 1 36 7A4 4 0 1 1 28 7ZM30.4 7A1.6 1.6 0 1 0 33.6 7A1.6 1.6 0 1 0 30.4 7ZM13.4 24A1.4 1.4 0 0 1 12 22.6L12 21.94A1.6 1.6 0 0 1 12.82 20.54L30.05 10.89A4 4 0 0 1 33.95 10.89L51.18 20.54A1.6 1.6 0 0 1 52 21.94L52 22.6A1.4 1.4 0 0 1 50.6 24ZM16.15 30.03A2.5 2.5 0 0 1 18.6 27L45.4 27A2.5 2.5 0 0 1 47.85 30.03L44.02 47.77A6 6 0 0 1 38.16 52.5L25.84 52.5A6 6 0 0 1 19.98 47.77ZM22 58A2.5 2.5 0 0 1 24.5 55.5L39.5 55.5A2.5 2.5 0 0 1 42 58A2.5 2.5 0 0 1 39.5 60.5L24.5 60.5A2.5 2.5 0 0 1 22 58ZM33.88 29.64C34.26 33.44 36.77 36.1 36.77 41.04C36.77 45.75 34.34 49.02 31.6 49.02C28.86 49.02 26.43 45.75 26.43 41.04C26.43 38 28.56 36.1 30.46 34.2C31.98 32.68 33.27 31.54 33.88 29.64Z"/></symbol>' +
+  '<symbol id="i-drapeau" viewBox="0 0 24 24"><path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5"/></symbol>' +
+  '<symbol id="i-horloge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>' +
+  '<symbol id="i-carte" viewBox="0 0 24 24"><path d="M9 4.5 3.5 6.5v13L9 17.5l6 2 5.5-2v-13L15 6.5Z"/><path d="M9 4.5v13M15 6.5v13"/></symbol>' +
+  '<symbol id="i-stats" viewBox="0 0 24 24"><path d="M4 20h16M7 16v-4M12 16V7M17 16v-6"/></symbol>' +
+  '<symbol id="i-sortie" viewBox="0 0 24 24"><path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10M15 8l4 4-4 4M19 12H9"/></symbol>' +
+  "</defs></svg>";
+
+// Ce qui n'existe pas dans l'appli (le reste vient de /css/app.css, avec les mêmes couleurs et mesures)
+const CSS = `
+.equipe .feuille h2{margin:10px 4px 0;font-family:var(--police-titre);font-size:1.25rem;font-weight:700;letter-spacing:-.02em}
+.equipe .feuille>p{padding-inline:4px}
+.equipe .carte{padding:16px}
+.discret{color:var(--texte-2);font-size:.875rem}
+.cartes{display:flex;flex-direction:column;gap:10px}
+.cartes>li{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:var(--r);background:var(--carte);box-shadow:var(--ombre)}
+.equipe .statut{color:var(--vert-texte)}
+blockquote{margin:0;padding:10px 14px;border-radius:var(--r-petit);background:var(--fond);white-space:pre-wrap;overflow-wrap:anywhere}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.lien-corriger{font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{display:flex;flex-direction:column;gap:2px;min-width:0;padding:14px 16px;border-radius:var(--r);background:var(--carte);box-shadow:var(--ombre);color:var(--texte);text-decoration:none}
+a.kpi:active{transform:scale(.98)}
+.kpi-libelle,.kpi-note{color:var(--texte-2);font-size:.8125rem;overflow-wrap:anywhere}
+.kpi-libelle{font-weight:600}
+.kpi-valeur{font-family:var(--police-titre);font-size:1.75rem;font-weight:700;line-height:1.15;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+@media (min-width:640px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.visites{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:var(--r);background:var(--carte);box-shadow:var(--ombre)}
+.visites caption{padding:0 4px 6px;text-align:start}
+.visites th,.visites td{padding:10px 16px;border-top:1px solid var(--separateur);text-align:start;font-weight:400}
+.visites thead th{border-top:0;color:var(--texte-2);font-size:.8125rem;font-weight:600}
+.visites tbody th{width:1%;white-space:nowrap}
+.visites td{display:flex;align-items:center;gap:10px}
+.barre-zone{flex:1;height:8px;overflow:hidden;border-radius:4px;background:var(--gris-plein)}
+.barre{display:block;height:100%;border-radius:4px;background:var(--nuit)}
+.nb{min-width:3ch;text-align:end;font-variant-numeric:tabular-nums}
+.table-avis tbody th{width:auto;white-space:normal;overflow-wrap:anywhere}
+.table-avis td{display:table-cell;width:3.5em;text-align:end;font-variant-numeric:tabular-nums}
+.table-avis td.oui{color:var(--vert-texte)}.table-avis td.danger{color:var(--rouge-texte);font-weight:700}
+.nouveautes{padding-inline-start:20px;list-style:disc}.nouveautes li{margin:4px 0}
+summary{min-height:44px;padding:10px 0;cursor:pointer}
+.equipe label{font-weight:600}
+.equipe input:not([type=checkbox]):not([type=hidden]),.equipe select{width:100%;min-width:0;min-height:44px;padding:8px 12px;border:0;border-radius:var(--r-petit);background:var(--gris-plein);color:var(--texte);font:inherit;font-weight:400}
+.connexion{display:grid;gap:12px;padding:20px}
+.erreur{color:var(--rouge-texte);font-weight:600}
+#lieux-equipe{display:flex;flex-direction:column;gap:12px}
+.form-lieu{display:grid;gap:12px;margin-top:8px}
+.form-lieu fieldset{display:grid;gap:8px;min-width:0;margin:0;padding:12px;border:0;border-radius:var(--r-petit);background:var(--fond)}
+.form-lieu legend{float:left;width:100%;padding:0;font-weight:700}
+.form-lieu label{display:grid;gap:4px;font-size:.9375rem}
+.equipe .form-lieu fieldset input:not([type=checkbox]){background:var(--carte)}
+.form-lieu .case{display:flex;align-items:center;gap:10px;min-height:44px}
+.form-lieu .case input{width:22px;height:22px;margin:0;accent-color:var(--nuit)}
+.jours{display:grid;grid-template-columns:3.2em 1fr;gap:6px 8px;align-items:center}.jours span{font-weight:600}
+.liste-lieux>li{padding-block:6px}
+summary.lieu-titre{font-weight:600}
+.badges{display:inline-flex;flex-wrap:wrap;gap:4px;margin-inline-start:6px;vertical-align:middle}
+.badge{padding:1px 8px;border-radius:999px;background:var(--nuit);color:#fff;font-size:.75rem;font-weight:700}
+.badge--ferme{background:var(--rouge)}
+.ok-msg{color:var(--vert-texte);font-weight:700}
+.onglets a{position:relative}
+.onglet-nb{position:absolute;top:5px;inset-inline-start:calc(50% + 4px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--rouge);color:#fff;font-size:.6875rem;font-weight:700;line-height:18px;text-align:center}
+@media (min-width:1024px){.onglet-nb{position:static}}
+.sortie{margin-top:8px}
+.logo-tete{width:1.6rem;height:2rem;fill:currentColor}
+@media (forced-colors:active){.barre{background:CanvasText}}
+`;
 
 /* ---------- Connexion de l'équipe ----------
  * Cookie « expiration.signature » : la signature HMAC-SHA256 de l'expiration, avec le mot

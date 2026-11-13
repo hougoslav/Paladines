@@ -36,6 +36,8 @@
   --r-petit: 14px;
   --gouttiere: 16px;
   --onglets-h: 64px;
+  /* Les onglets, plus bas dans l'appli installée (sur la barre du bas de l'iPhone, comme dans les applis d'Apple) */
+  --onglets-bas: max(10px, env(safe-area-inset-bottom, 0px) - 12px);
   --ombre: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 20px -14px rgb(11 27 54 / 0.28);
   --ombre-flottante: 0 2px 6px rgb(0 0 0 / 0.08), 0 16px 36px -14px rgb(11 27 54 / 0.45);
   --flou: blur(22px) saturate(180%);
@@ -51,13 +53,17 @@
 *::after {
   box-sizing: border-box;
 }
-/* Fond de la page : bleu nuit en haut (Safari teinte la zone de la barre d'état avec cette couleur ;
- * en gris, elle faisait une bande blanche brumeuse sur le bandeau), gris clair en bas */
+/* Fond de la page : gris clair, comme la feuille (il se voit sous les pages courtes, autour de la
+ * barre de Safari en bas de l'écran) */
 html {
   min-height: 100%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background: linear-gradient(180deg, var(--nuit) 50%, var(--fond) 50%) no-repeat var(--nuit);
+  background: var(--fond);
+}
+/* Onglet Carte : la couleur du plan (en bleu nuit, une bande bleue se voyait sous la carte) */
+html:has(> body.sur-carte) {
+  background: #f2f3f0;
 }
 body {
   margin: 0;
@@ -71,16 +77,42 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
-/* Sous la barre d'état de l'iPhone (appli installée) : toujours bleu nuit */
-body::before {
-  content: "";
+/* La zone de la barre d'état : bleu nuit, sans flou. Safari 26 (iPhone, Mac) ne lit plus theme-color :
+ * il prend la couleur d'un élément fixe, opaque, sans flou, collé en haut, de 6 px de haut au moins ;
+ * sinon il y montrait le haut de la page flouté. Dans Safari, env(safe-area-inset-top) vaut 0 : d'où
+ * les 12 px ; dans l'appli installée, l'élément couvre toute la barre d'état. Un vrai élément
+ * (index.html), pas un ::before. */
+.teinte-haut {
   position: fixed;
   z-index: 60;
   top: 0;
   left: 0;
   right: 0;
-  height: env(safe-area-inset-top, 0px);
+  height: max(12px, env(safe-area-inset-top, 0px));
   background: var(--nuit);
+  pointer-events: none;
+}
+/* Sur la carte, dans Safari : la couleur du plan (l'appli installée garde le bleu nuit, sous l'heure en blanc) */
+body.sur-carte .teinte-haut {
+  background: #f2f3f0;
+}
+@media (display-mode: standalone) {
+  body.sur-carte .teinte-haut {
+    background: var(--nuit);
+  }
+}
+/* Quand la page rebondit (iPhone) : bleu nuit au-dessus du bandeau, gris clair sous la feuille */
+.fond-page {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(180deg, var(--nuit) 50%, var(--fond) 50%);
+}
+@media print {
+  .teinte-haut,
+  .fond-page {
+    display: none;
+  }
 }
 h1,
 h2,
@@ -111,6 +143,10 @@ button {
 :focus-visible {
   outline: 3px solid var(--bleu);
   outline-offset: 2px;
+}
+/* Titre ou page rejoints par le programme après un changement d'écran (lecteurs d'écran) : pas de cadre */
+[tabindex="-1"]:focus {
+  outline: none;
 }
 [hidden] {
   display: none !important;
@@ -407,7 +443,9 @@ button {
   position: relative;
   padding: calc(env(safe-area-inset-top, 0px) + 8px) var(--gouttiere) 54px;
   color: #fff;
+  /* Le haut est bleu nuit uni, sous la barre d'état (.teinte-haut), puis le plan apparaît en fondu */
   background:
+    linear-gradient(180deg, var(--nuit) max(12px, env(safe-area-inset-top, 0px)), rgb(11 27 54 / 0) calc(max(12px, env(safe-area-inset-top, 0px)) + 56px)),
     radial-gradient(120% 70% at 100% 0%, rgb(37 86 196 / 0.55), rgb(37 86 196 / 0) 60%),
     linear-gradient(180deg, rgb(11 27 54 / 0.25), rgb(11 27 54 / 0.6)),
     url("../img/bandeau-lille.jpg") 42% 40% / max(100%, 46rem) auto no-repeat,
@@ -1734,7 +1772,7 @@ textarea {
   position: fixed;
   z-index: 40;
   left: 50%;
-  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  bottom: var(--onglets-bas);
   display: flex;
   width: min(100% - 28px, 26rem);
   height: var(--onglets-h);
@@ -2001,7 +2039,7 @@ textarea {
   z-index: 600;
   left: 8px;
   right: 8px;
-  bottom: calc(var(--onglets-h) + 16px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--onglets-bas) + var(--onglets-h) + 6px);
   display: flex;
   flex-direction: column;
   gap: 10px;

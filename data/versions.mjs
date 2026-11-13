@@ -17,7 +17,10 @@ export const VERSIONS = [
       "« En ce moment » : les infos utiles défilent seules en cartes (froid ou chaleur, plan hiver, où dormir ce soir, repas, douches, lieux pour les femmes, réouvertures), avec une barre qui montre la carte en cours ; on peut les arrêter ou les faire glisser.",
       "Onglet Carte comme l'app Plans : la carte en plein écran, un petit panneau avec la recherche et une rangée de catégories ; choisir une catégorie montre ses lieux sur la carte. Les mentions de la carte sont derrière le bouton i.",
       "Sur ordinateur : menu en haut à droite et carte à droite des listes et des fiches.",
-      "Retirés à la demande de l'équipe : le bouton « Quitter », le carnet et la lecture facile."
+      "Retirés à la demande de l'équipe : le bouton « Quitter », le carnet et la lecture facile.",
+      "Nouveau logo pour l'appli et pour la page de l'équipe : la lanterne bleu nuit sur fond blanc.",
+      "La page de l'équipe a le même style que l'appli : bandeau bleu nuit, cartes blanches, onglets en bas.",
+      "iPhone : plus de bande floue en haut de l'écran ni de bande bleue sous la carte ; les onglets et le panneau de la carte sont un peu plus bas."
     ]
   },
   {
