@@ -84,7 +84,7 @@
     carteTexte: "",
     carteEq: { t: false, e: false, s: false },
     calquesOuverts: false,
-    panneauOuvert: false, // panneau de la carte déplié (téléphone)
+    sourcesOuvertes: false, // d'où viennent les fonds de carte (bouton i)
     ficheCarte: null, // lieu ou équipement touché sur la carte
     fondEnErreur: false,
     msgPartielVu: false,
@@ -1355,6 +1355,7 @@
     return (
       bandeau(haut, "bande--accueil") +
       '<div class="feuille">' +
+      htmlMoment(maintenant) +
       htmlBandeauInstallation() +
       '<div class="accueil-grille">' +
       '<a class="carte-femmes" href="#pourvous"><span class="carte-femmes-ic">' + icone("i-coeur") + "</span>" +
@@ -1364,8 +1365,6 @@
       '<ul class="grille">' + tuiles + "</ul>" +
       '<a class="lien-toutes" href="#rubrique-toutes">' + esc(t("fam_toutes")) + icone("i-chevron", "chevron") + "</a></section>" +
       "</div>" +
-      htmlMoment(maintenant) +
-      htmlLive(maintenant) +
       '<p class="note-bas">' + esc(t("prototype")) + "<br>" + esc(t("donneesDu", { date: formatDate(D.majDonnees) })) + "</p>" +
       "</div>"
     );
@@ -1571,37 +1570,6 @@
     const depart = Math.min(etat.momentIndex, cartes.length - 1);
     if (depart) piste.scrollBy({ left: decalage(cartes[depart]), behavior: "auto" });
     montrer(depart);
-  }
-
-  /* ---------- « Ouvert près de vous » : le grand chiffre et le lieu le plus proche ---------- */
-  function htmlLive(maintenant) {
-    const ouverts = D.lieux.filter((l) => aCoord(l) && statut(l, maintenant).ouvert === true);
-    let corps;
-    if (etat.position) {
-      const tri = ouverts.map((l) => ({ l: l, d: distanceM(etat.position, l) })).sort((a, b) => a.d - b.d);
-      const rayon = tri.some((x) => x.d <= 500) ? 500 : tri.some((x) => x.d <= 1000) ? 1000 : 0;
-      const n = rayon ? tri.filter((x) => x.d <= rayon).length : 0;
-      const plus = tri[0];
-      corps =
-        '<div class="live-chiffre"><span class="live-n">' + n + "</span><p>" +
-        esc(rayon ? t(n === 1 ? "live1MoinsDe" : "liveMoinsDe", { d: rayon === 500 ? "500 m" : "1 km" }) : t("liveLoin")) + "</p></div>" +
-        (plus
-          ? '<div class="live-plus"><p class="etiquette">' + esc(t("livePlusProche")) + "</p>" +
-            '<a class="live-nom" href="#lieu-' + plus.l.id + '">' + esc(plus.l.nom) + "</a>" +
-            '<p class="live-meta"><span dir="ltr">' + esc(distanceCourte(plus.d)) + "</span> · " + esc(statut(plus.l, maintenant).texte) + "</p>" +
-            '<div class="live-boutons"><a class="bouton bouton--blanc" href="#guide-' + plus.l.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" +
-            (plus.l.tel ? '<a class="bouton bouton--vert" href="' + telLien(plus.l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
-            "</div></div>"
-          : "");
-    } else {
-      const n = nbOuverts(D.lieux, maintenant);
-      corps =
-        '<div class="live-chiffre"><span class="live-n">' + n + "</span><p>" + esc(t(n === 1 ? "liveMaintenant1" : "liveMaintenantN")) + "</p></div>" +
-        '<div class="live-plus"><p class="live-meta">' + esc(etat.positionMessage ? t(etat.positionMessage, { nom: "" }) : t("liveSansPosition")) + "</p>" +
-        '<div class="live-boutons"><button type="button" class="bouton bouton--blanc" data-action="proche-accueil">' + icone("i-position") + esc(t("liveTrouver")) + "</button>" +
-        '<a class="bouton bouton--verre" href="#proche">' + esc(t("voirTout")) + "</a></div></div>";
-    }
-    return '<section class="live" aria-labelledby="h-live"><p class="etiquette" id="h-live">' + icone("i-position") + esc(t("liveTitre")) + "</p>" + corps + "</section>";
   }
 
   /* ---------- Proposer d'installer l'appli ---------- */
@@ -2037,9 +2005,9 @@
    * ===================================================================== */
   function creerCarte() {
     const ref = etat.position || D.ville;
-    const carte = L.map("carte", { zoomControl: false }).setView([ref.lat, ref.lng], D.ville.zoom);
+    // Pas de bande de mentions en bas : elles sont derrière le bouton i (rendreHautCarte)
+    const carte = L.map("carte", { zoomControl: false, attributionControl: false }).setView([ref.lat, ref.lng], D.ville.zoom);
     L.control.zoom({ position: "bottomright" }).addTo(carte);
-    carte.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
     ajouterFond(carte);
     carte.on("click", () => {
       if (!etat.guide) fermerFicheCarte();
@@ -2091,7 +2059,7 @@
     const p = document.getElementById("panneau-carte");
     const c = document.getElementById("carte").getBoundingClientRect();
     const r = p && !etat.panneau && p.offsetParent ? p.getBoundingClientRect() : null;
-    if (r && r.width > c.width * 0.6) return { haut: 70, bas: Math.max(40, c.bottom - r.top + 12), gauche: 30, droite: 30 };
+    if (r && r.width > c.width * 0.6) return { haut: 120, bas: Math.max(40, c.bottom - r.top + 16), gauche: 30, droite: 70 };
     if (r) return { haut: 40, bas: 40, gauche: r.right - c.left + 24, droite: 40 };
     return { haut: 40, bas: 40, gauche: 40, droite: 40 };
   }
@@ -2216,29 +2184,14 @@
       [["t", "i-wc", "eq_puceToilettes"], ["e", "i-goutte", "eq_puceEau"], ["s", "i-bouclier", "eq_puceSurs"]].map((x) =>
         '<button type="button" class="calque" data-action="carte-eq" data-valeur="' + x[0] + '" aria-pressed="' + etat.carteEq[x[0]] + '">' + icone(x[1]) + "<span>" + esc(t(x[2])) + "</span>" + icone("i-check", "coche") + "</button>"
       ).join("") +
-      "</div></div>";
+      "</div>" +
+      '<button type="button" class="rond-carte" data-action="sources-carte" aria-expanded="' + etat.sourcesOuvertes + '" aria-controls="menu-sources" aria-label="' + esc(t("sources")) + '" title="' + esc(t("sources")) + '">' + icone("i-info") + "</button>" +
+      '<div id="menu-sources" class="menu-calques menu-sources"' + (etat.sourcesOuvertes ? "" : " hidden") + '><p class="menu-titre">' + esc(t("sources")) + "</p>" +
+      '<p class="sources-carte">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> · <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre</a> · <a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a></p></div>' +
+      "</div>";
   }
 
   /* ---------- Le panneau : recherche, catégories, lieux, ou le lieu touché ---------- */
-  function htmlPoignee() {
-    return '<button type="button" class="poignee" data-action="panneau-basculer" aria-expanded="' + etat.panneauOuvert + '" aria-label="' + esc(t(etat.panneauOuvert ? "panneauReduire" : "panneauAgrandir")) + '"><span></span></button>';
-  }
-
-  function htmlListeCarte() {
-    const maintenant = new Date();
-    const liste = lieuxCarte().filter(aCoord)
-      .map((l) => ({ l: l, s: statut(l, maintenant), d: etat.position ? distanceM(etat.position, l) : null }))
-      .sort((a, b) => (a.d !== null && b.d !== null ? a.d - b.d : rangStatut(a.s) - rangStatut(b.s) || a.l.nom.localeCompare(b.l.nom, "fr")));
-    if (!liste.length) return '<li class="vide">' + esc(t("aucun")) + "</li>";
-    return liste.slice(0, 40).map((x) =>
-      '<li><button type="button" class="pc-ligne" data-action="carte-lieu" data-id="' + x.l.id + '">' +
-      '<span class="ligne-ic">' + icone(categorie(x.l.cat).icone) + "</span>" +
-      '<span class="ligne-corps"><span class="ligne-nom">' + esc(x.l.nom) + "</span>" +
-      '<span class="ligne-meta"><span class="statut statut--' + x.s.classe + '">' + esc(x.s.texte) + "</span>" +
-      (x.d !== null ? '<span class="ligne-dist" dir="ltr">' + esc(distanceCourte(x.d)) + "</span>" : "") + "</span></span></button></li>"
-    ).join("");
-  }
-
   function htmlFicheLieuCarte(l) {
     const s = statut(l, new Date());
     const acces = l.adresseMasquee && l.acces ? lieu(l.acces) : null;
@@ -2281,32 +2234,33 @@
   function rendrePanneauCarte() {
     const p = document.getElementById("panneau-carte");
     if (!p) return;
-    p.dataset.ouvert = String(etat.panneauOuvert);
     const sel = etat.ficheCarte;
     const x = sel ? equip(sel) : null;
     const l = sel && !x ? lieu(sel) : null;
     p.classList.toggle("panneau-carte--lieu", !!(x || l));
     if (x || l) {
-      p.innerHTML = htmlPoignee() + (x ? htmlFicheEquip(x) : htmlFicheLieuCarte(l));
+      p.innerHTML = x ? htmlFicheEquip(x) : htmlFicheLieuCarte(l);
       return;
     }
+    // Petit panneau : la recherche et une rangée de catégories ; les lieux se voient sur la carte
     p.innerHTML =
-      htmlPoignee() +
       '<div class="pc-cherche">' + icone("i-loupe") +
       '<label class="visuellement-cache" for="q-carte">' + esc(t("carteChercher")) + "</label>" +
       '<input id="q-carte" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" maxlength="60" placeholder="' + esc(t("carteChercher")) + '" value="' + esc(etat.carteTexte) + '"></div>' +
       '<div class="pc-cats" role="group" aria-label="' + esc(t("jeCherche")) + '">' +
       D.familles.map((f) =>
-        '<button type="button" class="pc-cat" data-action="carte-cat" data-valeur="' + f.id + '" aria-pressed="' + (etat.carteCat === f.id) + '">' +
-        '<span class="pc-cat-ic">' + icone(f.icone) + "</span><span>" + esc(nomFamille(f)) + "</span></button>"
-      ).join("") + "</div>" +
-      '<h2 class="pc-titre">' + esc(etat.position ? t("liveTitre") : t("carteLieux")) + "</h2>" +
-      '<ul class="pc-liste" id="pc-liste">' + htmlListeCarte() + "</ul>";
+        '<button type="button" class="pc-cat" data-action="carte-cat" data-valeur="' + f.id + '" aria-pressed="' + (etat.carteCat === f.id) + '">' + icone(f.icone) + "<span>" + esc(nomFamille(f)) + "</span></button>"
+      ).join("") + "</div>";
   }
 
-  function majListeCarte() {
-    const ul = document.getElementById("pc-liste");
-    if (ul) ul.innerHTML = htmlListeCarte();
+  // Après une catégorie ou une recherche : la carte se cadre sur les lieux trouvés
+  function cadrerSurLieux() {
+    if (!etat.carte || (etat.carteCat === "toutes" && !etat.carteTexte.trim())) return;
+    const pts = lieuxCarte().map(pointCarte).filter(Boolean).map((pt) => [pt.lat, pt.lng]);
+    if (!pts.length) return;
+    if (pts.length === 1) return centrerSur(pts[0], 16);
+    const m = margesCarte();
+    etat.carte.fitBounds(pts, { paddingTopLeft: [m.gauche, m.haut], paddingBottomRight: [m.droite, m.bas], maxZoom: 16 });
   }
 
   function ouvrirFicheCarte(x) {
@@ -2520,21 +2474,29 @@
         etat.carteCat = etat.carteCat === el.dataset.valeur ? "toutes" : el.dataset.valeur;
         document.querySelectorAll('#panneau-carte [data-action="carte-cat"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.valeur === etat.carteCat)));
         majMarqueurs();
-        majListeCarte();
+        cadrerSurLieux();
         break;
       case "carte-ouvert":
         etat.carteOuvert = !etat.carteOuvert;
         el.setAttribute("aria-pressed", String(etat.carteOuvert));
         majMarqueurs();
-        majListeCarte();
         break;
       case "carte-femmes":
         etat.carteFemmes = !etat.carteFemmes;
         el.setAttribute("aria-pressed", String(etat.carteFemmes));
         majMarqueurs();
-        majListeCarte();
         break;
+      case "sources-carte": {
+        const ouvert = !etat.sourcesOuvertes;
+        fermerMenus();
+        etat.sourcesOuvertes = ouvert;
+        el.setAttribute("aria-expanded", String(ouvert));
+        document.getElementById("menu-sources").hidden = !ouvert;
+        if (ouvert) e.stopPropagation();
+        break;
+      }
       case "calques":
+        if (!etat.calquesOuverts) fermerMenus();
         etat.calquesOuverts = !etat.calquesOuverts;
         el.setAttribute("aria-expanded", String(etat.calquesOuverts));
         document.getElementById("menu-calques").hidden = !etat.calquesOuverts;
@@ -2545,20 +2507,8 @@
         el.setAttribute("aria-pressed", String(etat.carteEq[el.dataset.valeur]));
         majEquip();
         break;
-      case "carte-lieu": {
-        const l = lieu(id);
-        if (l) ouvrirFicheCarte(l);
-        break;
-      }
       case "fermer-fiche-carte":
         fermerFicheCarte();
-        break;
-      case "panneau-basculer":
-        if (ignorerClicPoignee) {
-          ignorerClicPoignee = false;
-          break;
-        }
-        basculerPanneau(!etat.panneauOuvert);
         break;
       case "localiser":
         if (etat.guide) {
@@ -2593,19 +2543,6 @@
     }
   }
 
-  // Le panneau de la carte : déplié (la liste) ou replié (recherche et catégories)
-  let ignorerClicPoignee = false;
-  function basculerPanneau(ouvert) {
-    etat.panneauOuvert = ouvert;
-    const p = document.getElementById("panneau-carte");
-    p.dataset.ouvert = String(ouvert);
-    const poignee = p.querySelector(".poignee");
-    if (poignee) {
-      poignee.setAttribute("aria-expanded", String(ouvert));
-      poignee.setAttribute("aria-label", t(ouvert ? "panneauReduire" : "panneauAgrandir"));
-    }
-  }
-
   function surSaisie(e) {
     const cible = e.target;
     if (cible.id === "q" && vueCourante().vue !== "recherche") {
@@ -2628,7 +2565,7 @@
       surSaisie.minuterie = setTimeout(() => {
         etat.carteTexte = cible.value.slice(0, 60);
         majMarqueurs();
-        majListeCarte();
+        cadrerSurLieux();
       }, 200);
     }
   }
@@ -2710,6 +2647,13 @@
     if (menu && !menu.hidden) {
       menu.hidden = true;
       document.querySelectorAll('[data-action="menu-langue"]').forEach((b) => b.setAttribute("aria-expanded", "false"));
+    }
+    const sources = document.getElementById("menu-sources");
+    if (sources && !sources.hidden) {
+      sources.hidden = true;
+      etat.sourcesOuvertes = false;
+      const b = document.querySelector('[data-action="sources-carte"]');
+      if (b) b.setAttribute("aria-expanded", "false");
     }
     const calques = document.getElementById("menu-calques");
     if (calques && !calques.hidden) {
@@ -2852,10 +2796,7 @@
   // Re-dessine l'écran sans remonter en haut (après un réglage, la position…)
   function rafraichir() {
     const v = vueCourante().vue;
-    if (v === "carte" || v === "guide") {
-      if (!etat.guide && !etat.ficheCarte) majListeCarte();
-      return;
-    }
+    if (v === "carte" || v === "guide") return;
     route({ rafraichir: true });
   }
 
@@ -2878,30 +2819,13 @@
     document.addEventListener("submit", surEnvoi);
     // Fermer les menus en touchant ailleurs
     document.addEventListener("click", (e) => {
-      if (!e.target.closest("#menu-langue, [data-action='menu-langue'], #menu-calques, [data-action='calques']")) fermerMenus();
+      if (!e.target.closest("#menu-langue, [data-action='menu-langue'], #menu-calques, [data-action='calques'], #menu-sources, [data-action='sources-carte']")) fermerMenus();
     });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
       const menu = document.getElementById("menu-langue");
-      if (!menu.hidden || etat.calquesOuverts) return fermerMenus();
+      if (!menu.hidden || etat.calquesOuverts || etat.sourcesOuvertes) return fermerMenus();
       if (etat.ficheCarte && !document.getElementById("vue-carte").hidden) fermerFicheCarte();
-    });
-    // Panneau de la carte : glisser la poignée vers le haut ou le bas
-    let depart = null;
-    document.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("#panneau-carte .poignee")) depart = e.clientY;
-    });
-    document.addEventListener("pointerup", (e) => {
-      if (depart === null) return;
-      const dy = e.clientY - depart;
-      depart = null;
-      if (Math.abs(dy) > 24) {
-        ignorerClicPoignee = true;
-        basculerPanneau(dy < 0);
-      }
-    });
-    document.addEventListener("focusin", (e) => {
-      if (e.target.id === "q-carte" && !BUREAU.matches) basculerPanneau(true);
     });
     if (BUREAU.addEventListener) BUREAU.addEventListener("change", () => route({ rafraichir: true }));
 
@@ -2935,10 +2859,7 @@
       const occupe = document.activeElement && document.activeElement.closest("#vue form, #vue .filtres-plus, #vue details[open]");
       if (["cat", "rubrique", "proche", "favoris", "lieu", "pourvous"].indexOf(v) !== -1 && !occupe) rafraichir();
       if (v === "accueil" && minutes % 5 === 0 && !occupe) rafraichir();
-      if (v === "carte" && !etat.guide) {
-        majMarqueurs();
-        if (!etat.ficheCarte) majListeCarte();
-      }
+      if (v === "carte" && !etat.guide) majMarqueurs();
     }, 60000);
 
     if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {

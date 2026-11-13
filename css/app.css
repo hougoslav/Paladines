@@ -51,15 +51,18 @@
 *::after {
   box-sizing: border-box;
 }
+/* Fond de la page : bleu nuit en haut (Safari teinte la zone de la barre d'état avec cette couleur ;
+ * en gris, elle faisait une bande blanche brumeuse sur le bandeau), gris clair en bas */
 html {
+  min-height: 100%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  background: var(--fond);
+  background: linear-gradient(180deg, var(--nuit) 50%, var(--fond) 50%) no-repeat var(--nuit);
 }
 body {
   margin: 0;
   overflow-x: clip;
-  background: var(--fond);
+  background: transparent;
   color: var(--texte);
   font-family: var(--police);
   font-size: 1.0625rem;
@@ -192,7 +195,6 @@ button {
 }
 .statut,
 .ligne-dist,
-.live-n,
 .urgence-num,
 .horaires,
 .guide-dist,
@@ -1044,72 +1046,6 @@ button {
   to {
     width: 100%;
   }
-}
-
-/* « Ouvert près de vous » : le grand chiffre (comme l'app Météo) et le lieu le plus proche */
-.live {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 24px;
-  color: #fff;
-  background:
-    radial-gradient(90% 90% at 100% 0%, rgb(42 95 208 / 0.95), rgb(42 95 208 / 0) 65%),
-    linear-gradient(160deg, var(--nuit), var(--nuit-2));
-  box-shadow: 0 18px 36px -20px rgb(11 27 54 / 0.85);
-}
-.live > .etiquette {
-  color: var(--sur-nuit-2);
-}
-.live-chiffre {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-}
-.live-n {
-  font-family: var(--police-titre);
-  font-size: 4rem;
-  font-weight: 200;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-}
-.live-chiffre p {
-  padding-bottom: 4px;
-  color: rgb(255 255 255 / 0.88);
-  font-weight: 500;
-  line-height: 1.3;
-}
-.live-plus {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 12px;
-  border-top: 0.5px solid rgb(255 255 255 / 0.2);
-}
-.live-plus .etiquette {
-  color: var(--sur-nuit-2);
-}
-.live-nom {
-  color: #fff;
-  font-size: 1.0625rem;
-  font-weight: 600;
-  line-height: 1.25;
-  text-decoration: none;
-}
-.live-meta {
-  color: var(--sur-nuit-2);
-  font-size: 0.875rem;
-}
-.live-boutons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-.live-boutons .bouton {
-  flex: 1 1 0;
-  min-width: max-content;
 }
 
 /* ============ 7. Listes ============ */
@@ -1998,7 +1934,7 @@ textarea {
 }
 .menu-calques {
   position: absolute;
-  top: 0;
+  top: 56px;
   inset-inline-end: 56px;
   display: grid;
   width: 14rem;
@@ -2008,6 +1944,18 @@ textarea {
   box-shadow: var(--ombre-flottante), 0 0 0 0.5px rgb(0 0 0 / 0.08);
   -webkit-backdrop-filter: var(--flou);
   backdrop-filter: var(--flou);
+}
+.menu-sources {
+  top: 112px;
+}
+.sources-carte {
+  padding: 4px 12px 10px;
+  color: var(--texte-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.sources-carte a {
+  color: var(--nuit);
 }
 .calque {
   display: flex;
@@ -2047,57 +1995,32 @@ textarea {
   box-shadow: var(--ombre-flottante);
   font-size: 0.875rem;
 }
-/* Le panneau : verre blanc en bas de l'écran, au-dessus des onglets */
+/* Le panneau : verre blanc en bas de l'écran, juste au-dessus des onglets ; petit, pour voir la carte */
 .panneau-carte {
   position: absolute;
   z-index: 600;
   left: 8px;
   right: 8px;
-  bottom: calc(var(--onglets-h) + 18px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--onglets-h) + 16px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
+  gap: 10px;
   max-width: 34rem;
-  max-height: 38vh;
   margin-inline: auto;
-  overflow: hidden;
-  padding: 0 14px 14px;
-  border-radius: 30px;
+  padding: 10px;
+  border-radius: 26px;
   background: rgb(255 255 255 / 0.86);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.95), 0 0 0 0.5px rgb(0 0 0 / 0.06), 0 16px 36px -14px rgb(11 27 54 / 0.5);
   -webkit-backdrop-filter: var(--flou);
   backdrop-filter: var(--flou);
-  transition: max-height 0.3s cubic-bezier(0.3, 0.7, 0.3, 1);
-}
-.panneau-carte[data-ouvert="true"] {
-  max-height: calc(100dvh - var(--onglets-h) - 120px - env(safe-area-inset-top, 0px));
-}
-.panneau-carte--lieu {
-  max-height: none;
-}
-.poignee {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 100%;
-  height: 26px;
-  border: 0;
-  background: none;
-  touch-action: none;
-}
-.poignee span {
-  width: 38px;
-  height: 5px;
-  border-radius: 3px;
-  background: rgb(11 27 54 / 0.22);
 }
 .pc-cherche {
   display: flex;
-  flex: none;
   align-items: center;
   gap: 8px;
-  min-height: 46px;
+  min-height: 44px;
   padding: 0 14px;
-  border-radius: 23px;
+  border-radius: 22px;
   background: var(--gris-plein);
   color: var(--texte-2);
 }
@@ -2120,12 +2043,12 @@ textarea {
 .pc-cherche:focus-within {
   box-shadow: 0 0 0 2px var(--bleu);
 }
+/* Les catégories : une rangée de capsules qu'on fait défiler */
 .pc-cats {
   display: flex;
-  flex: none;
-  gap: 4px;
-  margin: 12px -14px 0;
-  padding: 0 10px 4px;
+  gap: 8px;
+  margin: 0 -10px;
+  padding: 0 10px 2px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -2133,73 +2056,38 @@ textarea {
   display: none;
 }
 .pc-cat {
-  display: flex;
+  position: relative;
+  display: inline-flex;
   flex: none;
-  flex-direction: column;
   align-items: center;
   gap: 6px;
-  width: 72px;
-  padding: 0;
+  min-height: 38px;
+  padding: 0 14px;
   border: 0;
-  background: none;
+  border-radius: 19px;
+  background: rgb(11 27 54 / 0.07);
   color: var(--nuit);
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.2;
-  text-align: center;
+  white-space: nowrap;
 }
-.pc-cat-ic {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+.pc-cat::after {
+  content: "";
+  position: absolute;
+  inset: -3px 0;
+}
+.pc-cat .ic {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.pc-cat[aria-pressed="true"] {
   background: var(--nuit);
   color: #fff;
-  transition: transform 0.15s ease;
 }
-.pc-cat-ic .ic {
-  width: 1.4rem;
-  height: 1.4rem;
-}
-.pc-cat[aria-pressed="true"] .pc-cat-ic {
-  background: var(--bleu);
-  box-shadow: 0 0 0 3px rgb(10 102 216 / 0.25);
-}
-.pc-cat:active .pc-cat-ic {
-  transform: scale(0.92);
-}
-.pc-titre {
-  flex: none;
-  margin: 14px 2px 4px;
-  font-family: var(--police-titre);
-  font-size: 1.1875rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.pc-liste {
-  flex: 1;
-  min-height: 0;
-  margin: 0 -6px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-.pc-liste li + li {
-  border-top: 0.5px solid var(--separateur);
-}
-.pc-ligne {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 6px;
-  border: 0;
-  border-radius: 12px;
-  background: none;
-  text-align: start;
-}
-.pc-ligne:hover {
-  background: rgb(11 27 54 / 0.04);
+/* Le lieu touché, dans le panneau */
+.panneau-carte--lieu {
+  display: block;
+  padding: 14px;
 }
 .pl-tete {
   display: flex;
@@ -2243,9 +2131,6 @@ textarea {
 .panneau-carte--lieu > .aide,
 .panneau-carte--lieu > .badge-femmes {
   margin-top: 4px;
-}
-.panneau-carte--lieu > .badge-femmes {
-  align-self: flex-start;
 }
 .pl-actions {
   display: flex;
@@ -2339,13 +2224,6 @@ textarea {
   background: rgb(255 255 255 / 0.92) !important;
   color: var(--nuit) !important;
   line-height: 44px !important;
-}
-.leaflet-control-attribution {
-  background: rgb(255 255 255 / 0.7) !important;
-  color: var(--texte-2) !important;
-}
-.leaflet-control-attribution a {
-  color: var(--texte) !important;
 }
 .leaflet-control-zoom {
   display: none;
@@ -2671,27 +2549,7 @@ body.en-guide .onglets,
     width: 100%;
     max-width: 46rem;
   }
-  /* Accueil : « Pour les femmes » et les besoins côte à côte, puis les infos et le grand chiffre */
-  .vue[data-vue="accueil"] .feuille {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-    gap: 24px;
-    align-items: start;
-  }
-  .vue[data-vue="accueil"] .feuille > * {
-    grid-column: 1 / -1;
-  }
-  .vue[data-vue="accueil"] .feuille > .moment {
-    grid-column: 1;
-  }
-  .vue[data-vue="accueil"] .feuille > .live {
-    grid-column: 2;
-    margin-top: 62px;
-  }
-  .vue[data-vue="accueil"] .feuille:not(:has(> .moment)) > .live {
-    grid-column: 1 / -1;
-    margin-top: 0;
-  }
+  /* Accueil : « Pour les femmes » et les besoins côte à côte */
   .accueil-grille {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
@@ -2723,7 +2581,7 @@ body.en-guide .onglets,
     scroll-padding-inline: 0;
   }
   .moment-carte {
-    width: calc((100% - 12px) / 2);
+    width: calc((100% - 24px) / 3);
   }
   /* Listes et fiches : la liste à gauche, la carte de ses lieux à droite */
   .colonnes {
@@ -2769,22 +2627,18 @@ body.en-guide .onglets,
     top: 16px;
     left: 16px;
     right: auto;
-    bottom: 16px;
+    bottom: auto;
     width: 380px;
     max-width: none;
-    max-height: none;
     margin: 0;
+  }
+  body.sur-carte .pc-cats {
+    flex-wrap: wrap;
+    overflow: visible;
   }
   [dir="rtl"] body.sur-carte .panneau-carte {
     left: auto;
     right: 16px;
-  }
-  body.sur-carte .panneau-carte--lieu {
-    bottom: auto;
-  }
-  body.sur-carte .poignee {
-    visibility: hidden;
-    height: 14px;
   }
   body.sur-carte .carte-haut {
     top: 84px;
