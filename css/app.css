@@ -77,10 +77,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
-/* La zone de l'heure : bleu nuit uni, partout (carte comprise). Safari prend aussi la couleur d'un
- * élément fixe, opaque, sans flou, collé en haut, de 6 px au moins : celui-ci (12 px, car
- * env(safe-area-inset-top) vaut 0 dans Safari ; toute la barre d'état dans l'appli installée).
- * Un vrai élément (index.html), pas un ::before. */
+/* La zone de l'heure. Safari (iPhone) la peint lui-même, d'une seule couleur : celle d'un élément fixe,
+ * opaque, collé en haut, de 6 px au moins (celui-ci : 12 px, car env(safe-area-inset-top) vaut 0 dans
+ * Safari), sinon celle du fond de la page. Safari le lit même transparent (opacity: 0) : il ne se
+ * voit donc pas, le plan du bandeau monte jusqu'en haut de la page, sans bande.
+ * Appli installée sur iPhone : la page passe sous l'heure (écrite en blanc) ; la zone ne devient bleu
+ * nuit que quand la feuille claire y arrive (body.defile), et sur la carte une ombre légère. */
 .teinte-haut {
   position: fixed;
   z-index: 60;
@@ -89,7 +91,21 @@ body {
   right: 0;
   height: max(12px, env(safe-area-inset-top, 0px));
   background: var(--nuit);
+  opacity: 0;
   pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+@media (display-mode: standalone) {
+  @supports (-webkit-touch-callout: none) {
+    body.defile .teinte-haut {
+      opacity: 1;
+    }
+    body.sur-carte .teinte-haut {
+      height: calc(env(safe-area-inset-top, 0px) + 16px);
+      background: linear-gradient(180deg, rgb(11 27 54 / 0.5), rgb(11 27 54 / 0));
+      opacity: 1;
+    }
+  }
 }
 /* Le bas de l'écran, autour de la barre de Safari : gris clair, couleur du plan sur la carte (avec le
  * fond bleu nuit, une bande bleue s'y voyait). Inutile dans l'appli installée et sur ordinateur. */
@@ -101,6 +117,7 @@ body {
   bottom: 0;
   height: 12px;
   background: var(--fond);
+  opacity: 0; /* lu par Safari, invisible sur la page */
   pointer-events: none;
 }
 body.sur-carte .teinte-bas {
@@ -454,9 +471,9 @@ button {
   position: relative;
   padding: calc(env(safe-area-inset-top, 0px) + 8px) var(--gouttiere) 54px;
   color: #fff;
-  /* Le haut est bleu nuit uni, sous la barre d'état (.teinte-haut), puis le plan apparaît en fondu */
+  /* Le plan monte jusqu'en haut, avec un léger fondu sur les 24 premiers pixels */
   background:
-    linear-gradient(180deg, var(--nuit) max(12px, env(safe-area-inset-top, 0px)), rgb(11 27 54 / 0) calc(max(12px, env(safe-area-inset-top, 0px)) + 56px)),
+    linear-gradient(180deg, var(--nuit), rgb(11 27 54 / 0) 24px),
     radial-gradient(120% 70% at 100% 0%, rgb(37 86 196 / 0.55), rgb(37 86 196 / 0) 60%),
     linear-gradient(180deg, rgb(11 27 54 / 0.25), rgb(11 27 54 / 0.6)),
     url("../img/bandeau-lille.jpg") 42% 40% / max(100%, 46rem) auto no-repeat,
@@ -680,7 +697,6 @@ button {
   min-height: 40vh;
   margin-top: -28px;
   padding: 20px var(--gouttiere) calc(var(--onglets-h) + 44px + env(safe-area-inset-bottom, 0px));
-  padding-bottom: calc(var(--onglets-h) + 44px + env(safe-area-inset-bottom, 0px) + 100lvh - 100svh);
   border-radius: 30px 30px 0 0;
   background: var(--fond);
 }
@@ -1784,11 +1800,7 @@ textarea {
   position: fixed;
   z-index: 40;
   left: 50%;
-  /* Placés depuis le haut, à la hauteur qu'ils ont quand la barre de Safari est dépliée (100svh) : la même
-   * place sur les 4 onglets. Placés depuis le bas, ils descendaient quand Safari repliait sa barre en
-   * faisant défiler une page, mais pas sur la carte, qui ne défile pas. */
-  bottom: var(--onglets-bas); /* navigateurs sans svh */
-  top: calc(100svh - var(--onglets-bas) - var(--onglets-h));
+  bottom: var(--onglets-bas);
   display: flex;
   width: min(100% - 28px, 26rem);
   height: var(--onglets-h);
@@ -2055,8 +2067,7 @@ textarea {
   z-index: 600;
   left: 8px;
   right: 8px;
-  bottom: calc(var(--onglets-bas) + var(--onglets-h) + 6px); /* navigateurs sans svh */
-  bottom: calc(100% - 100svh + var(--onglets-bas) + var(--onglets-h) + 6px); /* juste au-dessus des onglets */
+  bottom: calc(var(--onglets-bas) + var(--onglets-h) + 6px); /* juste au-dessus des onglets */
   display: flex;
   flex-direction: column;
   gap: 10px;

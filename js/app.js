@@ -2029,7 +2029,11 @@
     etat.panneau = null;
     etat.panneauCle = "";
     document.body.classList.remove("avec-panneau");
-    document.getElementById("vue").hidden = true;
+    // La page sous la carte est vidée mais garde sa hauteur et son défilement : sans cela, Safari (iPhone)
+    // redépliait sa barre du bas sur la carte, et les onglets y étaient plus hauts que sur les autres pages
+    const vue = document.getElementById("vue");
+    vue.style.minHeight = vue.offsetHeight + "px";
+    vue.innerHTML = "";
     const zone = document.getElementById("vue-carte");
     zone.hidden = false;
     const msg = zone.querySelector(".carte-msg");
@@ -2741,6 +2745,7 @@
     rangerCarte();
     document.getElementById("vue-carte").hidden = true;
     main.hidden = false;
+    main.style.minHeight = "";
 
     let html;
     switch (h.vue) {
@@ -2804,6 +2809,11 @@
   /* ---------- Démarrage ---------- */
   function demarrer() {
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    // Appli installée sur iPhone : la zone de l'heure devient bleu nuit quand la feuille claire passe dessous
+    window.addEventListener("scroll", () => {
+      const b = document.querySelector("#vue > .bande");
+      document.body.classList.toggle("defile", !!b && b.getBoundingClientRect().bottom < document.querySelector(".teinte-haut").offsetHeight + 8);
+    }, { passive: true });
     chargerMeteo();
     lirePositionQR();
     chargerCorrections();
