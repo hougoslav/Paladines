@@ -69,12 +69,12 @@
       champsHoraires(horaires) +
       '<label>Téléphone<input name="tel" type="tel" maxlength="30" value="' + esc(tel) + '"></label>' +
       '<label>Message sur la fiche (facultatif, 200 caractères)<textarea name="note" maxlength="200" placeholder="Ex. : distribution déplacée au 12 rue…">' + esc(c.note || "") + "</textarea></label>" +
-      '<button type="submit" class="principal">Enregistrer</button></form>' +
+      '<button type="submit" class="bouton">Enregistrer</button></form>' +
       (Object.keys(c).length && !l.ajoutEquipe
-        ? '<form method="post" onsubmit="return confirm(\'Revenir aux infos d\\\'origine de ce lieu ?\')"><input type="hidden" name="action" value="annuler-correction"><input type="hidden" name="id" value="' + esc(l.id) + '"><button type="submit">Revenir aux infos d\'origine</button></form>'
+        ? '<form method="post" onsubmit="return confirm(\'Revenir aux infos d\\\'origine de ce lieu ?\')"><input type="hidden" name="action" value="annuler-correction"><input type="hidden" name="id" value="' + esc(l.id) + '"><button type="submit" class="bouton bouton--petit bouton--gris">Revenir aux infos d\'origine</button></form>'
         : "") +
       (l.ajoutEquipe
-        ? '<form method="post" onsubmit="return confirm(\'Supprimer ce lieu de l\\\'appli ?\')"><input type="hidden" name="action" value="supprimer-ajout"><input type="hidden" name="id" value="' + esc(l.id) + '"><button type="submit" class="danger">Supprimer ce lieu</button></form>'
+        ? '<form method="post" onsubmit="return confirm(\'Supprimer ce lieu de l\\\'appli ?\')"><input type="hidden" name="action" value="supprimer-ajout"><input type="hidden" name="id" value="' + esc(l.id) + '"><button type="submit" class="bouton bouton--petit bouton--gris bouton--danger">Supprimer ce lieu</button></form>'
         : "") +
       "</details></li>"
     );
@@ -93,7 +93,7 @@
       '<label>Conditions d\'accès<textarea name="conditions" maxlength="400" placeholder="Sans rendez-vous, gratuit…"></textarea></label>' +
       '<label class="case"><input type="checkbox" name="femmes"> Réservé aux femmes</label>' +
       '<p class="discret">Pas d\'adresse protégée ici : pour un hébergement à l\'adresse secrète, passez par l\'équipe technique.</p>' +
-      '<button type="submit" class="principal">Ajouter le lieu</button></form></details>'
+      '<button type="submit" class="bouton">Ajouter le lieu</button></form></details>'
     );
   }
 
