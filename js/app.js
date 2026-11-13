@@ -2864,6 +2864,13 @@
     }, 60000);
 
     if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+      // Nouvelle version en ligne : la page se recharge une fois, dans les secondes qui suivent l'ouverture
+      // (jamais plus tard, pour ne pas perdre ce que la personne fait). Sinon, il fallait l'ouvrir deux fois.
+      const ouverture = Date.now();
+      const dejaGardee = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (dejaGardee && Date.now() - ouverture < 10000) location.reload();
+      });
       navigator.serviceWorker.register("sw.js").catch(() => { /* pas de mode hors ligne, l'appli marche quand même */ });
     }
   }
