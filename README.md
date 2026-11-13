@@ -33,7 +33,8 @@ Pour tester un QR code d'affiche : `http://localhost:3000/?pres=50.6366,3.0707&n
 ```
 index.html             la page de l'appli (en-tête, onglets, pictogrammes)
 affiche.html           générateur d'affiches et d'autocollants avec QR code
-css/app.css            toute la mise en forme : style Apple épuré, clair ou sombre (aussi pour affiche.html)
+css/app.css            toute la mise en forme : bandeau bleu nuit, feuille claire, cartes (aussi pour affiche.html)
+img/bandeau-lille.jpg  le plan des rues de Lille en filigrane dans le bandeau
 js/app.js              la logique : vues, horaires, distances, carte, réglages
 js/i18n.js             les textes en 9 langues : français, anglais, arabe, espagnol, roumain, ukrainien, dari, pachto, tigrinya
 data/lieux.js          les lieux de Lille, les catégories, l'alerte, les numéros d'urgence

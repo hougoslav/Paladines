@@ -1,26 +1,25 @@
 <!doctype html>
-<html lang="fr" dir="ltr" data-theme="paladines">
+<html lang="fr" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paladines</title>
-<meta name="description" content="Pour les femmes à la rue à Lille : trouver un lieu pour dormir, manger, se laver, se soigner ou être aidée.">
+<meta name="description" content="Pour les femmes à la rue à Lille : trouver un lieu ouvert pour dormir, manger, se laver, se soigner ou être aidée.">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0b1b36">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Paladines">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 
-<!-- Pictogrammes (dessinés pour l'appli, trait de 2 px sur une grille de 24) -->
+<!-- Pictogrammes (trait de 2 px sur une grille de 24) et lanterne de Paladines -->
 <svg xmlns="http://www.w3.org/2000/svg" class="sprite" aria-hidden="true">
   <defs>
     <symbol id="i-lit" viewBox="0 0 24 24"><path d="M3 5v14M3 15h18M21 19v-6a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11.5" r="2"/></symbol>
@@ -62,62 +61,40 @@
     <symbol id="i-installer" viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="2"/><path d="M12 7v7M9 11l3 3 3-3M10.5 18.5h3"/></symbol>
     <symbol id="i-pied" viewBox="0 0 24 24"><circle cx="13.5" cy="4.5" r="1.8"/><path d="M12.5 8.5 11 14.5l-2.5 6.5M11 14.5l3 3v3.5M12.5 8.5l3.5 3.5M12.5 8.5l-3.5 2.5-1 3"/></symbol>
     <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><path d="M13.5 13.5h3v3h-3ZM17.5 17.5h3v3h-3ZM13.5 20.5h.5M20.5 13.5h.5"/></symbol>
+    <symbol id="logo" viewBox="8 2 48 60"><path fill-rule="evenodd" d="M28 7A4 4 0 1 1 36 7A4 4 0 1 1 28 7ZM30.4 7A1.6 1.6 0 1 0 33.6 7A1.6 1.6 0 1 0 30.4 7ZM13.4 24A1.4 1.4 0 0 1 12 22.6L12 21.94A1.6 1.6 0 0 1 12.82 20.54L30.05 10.89A4 4 0 0 1 33.95 10.89L51.18 20.54A1.6 1.6 0 0 1 52 21.94L52 22.6A1.4 1.4 0 0 1 50.6 24ZM16.15 30.03A2.5 2.5 0 0 1 18.6 27L45.4 27A2.5 2.5 0 0 1 47.85 30.03L44.02 47.77A6 6 0 0 1 38.16 52.5L25.84 52.5A6 6 0 0 1 19.98 47.77ZM22 58A2.5 2.5 0 0 1 24.5 55.5L39.5 55.5A2.5 2.5 0 0 1 42 58A2.5 2.5 0 0 1 39.5 60.5L24.5 60.5A2.5 2.5 0 0 1 22 58ZM33.88 29.64C34.26 33.44 36.77 36.1 36.77 41.04C36.77 45.75 34.34 49.02 31.6 49.02C28.86 49.02 26.43 45.75 26.43 41.04C26.43 38 28.56 36.1 30.46 34.2C31.98 32.68 33.27 31.54 33.88 29.64Z"/></symbol>
+    <symbol id="i-lune" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></symbol>
+    <symbol id="i-flocon" viewBox="0 0 24 24"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.2 4.2 12 7l2.8-2.8M9.2 19.8 12 17l2.8 2.8M4.6 11l3.8 1-1 3.8M19.4 13l-3.8-1 1-3.8"/></symbol>
+    <symbol id="i-soleil" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+    <symbol id="i-pluie" viewBox="0 0 24 24"><path d="M7 15.5a4.5 4.5 0 1 1 1.2-8.8A5.5 5.5 0 0 1 18.6 8.6 3.5 3.5 0 0 1 17.5 15.5Z"/><path d="M8.5 18.5 7.5 21M12.5 18.5l-1 2.5M16.5 18.5l-1 2.5"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+    <symbol id="i-lecture" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-calques" viewBox="0 0 24 24"><path d="m12 3.5 9 5-9 5-9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
   </defs>
 </svg>
 
-<a class="sauter" href="#accueil" data-action="sauter" data-t="allerContenu">Aller au contenu</a>
-
-<header class="entete">
-  <a class="marque" href="#accueil">
-    <svg class="marque-logo" viewBox="8 2 48 60" aria-hidden="true">
-      <path class="logo-lanterne" fill-rule="evenodd" d="M28 7A4 4 0 1 1 36 7A4 4 0 1 1 28 7ZM30.4 7A1.6 1.6 0 1 0 33.6 7A1.6 1.6 0 1 0 30.4 7ZM13.4 24A1.4 1.4 0 0 1 12 22.6L12 21.94A1.6 1.6 0 0 1 12.82 20.54L30.05 10.89A4 4 0 0 1 33.95 10.89L51.18 20.54A1.6 1.6 0 0 1 52 21.94L52 22.6A1.4 1.4 0 0 1 50.6 24ZM16.15 30.03A2.5 2.5 0 0 1 18.6 27L45.4 27A2.5 2.5 0 0 1 47.85 30.03L44.02 47.77A6 6 0 0 1 38.16 52.5L25.84 52.5A6 6 0 0 1 19.98 47.77ZM22 58A2.5 2.5 0 0 1 24.5 55.5L39.5 55.5A2.5 2.5 0 0 1 42 58A2.5 2.5 0 0 1 39.5 60.5L24.5 60.5A2.5 2.5 0 0 1 22 58ZM33.88 29.64C34.26 33.44 36.77 36.1 36.77 41.04C36.77 45.75 34.34 49.02 31.6 49.02C28.86 49.02 26.43 45.75 26.43 41.04C26.43 38 28.56 36.1 30.46 34.2C31.98 32.68 33.27 31.54 33.88 29.64Z"/>
-    </svg>
-    <span class="marque-nom">Paladines</span>
-  </a>
-  <div class="entete-actions">
-    <div class="langue-boite">
-      <button type="button" id="btn-langue" class="btn-entete" aria-haspopup="true" aria-expanded="false" aria-controls="menu-langue" data-t-label="langue">
-        <svg class="ic" aria-hidden="true"><use href="#i-globe"></use></svg><span id="code-langue">FR</span>
-      </button>
-      <div id="menu-langue" class="menu-langue" role="menu" hidden>
-        <button type="button" role="menuitemradio" lang="fr" data-action="langue" data-valeur="fr" aria-checked="false">Français</button>
-        <button type="button" role="menuitemradio" lang="en" data-action="langue" data-valeur="en" aria-checked="false">English</button>
-        <button type="button" role="menuitemradio" lang="ar" dir="rtl" data-action="langue" data-valeur="ar" aria-checked="false">العربية</button>
-      </div>
-    </div>
-    <a href="#reglages" class="btn-entete btn-entete--icone" data-t-label="reglages"><svg class="ic" aria-hidden="true"><use href="#i-reglages"></use></svg></a>
-    <button type="button" id="btn-quitter" class="btn-quitter" data-t-label="quitterAide">
-      <svg class="ic" aria-hidden="true"><use href="#i-sortie"></use></svg><span data-t="quitter">Quitter</span>
-    </button>
-  </div>
-</header>
-
-<p id="bandeau-horsligne" class="bandeau-horsligne" role="status" hidden data-t="horsLigne">Hors connexion</p>
+<a class="sauter" href="#vue" data-action="sauter" data-t="allerContenu">Aller au contenu</a>
+<p id="bandeau-horsligne" class="horsligne" role="status" hidden data-t="horsLigne">Hors connexion</p>
 
 <main id="vue" class="vue" tabindex="-1"></main>
 
 <section id="vue-carte" class="vue-carte" hidden>
   <h1 class="visuellement-cache" data-t="navCarte">Carte</h1>
-  <div id="barre-carte" class="barre-carte"></div>
-  <div id="carte" class="carte"></div>
-  <button type="button" id="btn-localiser" class="btn-localiser" data-action="localiser"><svg class="ic" aria-hidden="true"><use href="#i-position"></use></svg></button>
-  <button type="button" id="btn-tel-carte" class="btn-tel-carte" data-action="tel-carte" aria-expanded="false" aria-controls="carte-tel" hidden><svg class="ic" aria-hidden="true"><use href="#i-tel"></use></svg><span></span></button>
-  <div id="carte-tel" class="carte-tel" hidden></div>
-  <p class="carte-msg" role="status" data-action="masquer-msg-carte" hidden></p>
-  <div id="carte-fiche" class="carte-fiche" role="region" aria-live="polite" hidden></div>
+  <div id="carte" class="plan"></div>
+  <div id="carte-haut" class="carte-haut"></div>
+  <p class="carte-msg" role="status" hidden></p>
+  <div id="panneau-carte" class="panneau-carte" role="region" data-t-label="navCarte"></div>
   <div id="guide-haut" class="guide-haut" role="status" aria-live="polite" hidden></div>
   <div id="guide-bas" class="guide-bas" hidden></div>
 </section>
-
-<button type="button" id="btn-lire-page" class="btn-lire-page" data-action="lire-page" data-libelle="lirePage" aria-pressed="false" hidden><svg class="ic" aria-hidden="true"><use href="#i-son"></use></svg><span></span></button>
 
 <nav class="onglets" aria-label="Menu">
   <a href="#accueil" data-onglet="accueil"><svg class="ic" aria-hidden="true"><use href="#i-maison"></use></svg><span data-t="navAccueil">Accueil</span></a>
   <a href="#carte" data-onglet="carte"><svg class="ic" aria-hidden="true"><use href="#i-carte"></use></svg><span data-t="navCarte">Carte</span></a>
   <a href="#urgences" data-onglet="urgences" class="onglet-urg"><svg class="ic" aria-hidden="true"><use href="#i-tel"></use></svg><span data-t="navUrgences">Urgences</span></a>
   <a href="#infos" data-onglet="infos"><svg class="ic" aria-hidden="true"><use href="#i-info"></use></svg><span data-t="navInfos">Infos</span></a>
-  <a href="#favoris" data-onglet="favoris"><svg class="ic" aria-hidden="true"><use href="#i-etoile"></use></svg><span data-t="navFavoris">Gardés</span></a>
+  <button type="button" class="onglet-langue" data-action="menu-langue" aria-haspopup="true" aria-expanded="false" data-t-label="langue"><svg class="ic" aria-hidden="true"><use href="#i-globe"></use></svg><span class="code-langue">FR</span></button>
 </nav>
+<div id="menu-langue" class="menu-langue" role="menu" hidden></div>
 
 <noscript><p class="noscript">Cette page a besoin de JavaScript. En cas d'urgence : 115 (dormir ce soir), 3919 (violences), 17 (police), 112.</p></noscript>
 
