@@ -1,26 +1,36 @@
 /*
- * Paladines : logique de l'application.
- * Pas de framework : des vues rendues en HTML selon l'ancre de l'URL (#cat-dormir, #lieu-p01…).
- * Les ancres ne contiennent que des lettres, chiffres et tirets, et restent neutres
- * (par ex. #cat-ecoute plutôt que #violences) pour ne rien révéler dans l'historique.
+ * Paladines : l'appli (v31, refaite de zéro).
+ * Pas de framework : des écrans rendus en HTML selon l'ancre de l'URL (#cat-dormir, #lieu-l12…).
+ * Les ancres restent neutres (#cat-ecoute plutôt que #violences) : rien de sensible dans l'historique.
+ *
+ *   1. Réglages et état
+ *   2. Logique : horaires, positions, corrections de l'équipe, avis, fond de carte, guidage à pied,
+ *      signalements (reprise telle quelle de la version précédente, éprouvée)
+ *   3. Écrans : accueil, listes, fiche d'un lieu, urgences, infos, réglages…
+ *   4. Carte : plein écran (onglet Carte) ou à côté des listes sur ordinateur
+ *   5. Actions, routeur, démarrage
  */
 (function () {
   "use strict";
 
+  /* =====================================================================
+   * 1. Réglages et état
+   * ===================================================================== */
   const D = window.PALADINES_DATA;
   const TR = window.PALADINES_I18N;
   const LANGUES = ["fr", "en", "ar", "es", "ro", "uk", "fa", "ps", "ti"];
   const DROITE_A_GAUCHE = ["ar", "fa", "ps"]; // arabe, dari, pachto
   const JOURS = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"]; // index = Date#getDay()
   const SEMAINE = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"];
-  const URL_SORTIE = "https://www.google.com/search?q=m%C3%A9t%C3%A9o";
   const FERME_BIENTOT_MIN = 30;
   const CRITERES = ["femmes", "enfants", "animaux", "inconditionnel", "sansRdv", "gratuit", "pmr"];
   // Chiffres latins partout (numéros, heures, distances) : les mêmes que sur les affiches et les téléphones
   const LOCALES = { fr: "fr-FR", en: "en-GB", ar: "ar-u-nu-latn", es: "es-ES", ro: "ro-RO", uk: "uk-UA", fa: "fa-AF-u-nu-latn", ps: "ps-AF-u-nu-latn", ti: "ti-ER" };
   const VOIX = { fr: "fr-FR", en: "en-GB", ar: "ar-SA", es: "es-ES", ro: "ro-RO", uk: "uk-UA", fa: "fa-IR", ps: "ps-AF", ti: "ti-ER" };
+  // Écran d'ordinateur : menu en haut, carte à côté des listes
+  const BUREAU = window.matchMedia ? window.matchMedia("(min-width: 1024px)") : { matches: false };
 
-  /* ---------- Stockage local (peut être indisponible : navigation privée…) ---------- */
+  /* Stockage local (peut être indisponible : navigation privée…) */
   const stock = {
     lire(cle, defaut) {
       try {
@@ -50,30 +60,44 @@
 
   const etat = {
     langue: stock.lire("langue", null) || langueDuTelephone(),
-    taille: stock.lire("taille", 0),
-    facile: stock.lire("facile", false),
     favoris: stock.lire("favoris", []),
     filtres: new Set(),
+    filtresOuverts: false,
     position: null, // { lat, lng, source: "gps" | "qr", nom }
-    triDistance: true, // « Près de moi » : trier du plus proche au plus loin quand la position est connue
+    triDistance: true, // « Près de moi » : du plus proche au plus loin quand la position est connue
     positionMessage: null,
     gpsDemande: false,
     navInterne: false,
     installation: null,
-    carte: null,
-    coucheLieux: null,
-    marqueurMoi: null,
-    carteCat: "toutes",
-    carteOuvert: false,
-    carteEq: { t: false, e: false, s: false },
-    carteCadree: false,
     recherche: "",
     focusRecherche: false,
-    panneau: null, // sur ordinateur : les lieux de la liste, montrés sur la carte à côté
+    meteo: null,
+    // Carte
+    carte: null,
+    coucheLieux: null,
+    coucheEq: null,
+    marqueurMoi: null,
+    carteCadree: false,
+    carteCat: "toutes", // une grande catégorie (famille) ou « toutes »
+    carteOuvert: false,
+    carteFemmes: false,
+    carteTexte: "",
+    carteEq: { t: false, e: false, s: false },
+    calquesOuverts: false,
+    panneauOuvert: false, // panneau de la carte déplié (téléphone)
+    ficheCarte: null, // lieu ou équipement touché sur la carte
+    fondEnErreur: false,
+    msgPartielVu: false,
+    panneau: null, // ordinateur : les lieux de la liste, montrés sur la carte à côté
     panneauCle: "",
-    meteo: null
+    guide: null,
+    momentPause: false,
+    momentIndex: 0 // la carte « En ce moment » en cours, gardée quand l'accueil se redessine
   };
 
+  /* =====================================================================
+   * 2. Logique (reprise de la version précédente)
+   * ===================================================================== */
   function langueDuTelephone() {
     const prefs = navigator.languages || [navigator.language || "fr"];
     for (let i = 0; i < prefs.length; i++) {
@@ -119,14 +143,9 @@
   function famille(id) {
     return D.familles.find((f) => f.id === id);
   }
+
   function dansFamille(l, f) {
     return f.cats.some((c) => dansCat(l, c));
-  }
-  function nomFamille(f) {
-    return t(f.cats.length === 1 && f.id === "ecoute" ? "cat_ecoute" : "fam_" + f.id);
-  }
-  function lienFamille(f) {
-    return f.cats.length === 1 ? "#cat-" + f.cats[0] : "#rubrique-" + f.id;
   }
 
   /* Recherche dans les lieux : nom, structure, services, conditions, adresse et nom du besoin.
@@ -134,6 +153,7 @@
   function sansAccents(s) {
     return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   }
+
   function texteRecherche(l) {
     if (!l._texte) {
       const cats = [l.cat].concat(l.autresCats || []);
@@ -143,6 +163,7 @@
     const cats = [l.cat].concat(l.autresCats || []);
     return l._texte + " " + sansAccents(cats.map((c) => t("cat_" + c) + " " + t("catd_" + c)).join(" "));
   }
+
   function chercher(q) {
     const mots = sansAccents(q).split(/[^\p{L}\p{N}]+/u).filter((m) => m.length > 1)
       .map((m) => (m.length > 3 ? m.replace(/[sx]$/, "") : m));
@@ -151,22 +172,6 @@
       const txt = texteRecherche(l);
       return mots.every((m) => txt.indexOf(m) !== -1);
     });
-  }
-
-  // Un lieu n'apparaît sur la carte et n'a de distance que si ses coordonnées sont connues et publiques
-  function aCoord(l) {
-    return !l.adresseMasquee && typeof l.lat === "number" && typeof l.lng === "number";
-  }
-
-  // Ce qu'un lieu offre aux femmes : { niveau: "reserve" | "creneau" | "specialise", texte }
-  function pourFemmes(l) {
-    if (l.femmes) return l.femmes;
-    return l.criteres && l.criteres.femmes ? { niveau: "reserve", texte: "" } : null;
-  }
-
-  function badgeFemmes(l) {
-    const f = pourFemmes(l);
-    return f && f.niveau !== "specialise" ? '<span class="badge-femmes">' + esc(t("badge_" + f.niveau)) + "</span>" : "";
   }
 
   function hote(url) {
@@ -261,12 +266,6 @@
     return { ouvert: false, classe: "ferme", texte: t("fermeToute") };
   }
 
-  function texteHorairesJour(l, jour) {
-    const p = plages(l, jour);
-    if (!p.length) return t("ferme");
-    return p.map((x) => formatHeure(x[0]) + " – " + formatHeure(x[1])).join(", ");
-  }
-
   /* ---------- Position et distances ---------- */
   function lirePositionQR() {
     const p = new URLSearchParams(location.search);
@@ -342,6 +341,7 @@
     "https://api-adresse.data.gouv.fr/search/?limit=1&q="
   ];
 
+
   function appliquerCoordonnees() {
     const connues = window.PALADINES_COORDS || {};
     const cache = stock.lire("geo", {});
@@ -399,6 +399,7 @@
    * le téléphone pour marcher sans internet ; les infos d'origine sont gardées pour pouvoir revenir. */
   const ORIGINES = {};
 
+
   function appliquerCorrections(donnees) {
     if (!donnees || typeof donnees !== "object") return;
     // Revenir aux infos d'origine, puis appliquer les corrections reçues
@@ -450,24 +451,11 @@
     return iso <= f.jusqu;
   }
 
-  /* ---------- « Ce lieu vous a aidée ? » ----------
-   * Un avis par lieu tous les 30 jours, gardé sur le téléphone ; seul « oui » ou « non » est envoyé. */
   const AVIS_JOURS = 30;
 
   function avisDonne(id) {
     const date = stock.lire("avis", {})[id];
     return date && Date.now() - date < AVIS_JOURS * 864e5;
-  }
-
-  function htmlAvis(l) {
-    if (avisDonne(l.id)) return '<section class="avis-lieu"><p>' + icone("i-check") + esc(t("avisMerci")) + "</p></section>";
-    return (
-      '<section class="avis-lieu"><h2>' + esc(t("avisQuestion")) + "</h2>" +
-      '<div class="avis-boutons">' +
-      '<button type="button" class="btn btn--doux" data-action="avis" data-id="' + l.id + '" data-valeur="oui">👍 ' + esc(t("avisOui")) + "</button>" +
-      '<button type="button" class="btn btn--doux" data-action="avis" data-id="' + l.id + '" data-valeur="non">👎 ' + esc(t("avisNon")) + "</button>" +
-      "</div></section>"
-    );
   }
 
   function donnerAvis(id, avis) {
@@ -479,6 +467,7 @@
   }
 
   let avisEnCours = false;
+
   async function envoyerAvis() {
     if (avisEnCours || navigator.onLine === false || !window.fetch) return;
     const liste = stock.lire("avisAttente", []);
@@ -534,148 +523,13 @@
     return !x.l.adresse && !x.l.adresseMasquee ? -1 : Infinity;
   }
 
-  function htmlLieu(x, avecCategorie, avecFemmes) {
-    const l = x.l;
-    const f = avecFemmes ? pourFemmes(l) : null;
-    const cat = categorie(l.cat);
-    return (
-      '<li class="ligne-lieu"><a class="lieu" href="#lieu-' + l.id + '">' +
-      '<span class="pastille" style="--c:' + cat.couleur + '">' + icone(cat.icone) + "</span>" +
-      '<span class="lieu-corps">' +
-      (avecCategorie ? '<span class="lieu-cat">' + esc(t("cat_" + l.cat)) + "</span>" : "") +
-      '<span class="lieu-nom">' + esc(l.nom) + "</span>" +
-      badgeFemmes(l) +
-      (f && f.texte ? '<span class="lieu-femmes">' + esc(f.texte) + "</span>" : "") +
-      '<span class="statut statut--' + x.s.classe + '">' + esc(x.s.texte) + "</span>" +
-      (x.d !== null ? '<span class="lieu-meta">' + icone("i-pied") + esc(formatDistance(x.d)) + "</span>" : "") +
-      "</span>" + icone("i-chevron", "chevron") + "</a>" +
-      (l.tel ? '<a class="appel-rapide" href="' + telLien(l.tel) + '" aria-label="' + esc(t("appeler") + " " + l.nom + " : " + l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>" : "") +
-      "</li>"
-    );
-  }
-
-  function htmlListe(prepares, avecCategorie, avecFemmes) {
-    if (!prepares.length) return '<p class="vide">' + esc(t("aucun")) + "</p>";
-    return (
-      '<p class="compte">' + esc(prepares.length === 1 ? t("nbLieu1") : t("nbLieux", { n: prepares.length })) + ' <span class="compte-note">' + esc(t("aConfirmer")) + "</span></p>" +
-      '<ul class="liste">' + prepares.map((x) => htmlLieu(x, avecCategorie, avecFemmes)).join("") + "</ul>"
-    );
-  }
-
-  function nomPosition(p) {
-    return p.nom || t("positionAffiche");
-  }
-
-  // Au-dessus des listes : « Près de moi » (tri par distance) et « Ouvert maintenant » en évidence,
-  // les autres filtres repliés sous « Plus de filtres »
-  function htmlOutils(options) {
-    const o = options || {};
-    const p = etat.position;
-    const actif = !!(p && etat.triDistance);
-    let msg = "";
-    if (etat.positionMessage === "positionEnCours") msg = t("positionEnCours");
-    else if (etat.positionMessage === "gpsGarde" && p) msg = t("gpsGarde", { nom: nomPosition(p) });
-    else if (etat.positionMessage) msg = t(etat.positionMessage);
-    else if (actif) msg = p.source === "gps" ? t("positionOk") : t("positionQR", { nom: nomPosition(p) });
-    const puce = (f) => '<button type="button" class="puce" data-action="filtre" data-filtre="' + f + '" aria-pressed="' + etat.filtres.has(f) + '">' + esc(t("f_" + f)) + "</button>";
-    const nbAutres = CRITERES.filter((f) => etat.filtres.has(f)).length;
-    return (
-      '<div class="outils">' +
-      '<div class="outils-puces">' +
-      '<button type="button" class="puce puce--proche" data-action="proche" aria-pressed="' + actif + '">' + icone("i-position") + esc(t("presDeMoi")) + "</button>" +
-      (o.ouvert ? puce("ouvert") : "") +
-      "</div>" +
-      (o.filtres
-        ? '<details class="plus-filtres"' + (nbAutres ? " open" : "") + "><summary>" + icone("i-reglages") + esc(t("plusFiltres")) +
-          '<span class="nb-filtres">' + (nbAutres ? " (" + nbAutres + ")" : "") + "</span></summary>" +
-          '<div class="filtres" role="group" aria-label="' + esc(t("filtres")) + '">' + CRITERES.map(puce).join("") + "</div></details>"
-        : "") +
-      (msg ? '<p class="position-msg" role="status">' + esc(msg) + "</p>" : "") +
-      (actif && p.source === "gps" ? '<p class="position-prive">' + esc(t("positionPrive")) + "</p>" : "") +
-      "</div>"
-    );
-  }
-
-  function htmlRetour() {
-    return '<a class="retour" href="#accueil" data-action="retour">' + icone("i-retour") + esc(t("retour")) + "</a>";
-  }
-
-  /* ---------- Vues ---------- */
-  // Les tuiles des catégories : « Pour les femmes », les grandes catégories, puis « Toutes les catégories »
-  function htmlTuilesFamilles(maintenant, tuile) {
-    return tuile("#pourvous", t("femmesTitre"), t("femmesSous"), "i-coeur", D.lieux.filter(pourFemmes), 'class="tuile tuile--femmes"') +
-      D.familles.map((f) =>
-        tuile(lienFamille(f), nomFamille(f), "", f.icone, D.lieux.filter((l) => dansFamille(l, f)), 'class="tuile"')
-      ).join("") +
-      tuile("#rubrique-toutes", t("fam_toutes"), "", "i-grille", D.lieux, 'class="tuile tuile--toutes"');
-  }
-
-  // « Que recherchez-vous ? » : sur l'accueil et en haut de la page de recherche
-  function htmlFormRecherche() {
-    return (
-      '<form class="recherche" role="search" data-recherche action="#recherche">' +
-      '<label class="visuellement-cache" for="q">' + esc(t("rechTitre")) + "</label>" +
-      '<div class="recherche-champ">' + icone("i-loupe") +
-      '<input id="q" name="q" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" maxlength="60" placeholder="' + esc(t("rechTitre")) + '" value="' + esc(etat.recherche) + '">' +
-      '<button type="submit" class="visuellement-cache">' + esc(t("rechBouton")) + "</button>" +
-      "</div></form>"
-    );
-  }
-
-  function vueAccueil() {
-    const maintenant = new Date();
-
-    // Une tuile : le besoin et combien de lieux sont ouverts (« Appeler avant » si les horaires sont inconnus)
-    const tuile = (lien, nom, aide, ic, lieux, attrs) => {
-      const n = lieux.filter((l) => statut(l, maintenant).ouvert === true).length;
-      const inconnus = n === 0 && lieux.some((l) => statut(l, maintenant).ouvert === null);
-      const nb = n === 0 ? t(inconnus ? "nbInconnu" : "nbOuvert0") : n === 1 ? t("nbOuvert1") : t("nbOuvertN", { n: n });
-      const nbLong = n === 0 ? t(inconnus ? "ouvertsInconnus" : "ouverts0") : n === 1 ? t("ouverts1") : t("ouvertsN", { n: n });
-      return (
-        '<li><a href="' + lien + '" ' + attrs + ' aria-label="' + esc(nom + (aide ? " (" + aide + ")" : "") + " : " + nbLong) + '">' +
-        '<span class="pastille">' + icone(ic) + "</span>" +
-        '<span class="tuile-nom">' + esc(nom) + "</span>" +
-        (aide ? '<span class="tuile-aide" aria-hidden="true">' + esc(aide) + "</span>" : "") +
-        '<span class="tuile-nb' + (n ? " tuile-nb--ouvert" : inconnus ? " tuile-nb--inconnu" : "") + '" aria-hidden="true">' + esc(nb) + "</span>" +
-        "</a></li>"
-      );
-    };
-    // « Pour les femmes » en premier, puis les grandes catégories (comme Soliguide), puis « Toutes »
-    const tuiles = htmlTuilesFamilles(maintenant, tuile);
-
-    // Accueil épuré : le titre, la recherche, « près de moi », les catégories, et le bouton de sécurité
-    return (
-      '<header class="accueil-tete"><p class="accueil-pour">' + esc(t("heroPour")) + "</p>" +
-      "<h1>" + esc(t("bonjour")) + " " + esc(t("besoin")) + "</h1></header>" +
-      htmlFormRecherche() +
-      '<a class="cta-proche" href="#proche">' +
-      '<span class="cta-ic">' + icone("i-position") + "</span>" +
-      '<span class="cta-txt"><strong>' + esc(t("procheCta")) + "</strong><small>" + esc(t("procheSous")) + "</small></span>" +
-      icone("i-chevron", "chevron") + "</a>" +
-      htmlRappelRdv() +
-      htmlBandeauInstallation() +
-      htmlAlertes(maintenant) +
-      '<section class="bloc" aria-labelledby="h-cherche">' +
-      '<h2 id="h-cherche" class="titre-bloc">' + esc(t("jeCherche")) + "</h2>" +
-      '<ul class="grille-cat">' + tuiles + "</ul>" +
-      "</section>" +
-      '<a class="ligne-aide" href="#aide">' + icone("i-bouclier") + "<span>" + esc(t("aideBouton")) + "</span>" + icone("i-chevron", "chevron") + "</a>" +
-      '<p class="maj">' + esc(t("prototype")) + "<br>" + esc(t("donneesDu", { date: formatDate(D.majDonnees) })) + "</p>"
-    );
-  }
-
-
-  /* ---------- Infos du moment ----------
-   * Calculées à chaque affichage : la période de l'année (data/lieux.js, « infos »), la météo de Lille
-   * (Open-Meteo, gardée 3 h sur le téléphone). Une ligne par alerte sur l'accueil. */
-  const METEO_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.63&longitude=3.06&daily=temperature_2m_min,temperature_2m_max,precipitation_sum&timezone=Europe%2FParis&forecast_days=3";
-  const DEFILEMENT_MS = 6000;
-
   // Une période « MM-JJ » à « MM-JJ » (qui peut passer le nouvel an, comme le plan hiver)
   function dansPeriode(x, maintenant) {
     const j = String(maintenant.getMonth() + 1).padStart(2, "0") + "-" + String(maintenant.getDate()).padStart(2, "0");
     return x.du <= x.au ? j >= x.du && j <= x.au : j >= x.du || j <= x.au;
   }
+
+  const METEO_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.63&longitude=3.06&daily=temperature_2m_min,temperature_2m_max,precipitation_sum&timezone=Europe%2FParis&forecast_days=3";
 
   function infoMeteo(maintenant) {
     const d = etat.meteo;
@@ -708,541 +562,22 @@
       .catch(() => { /* pas de météo : les autres infos restent */ });
   }
 
-  function infosDuMoment(maintenant) {
-    const infos = [];
-    const meteo = infoMeteo(maintenant);
-    if (meteo) infos.push(meteo);
-    (D.infos || []).filter((x) => dansPeriode(x, maintenant)).forEach((x) => {
-      infos.push({ type: x.type || "info", icone: x.type === "alerte" ? "i-alerte" : "i-info", texte: x.texte[etat.langue] || x.texte.fr, lien: x.lien });
-    });
-
-    return infos;
-  }
-
-  // Les alertes du moment (froid, chaleur, plan hiver…) : une ligne chacune, sans défilement
-  function htmlAlertes(maintenant) {
-    const infos = infosDuMoment(maintenant);
-    if (!infos.length) return "";
-    return '<ul class="alertes" aria-label="' + esc(t("im_titre")) + '">' + infos.map((x) => {
-      const contenu = '<span class="alerte-ic">' + icone(x.icone) + '</span><span class="alerte-txt">' + esc(x.texte) + "</span>" + (x.lien ? icone("i-chevron", "chevron") : "");
-      return '<li class="alerte alerte--' + x.type + '">' + (x.lien ? '<a href="' + esc(x.lien) + '">' + contenu + "</a>" : "<div>" + contenu + "</div>") + "</li>";
-    }).join("") + "</ul>";
-  }
-
-  function vuePourVous(ancre) {
-    const groupes = ["reserve", "creneau", "specialise"].map((niveau) => {
-      const lieux = D.lieux.filter((l) => { const f = pourFemmes(l); return f && f.niveau === niveau; });
-      return lieux.length
-        ? '<section class="section" id="pv-' + niveau + '"><h2>' + esc(t("pv_" + niveau)) + "</h2>" + htmlListe(preparer(lieux), true, true) + "</section>"
-        : "";
-    }).join("");
-    const protections = D.lieux.filter((l) => l.protections);
-    const nb = (niveau) => D.lieux.filter((l) => { const f = pourFemmes(l); return f && f.niveau === niveau; }).length;
-    const sommaire = ["reserve", "creneau", "specialise"].filter((x) => nb(x))
-      .map((x) => '<a class="puce" href="#pourvous-' + x + '">' + esc(t("pvCourt_" + x)) + " (" + nb(x) + ")</a>").join("") +
-      '<a class="puce" href="#pourvous-protections">' + esc(t("pvCourt_protections")) + "</a>";
-    return (
-      htmlRetour() +
-      '<header class="tete tete--femmes"><span class="pastille pastille--grande">' + icone("i-coeur") + "</span>" +
-      "<div><h1>" + esc(t("pvTitre")) + '</h1><p class="sous-titre">' + esc(t("pvSous")) + "</p></div></header>" +
-      '<nav class="sommaire-femmes" aria-label="' + esc(t("pvTitre")) + '">' + sommaire + "</nav>" +
-      htmlOutils() +
-      groupes +
-      '<section class="section" id="pv-protections"><h2>' + esc(t("pv_protections")) + "</h2>" +
-      "<p>" + esc(t(protections.length ? "pvProtectionsIntro" : "pvProtectionsVide")) + "</p>" +
-      (protections.length ? htmlListe(preparer(protections), true, false) : "") +
-      "</section>"
-    );
-  }
-
-  function vueCategorie(id) {
-    const c = categorie(id);
-    if (!c) return vueAccueil();
-    // Besoin qui forme à lui seul une grande catégorie de l'accueil : on garde le nom de la tuile
-    const fam = D.familles.find((f) => f.cats.length === 1 && f.cats[0] === id);
-    const rappel = (id === "dormir" || id === "ecoute")
-      ? '<p class="rappel">' + icone("i-tel") + esc(t("rappel_" + id)) + "</p>"
-      : "";
-    return (
-      htmlRetour() +
-      '<header class="tete" style="--c:' + c.couleur + '">' +
-      '<span class="pastille pastille--grande">' + icone(c.icone) + "</span>" +
-      "<div><h1>" + esc(fam ? nomFamille(fam) : t("cat_" + id)) + '</h1><p class="sous-titre">' + esc(t("catd_" + id)) + "</p></div>" +
-      "</header>" +
-      rappel +
-      (id === "hygiene" ? '<a class="lien-fleche lien-eq" href="#carte-toilettes">' + icone("i-wc") + esc(t("eq_voirCarte")) + icone("i-chevron", "chevron") + "</a>" : "") +
-      htmlOutils({ ouvert: true, filtres: true }) +
-      '<div id="resultats">' + htmlListe(preparer(D.lieux.filter((l) => dansCat(l, id))), false) + "</div>"
-    );
-  }
-
-  // Une grande catégorie de plusieurs besoins (Matériel, Technologie) ou toutes les catégories
-  function vueRubrique(id) {
-    const f = id === "toutes" ? { id: "toutes", icone: "i-grille", cats: D.categories.map((c) => c.id) } : famille(id);
-    if (!f) return vueAccueil();
-    const raccourcis = f.cats.map((c) => '<a class="puce" href="#cat-' + c + '">' + icone(categorie(c).icone) + esc(t("cat_" + c)) + "</a>").join("");
-    return (
-      htmlRetour() +
-      '<header class="tete"><span class="pastille pastille--grande">' + icone(f.icone) + "</span>" +
-      "<div><h1>" + esc(id === "toutes" ? t("fam_toutes") : nomFamille(f)) + '</h1><p class="sous-titre">' + esc(t("famd_" + f.id)) + "</p></div></header>" +
-      '<nav class="sous-cats" aria-label="' + esc(t("jeCherche")) + '">' + raccourcis + "</nav>" +
-      htmlOutils({ ouvert: true, filtres: true }) +
-      '<div id="resultats">' + htmlListe(preparer(lieuxDeLaVue(vueCourante())), true) + "</div>"
-    );
-  }
-
-  function htmlResultatsRecherche() {
-    if (!etat.recherche.trim()) return '<p class="vide vide--recherche">' + esc(t("rechVide")) + "</p>";
-    const prepares = preparer(lieuxDeLaVue(vueCourante()));
-    if (!prepares.length) return '<p class="vide">' + esc(t("rechAucun")) + "</p>";
-    return htmlListe(prepares, true);
-  }
-
-  function vueRecherche() {
-    const maintenant = new Date();
-    const tuile = (lien, nom, aide, ic) => '<li><a href="' + lien + '" class="puce">' + icone(ic) + esc(nom) + "</a></li>";
-    return (
-      htmlRetour() +
-      '<header class="tete tete--recherche"><span class="pastille pastille--grande">' + icone("i-loupe") + "</span>" +
-      "<div><h1>" + esc(t("rechBouton")) + "</h1></div></header>" +
-      htmlFormRecherche() +
-      htmlOutils({ ouvert: true, filtres: true }) +
-      '<div id="resultats">' + htmlResultatsRecherche() + "</div>" +
-      '<section class="bloc" aria-labelledby="h-ou"><h2 id="h-ou" class="titre-bloc">' + esc(t("rechOu")) + "</h2>" +
-      '<ul class="puces-cat">' + htmlTuilesFamilles(maintenant, tuile) + "</ul></section>"
-    );
-  }
-
-  // Les lieux d'une liste, avant les filtres (pour la liste et pour la carte à côté sur ordinateur)
-  function lieuxDeLaVue(h) {
-    switch (h.vue) {
-      case "cat": return D.lieux.filter((l) => dansCat(l, h.param));
-      case "rubrique": {
-        const f = famille(h.param);
-        return h.param === "toutes" ? D.lieux : f ? D.lieux.filter((l) => dansFamille(l, f)) : [];
-      }
-      case "recherche": return chercher(etat.recherche);
-      case "proche": return D.lieux;
-      case "pourvous": return D.lieux.filter((l) => pourFemmes(l) || l.protections);
-      case "favoris": return etat.favoris.map(lieu).filter(Boolean);
-      case "lieu": { const l = lieu(h.param); return l ? [l] : []; }
-      default: return null;
+  // Ouvert maintenant ({ ouvert: true, fin }) ou prochaine ouverture aujourd'hui ({ ouvert: false, debut, dans } en minutes)
+  function momentLieu(l, maintenant) {
+    if (!l.horaires || l.horaires === "24/7") return null;
+    const jour = maintenant.getDay();
+    const m = maintenant.getHours() * 60 + maintenant.getMinutes();
+    for (const p of plages(l, JOURS[(jour + 6) % 7])) {
+      if (enMinutes(p[1]) <= enMinutes(p[0]) && m < enMinutes(p[1])) return { ouvert: true, fin: p[1] };
     }
-  }
-
-  function vueProche() {
-    if (!etat.gpsDemande && !(etat.position && etat.position.source === "gps")) {
-      // Demander la position une seule fois, au moment où la personne en a besoin
-      setTimeout(demanderPosition, 0);
+    let prochain = null;
+    for (const p of plages(l, JOURS[jour])) {
+      const d = enMinutes(p[0]);
+      const f = enMinutes(p[1]);
+      if ((f > d && m >= d && m < f) || (f <= d && m >= d)) return { ouvert: true, fin: p[1] };
+      if (d > m && (!prochain || d - m < prochain.dans)) prochain = { ouvert: false, debut: p[0], dans: d - m };
     }
-    return (
-      htmlRetour() +
-      '<header class="tete tete--proche"><span class="pastille pastille--grande">' + icone("i-horloge") + "</span>" +
-      "<div><h1>" + esc(t("procheTitre")) + '</h1><p class="sous-titre">' + esc(t("procheSous")) + "</p></div></header>" +
-      htmlOutils({ filtres: true }) +
-      '<div id="resultats">' + htmlListe(preparer(D.lieux, true), true) + "</div>"
-    );
-  }
-
-  function vueLieu(id) {
-    const l = lieu(id);
-    if (!l) return htmlRetour() + '<p class="vide">' + esc(t("introuvable")) + "</p>";
-    const cat = categorie(l.cat);
-    const s = statut(l, new Date());
-    const fav = etat.favoris.indexOf(l.id) !== -1;
-    const aujourdhui = JOURS[new Date().getDay()];
-    const peutLire = voixDispo();
-
-    let horaires;
-    if (l.horaires === "24/7") horaires = "<p>" + esc(t("h24")) + "</p>";
-    else if (!l.horaires) {
-      horaires = "<p>" + esc(t("horairesInconnus")) + "</p>" +
-        (l.horairesTexte ? '<p class="aide">' + esc(t("horairesSource")) + " : " + esc(l.horairesTexte) + "</p>" : "");
-    }
-    else {
-      horaires = '<table class="horaires"><tbody>' + SEMAINE.map((j) =>
-        "<tr" + (j === aujourdhui ? ' class="auj"' : "") + '><th scope="row">' + esc(t("jours")[j]) +
-        (j === aujourdhui ? " <small>" + esc(t("aujourdhui")) + "</small>" : "") +
-        "</th><td>" + (plages(l, j).length ? plages(l, j).map((x) => esc(formatHeure(x[0]) + " – " + formatHeure(x[1]))).join("<br>") : esc(t("ferme"))) + "</td></tr>"
-      ).join("") + "</tbody></table>";
-    }
-
-    const actions = [];
-    const principales = [];
-    if (!l.adresseMasquee && (l.adresse || aCoord(l))) {
-      // Guidage pas à pas dans l'appli, même sans internet (voir « Guidage à pied »)
-      principales.push('<a class="action action--principale" href="#guide-' + l.id + '">' + icone("i-itineraire") + "<span>" + esc(t("itineraire")) + "</span></a>");
-    }
-    if (l.tel) principales.push('<a class="action action--principale action--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + "<span>" + esc(t("appeler")) + "</span></a>");
-    actions.push('<button type="button" class="action" data-action="partager" data-id="' + l.id + '">' + icone("i-partager") + "<span>" + esc(t("partager")) + "</span></button>");
-    actions.push('<button type="button" class="action" data-action="garder" data-id="' + l.id + '" aria-pressed="' + fav + '">' + icone(fav ? "i-etoile-pleine" : "i-etoile") + "<span>" + esc(fav ? t("garde") : t("garder")) + "</span></button>");
-    if (peutLire) actions.push('<button type="button" class="action" data-action="ecouter" data-id="' + l.id + '" aria-pressed="false">' + icone("i-son") + "<span>" + esc(t("ecouter")) + "</span></button>");
-
-    const criteres = CRITERES.filter((c) => l.criteres && l.criteres[c]);
-    const femmes = pourFemmes(l);
-    const langues = (l.langues || []).map((c) => t("nomsLangues")[c] || c);
-
-    return (
-      htmlRetour() +
-      '<article class="fiche-lieu" style="--c:' + cat.couleur + '">' +
-      '<p class="badge-fictif">' + esc(t("fictif")) + "</p>" +
-      '<header class="tete">' +
-      '<span class="pastille pastille--grande">' + icone(cat.icone) + "</span>" +
-      '<div><p class="lieu-cat">' + esc(t("cat_" + l.cat)) + "</p><h1>" + esc(l.nom) + "</h1>" +
-      '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p></div>" +
-      "</header>" +
-      (fermeEnCeMoment(l) && l.fermeTemp.texte ? '<p class="note-equipe note-equipe--ferme">' + icone("i-alerte") + '<span lang="fr">' + esc(l.fermeTemp.texte) + "</span></p>" : "") +
-      (l.noteEquipe ? '<p class="note-equipe">' + icone("i-info") + '<span><strong>' + esc(t("noteEquipe")) + '</strong> <span lang="fr">' + esc(l.noteEquipe) + "</span></span></p>" : "") +
-      '<div class="adresse">' +
-      (l.adresseMasquee
-        ? '<p class="adresse-masquee">' + icone("i-bouclier") + esc(t("adresseMasquee")) + "</p>" +
-          (l.acces && lieu(l.acces) ? '<p class="acces-lien">' + esc(t("ouDemander")) + ' <a href="#lieu-' + l.acces + '">' + esc(lieu(l.acces).nom) + "</a></p>" : "")
-        : !l.adresse
-        ? '<p class="adresse-masquee">' + icone("i-tel") + esc(t("sansAdresse")) + "</p>"
-        : '<p class="adresse-txt"><span dir="ltr">' + esc(l.adresse) + "</span></p>" +
-          '<button type="button" class="btn btn--doux btn--mini" data-action="copier" data-texte="' + esc(l.adresse) + '">' + icone("i-copier") + esc(t("copier")) + "</button>") +
-      (etat.position && aCoord(l) ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, l))) + "</p>" : "") +
-      (l.tel ? '<p class="tel-txt">' + icone("i-tel") + '<a dir="ltr" href="' + telLien(l.tel) + '">' + esc(l.tel) + "</a></p>" : "") +
-      "</div>" +
-      (principales.length ? '<div class="actions actions--principales">' + principales.join("") + "</div>" : "") +
-      '<div class="actions">' + actions.join("") + "</div>" +
-      (femmes && femmes.texte ? '<section class="encart-femmes"><h2>' + icone("i-coeur") + esc(t("encartFemmes")) + "</h2>" + badgeFemmes(l) + "<p>" + esc(femmes.texte) + "</p></section>" : "") +
-      '<section class="section"><h2>' + esc(t("horaires")) + "</h2>" + horaires + "</section>" +
-      '<section class="section"><h2>' + esc(t("surPlace")) + '</h2><ul class="puces-txt">' + l.services.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul></section>" +
-      '<section class="section"><h2>' + esc(t("conditions")) + "</h2><p>" + esc(l.conditions) + "</p></section>" +
-      (criteres.length ? '<section class="section"><h2>' + esc(t("bonASavoir")) + '</h2><ul class="criteres">' + criteres.map((c) => "<li>" + icone("i-check") + esc(t("f_" + c)) + "</li>").join("") + "</ul></section>" : "") +
-      (langues.length ? '<section class="section"><h2>' + esc(t("languesParlees")) + "</h2><p>" + esc(langues.join(", ")) + "</p></section>" : "") +
-      htmlAvis(l) +
-      '<div class="verifie"><p>' + icone("i-info") + esc(t("verifie", { date: formatDate(l.verifie) })) + "</p>" +
-      "<p>" + esc(t("appelerAvant")) + "</p>" +
-      (l.sources && l.sources.length
-        ? '<p class="sources">' + esc(t("sources")) + " : " + l.sources.map((u) => '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(hote(u)) + "</a>").join(", ") + "</p>"
-        : "") +
-      "</div>" +
-      '<details class="signaler"><summary>' + icone("i-drapeau") + esc(t("signaler")) + "</summary>" +
-      htmlFormSignaler(l.id, ["ferme", "horaires", "adresse", "accueil", "autre"]) + "</details>" +
-      "</article>"
-    );
-  }
-
-  /* Formulaire « Signaler » : sur chaque fiche (lieu) ou pour toute l'appli (lieu vide) */
-  function htmlFormSignaler(lieu, raisons) {
-    return (
-      '<form class="form-signaler" data-lieu="' + esc(lieu) + '"><fieldset><legend>' + esc(t("signalerQuoi")) + "</legend>" +
-      raisons.map((r, i) => '<label><input type="radio" name="raison" value="' + r + '"' + (i === 0 ? " required" : "") + "> " + esc(t("sig_" + r)) + "</label>").join("") +
-      '<label class="champ-message"><span>' + esc(t("signalerPrecisez")) + '</span><textarea name="message" rows="3" maxlength="500"></textarea></label>' +
-      '<p class="aide">' + esc(t("signalerAnonyme")) + "</p>" +
-      // Champ piège invisible : seuls les robots le remplissent
-      '<input type="text" name="site" class="piege" tabindex="-1" autocomplete="off" aria-hidden="true">' +
-      '</fieldset><button type="submit" class="btn">' + esc(t("envoyer")) + "</button>" +
-      '<p class="merci" role="status" hidden></p></form>'
-    );
-  }
-
-  function vueSignaler() {
-    return (
-      htmlRetour() +
-      "<h1>" + esc(t("signalerProbleme")) + "</h1>" +
-      '<p class="sous-titre">' + esc(t("signalerIntro")) + "</p>" +
-      '<div class="signaler signaler--page">' + htmlFormSignaler("", ["manque", "bug", "traduction", "autre"]) + "</div>"
-    );
-  }
-
-  function vueUrgences() {
-    return (
-      htmlRetour() +
-      '<header class="tete tete--urg"><span class="pastille pastille--grande">' + icone("i-tel") + "</span>" +
-      "<div><h1>" + esc(t("urgTitre")) + '</h1><p class="sous-titre">' + esc(t("urgIntro")) + "</p></div></header>" +
-      '<a class="btn btn--danger btn--aide" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>" +
-      '<ul class="liste-urg">' +
-      D.urgences.map((u) =>
-        '<li class="urg' + (u.couleur === "urgent" ? " urg--fort" : "") + '">' +
-        '<a class="urg-num" dir="ltr" href="' + telLien(u.num) + '">' + u.num + "</a>" +
-        '<div class="urg-corps"><p>' + esc(t("urg_" + u.id)) + "</p>" +
-        '<div class="urg-actions"><a class="btn btn--mini" href="' + telLien(u.num) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" +
-        (u.sms ? '<a class="btn btn--mini" href="sms:' + u.num + '">' + icone("i-sms") + esc(t("envoyerSms")) + "</a>" : "") +
-        "</div></div></li>"
-      ).join("") +
-      "</ul>" +
-      '<p class="rappel">' + icone("i-info") + esc(t("urgEnLigne")) + "</p>"
-    );
-  }
-
-  // Infos pratiques : chaque fiche montre son pictogramme, son titre et l'essentiel en une ligne ;
-  // en l'ouvrant, les conseils et les actions utiles (appeler, voir les lieux)
-  const FICHES = {
-    "115": { ic: "i-lit", tel: ["115"] },
-    proteger: { ic: "i-bouclier", tel: ["3919", "17"], sms: "114" },
-    sante: { ic: "i-croix", cat: "sante" },
-    regles: { ic: "i-goutte", cat: "hygiene" },
-    adresse: { ic: "i-papier", cat: "droits" },
-    papiers: { ic: "i-sac", cat: "bagagerie", lien: "https://www.reconnect.fr", lienTxt: "reconnectLien" },
-    securite: { ic: "i-sortie", aide: true }
-  };
-
-  function vueInfos(ouvrir) {
-    const peutLire = voixDispo();
-    const actions = (f) => {
-      const x = FICHES[f.id] || {};
-      const liens = (x.tel || []).map((n) => '<a class="btn btn--appel" href="' + telLien(n) + '">' + icone("i-tel") + esc(t("appeler")) + ' <span dir="ltr">' + n + "</span></a>")
-        .concat(x.sms ? ['<a class="btn btn--doux" href="sms:' + x.sms + '">' + icone("i-sms") + esc(t("envoyerSms")) + ' <span dir="ltr">' + x.sms + "</span></a>"] : [])
-        .concat(x.cat ? ['<a class="btn btn--doux" href="#cat-' + x.cat + '">' + icone(categorie(x.cat).icone) + esc(t("cat_" + x.cat)) + "</a>"] : [])
-        .concat(x.lien ? ['<a class="btn btn--doux" href="' + esc(x.lien) + '" target="_blank" rel="noopener noreferrer">' + icone("i-papier") + esc(t(x.lienTxt)) + "</a>"] : []);
-      if (x.aide) liens.push('<a class="btn btn--danger" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>");
-      return liens.length ? '<div class="fiche-actions">' + liens.join("") + "</div>" : "";
-    };
-    return (
-      htmlRetour() +
-      "<h1>" + esc(t("infosTitre")) + "</h1>" +
-      '<div class="fiches">' +
-      t("fiches").map((f) =>
-        '<details class="fiche" id="fiche-' + f.id + '"' + (f.id === ouvrir ? " open" : "") + ">" +
-        '<summary><span class="pastille">' + icone((FICHES[f.id] || {}).ic || "i-info") + "</span>" +
-        '<span class="fiche-tete"><span class="fiche-titre">' + esc(f.titre) + '</span><span class="fiche-resume">' + esc(f.points[0]) + "</span></span>" +
-        icone("i-chevron", "chevron") + "</summary>" +
-        '<ul class="fiche-points">' + f.points.slice(1).map((p) => "<li>" + esc(p) + "</li>").join("") + "</ul>" +
-        actions(f) +
-        (peutLire ? '<button type="button" class="btn btn--doux btn--mini" data-action="ecouter-fiche" data-id="' + f.id + '" aria-pressed="false">' + icone("i-son") + "<span>" + esc(t("ecouter")) + "</span></button>" : "") +
-        "</details>"
-      ).join("") +
-      "</div>" +
-      '<nav class="liens-bas" aria-label="' + esc(t("plus")) + '">' +
-      '<a href="#reglages">' + icone("i-installer") + esc(t("installerCourt")) + "</a>" +
-      '<a href="#signaler">' + icone("i-drapeau") + esc(t("signalerProbleme")) + "</a>" +
-      '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
-      "</nav>"
-    );
-  }
-
-  function vueFavoris() {
-    const liste = D.lieux.filter((l) => etat.favoris.indexOf(l.id) !== -1);
-    return (
-      htmlRetour() +
-      '<header class="tete tete--favoris"><span class="pastille pastille--grande">' + icone("i-etoile") + "</span>" +
-      "<div><h1>" + esc(t("favorisTitre")) + "</h1></div></header>" +
-      '<a class="rappel rappel-rdv lien-carnet" href="#carnet">' + icone("i-papier") + "<span>" + esc(t("carnetLien")) + "</span>" + icone("i-chevron", "chevron") + "</a>" +
-      (liste.length ? htmlListe(preparer(liste), true) : '<p class="vide">' + esc(t("favorisVide")) + "</p>")
-    );
-  }
-
-  function estIOS() {
-    return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  }
-
-  // Dans l'aperçu (page intégrée dans une autre), l'installation et le QR code n'ont pas de sens
-  function dansUnCadre() {
-    try {
-      return window.self !== window.top;
-    } catch (e) {
-      return true;
-    }
-  }
-
-  function htmlInstallation() {
-    if (estInstallee()) return '<p class="ok">' + icone("i-check") + esc(t("installee")) + "</p>";
-    if (etat.installation) {
-      return '<button type="button" class="btn" data-action="installer">' + icone("i-installer") + esc(t("installer")) + "</button>";
-    }
-    return "<p>" + esc(estIOS() ? t("installerIOS") : t("installerAutre")) + "</p>";
-  }
-
-  // Bandeau sur l'accueil : seulement quand l'installation est possible et pas refusée
-  function htmlBandeauInstallation() {
-    if (estInstallee() || dansUnCadre() || stock.lire("installMasque", false)) return "";
-    if (!etat.installation && !estIOS()) return "";
-    return (
-      '<section class="installer-bandeau" aria-labelledby="h-installer">' +
-      '<strong id="h-installer">' + icone("i-installer") + esc(t("installerTitre")) + "</strong>" +
-      "<p>" + esc(t("installerBandeau")) + "</p>" +
-      (etat.installation ? "" : "<p>" + esc(t("installerIOS")) + "</p>") +
-      '<div class="installer-actions">' +
-      (etat.installation ? '<button type="button" class="btn" data-action="installer">' + icone("i-installer") + esc(t("installerCourt")) + "</button>" : "") +
-      '<button type="button" class="btn btn--doux" data-action="installer-plus-tard">' + esc(t("installerPlusTard")) + "</button>" +
-      "</div></section>"
-    );
-  }
-
-  function urlSite() {
-    return location.href.split("#")[0].split("?")[0].replace(/index\.html$/, "");
-  }
-
-  // QR code pour passer de l'ordinateur au téléphone
-  function htmlOuvrirTelephone() {
-    if (dansUnCadre() || !/^https?:$/.test(location.protocol)) return "";
-    return (
-      '<section class="section"><h2>' + esc(t("ouvrirTelephone")) + "</h2>" +
-      '<div class="qr-telephone"><div class="qr" id="qr-site" aria-hidden="true"></div>' +
-      "<p>" + esc(t("ouvrirTelephoneAide")) + '<br><span class="lien-site">' + esc(urlSite()) + "</span></p></div></section>"
-    );
-  }
-
-  function dessinerQrSite() {
-    const zone = document.getElementById("qr-site");
-    if (!zone) return;
-    const dessiner = () => {
-      const qr = window.qrcode(0, "M");
-      qr.addData(urlSite());
-      qr.make();
-      zone.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
-    };
-    if (window.qrcode) return dessiner();
-    const sc = document.createElement("script");
-    sc.src = "vendor/qrcode/qrcode.js";
-    sc.onload = dessiner;
-    document.head.appendChild(sc);
-  }
-
-  function vueReglages() {
-    const choix = (action, valeur, actif, libelle, attrs) =>
-      '<button type="button" class="puce" data-action="' + action + '" data-valeur="' + valeur + '" aria-pressed="' + actif + '"' + (attrs || "") + ">" + libelle + "</button>";
-    return (
-      htmlRetour() +
-      "<h1>" + esc(t("reglages")) + "</h1>" +
-      '<section class="section"><h2>' + esc(t("langue")) + '</h2><div class="choix choix--langues">' +
-      LANGUES.map((l) => choix("langue", l, etat.langue === l, esc(TR[l].nomLangue), ' lang="' + l + '"' + (DROITE_A_GAUCHE.indexOf(l) !== -1 ? ' dir="rtl"' : ""))).join("") +
-      "</div></section>" +
-      '<section class="section"><h2>' + esc(t("tailleTexte")) + '</h2><div class="choix">' +
-      [0, 1, 2].map((n) => choix("taille", n, etat.taille === n, '<span class="taille-' + n + '">A' + "+".repeat(n) + "</span>")).join("") +
-      "</div></section>" +
-      '<section class="section"><h2>' + esc(t("facileTitre")) + '</h2><p class="aide">' + esc(t("facileAide")) + '</p><div class="choix">' +
-      choix("facile", "0", !etat.facile, esc(t("facileNon"))) + choix("facile", "1", !!etat.facile, esc(t("facileOui"))) +
-      "</div></section>" +
-      '<section class="section" id="installer"><h2>' + esc(t("installer")) + '</h2><p class="aide">' + esc(t("installerAide")) + "</p>" + htmlInstallation() + "</section>" +
-      htmlOuvrirTelephone() +
-      '<section class="section"><h2>' + esc(t("effacer")) + '</h2><p class="aide">' + esc(t("effacerAide")) + "</p>" +
-      '<div class="effacer"><button type="button" class="btn btn--doux" data-action="effacer">' + esc(t("effacerBouton")) + "</button>" +
-      '<div class="effacer-confirmer" hidden><button type="button" class="btn btn--danger" data-action="effacer-oui">' + esc(t("confirmerEffacer")) + '</button><button type="button" class="btn btn--doux" data-action="effacer-non">' + esc(t("annuler")) + "</button></div>" +
-      '<p class="ok" role="status" hidden>' + icone("i-check") + esc(t("effacerOk")) + "</p></div></section>" +
-      '<nav class="liens-bas" aria-label="' + esc(t("plus")) + '">' +
-      '<a href="#infos-securite">' + icone("i-bouclier") + esc(t("securite")) + "</a>" +
-      '<a href="#signaler">' + icone("i-drapeau") + esc(t("signalerProbleme")) + "</a>" +
-      '<a href="#apropos">' + icone("i-info") + esc(t("apropos")) + "</a>" +
-      "</nav>"
-    );
-  }
-
-  /* Page pour l'équipe projet : volontairement en français. */
-  const IDEES = [
-    ["Bouton « Quitter » toujours visible", "Un appui ouvre la météo à la place de l'appli (ou Échap deux fois sur ordinateur). Pensé pour les femmes dont le téléphone est surveillé."],
-    ["Rien d'alarmant dans l'historique", "Le titre de l'onglet reste « Paladines » et les adresses de pages sont neutres (#cat-ecoute et non « violences »)."],
-    ["Adresses confidentielles", "Les centres pour femmes victimes de violences n'apparaissent pas sur la carte. Leur adresse est donnée par téléphone."],
-    ["QR codes qui savent où ils sont collés", "Chaque affiche contient sa position. Même si le GPS est refusé, la liste est triée depuis l'affiche. Voir la page « Créer une affiche »."],
-    ["Affiche à languettes", "Le 115 et le 3919 sont imprimés sur des languettes à détacher, pour celles qui n'ont pas de smartphone ou plus de batterie."],
-    ["Marche sans internet, s'installe sans store", "C'est une PWA : une fois ouverte, l'appli et les lieux gardés restent disponibles hors connexion."],
-    ["Aucun compte, aucune donnée personnelle", "Pas d'inscription, pas de nom. La position reste sur le téléphone et n'est jamais enregistrée. Seuls partent les signalements, anonymes, et un compteur de visites par mois."],
-    ["Pour celles qui lisent peu ou pas le français", "Pictogrammes partout, arabe (écriture de droite à gauche) et anglais, bouton « Écouter » qui lit la fiche à voix haute."],
-    ["Lisible par toutes", "Police Atkinson Hyperlegible, conçue pour les personnes malvoyantes. Taille du texte réglable. Mode sombre qui économise la batterie."],
-    ["Statut en direct", "« Ouvert · ferme à 18 h », « Ferme bientôt », « Fermé · ouvre demain à 9 h », y compris pour les haltes de nuit qui passent minuit."],
-    ["Filtres pensés pour la rue", "Femmes uniquement, enfants acceptés, animaux acceptés, sans condition de papiers, sans rendez-vous, accessible en fauteuil."],
-    ["Besoins souvent oubliés", "Protections périodiques, bagagerie pour ses affaires et ses papiers, recharge du téléphone, domiciliation postale."],
-    ["Infos fiables", "Date de vérification sur chaque fiche et bouton « Signaler une erreur », dont « J'ai été mal accueillie »."],
-    ["Le bon numéro au bon endroit", "Rappel du 115 dans « Dormir », du 17, du 3919 et du SMS au 114 dans « Violences »."],
-    ["Alerte saisonnière", "Un bandeau pour le Plan Grand Froid ou la canicule, modifiable dans le fichier de données."],
-    ["Entraide", "Envoyer un lieu à une amie par SMS, et garder ses lieux pour les retrouver sans internet."]
-  ];
-
-  function vueApropos() {
-    return (
-      htmlRetour() +
-      '<article class="apropos" lang="fr" dir="ltr">' +
-      "<h1>À propos de ce prototype</h1>" +
-      '<p class="apropos-pour"><strong>Paladines est faite pour les femmes à la rue à Lille</strong> : trouver vite un lieu sûr et ouvert, repérer les lieux réservés aux femmes, les créneaux rien que pour elles, la santé des femmes et l\'écoute en cas de violences.</p>' +
-      "<p>Paladines est une première version, faite pour en discuter en groupe. Elle est centrée sur <strong>Lille</strong>. Les lieux sont de <strong>vrais lieux</strong>, relevés sur internet en octobre 2026 : ils doivent encore être confirmés par téléphone avec chaque structure avant un vrai lancement. Les numéros d'urgence sont nationaux.</p>" +
-      "<h2>Le principe</h2>" +
-      "<p>Une femme à la rue scanne un QR code (affiche, autocollant dans des toilettes, carte remise par une maraude). Elle arrive sur cette page, sans rien installer, et trouve tout de suite les lieux ouverts près d'elle pour dormir, manger, se laver, se soigner ou être aidée.</p>" +
-      "<h2>Idées ajoutées</h2>" +
-      '<ol class="idees">' + IDEES.map((x) => "<li><strong>" + esc(x[0]) + "</strong><span>" + esc(x[1]) + "</span></li>").join("") + "</ol>" +
-      "<h2>Outils</h2>" +
-      '<p><a class="btn" href="affiche.html">' + icone("i-qr") + "Créer une affiche avec QR code</a></p>" +
-      '<p><a class="btn" href="pro.html">' + icone("i-info") + "Guide pour les professionnelles (à imprimer)</a></p>" +
-      '<p><a class="btn" href="/equipe" target="_blank" rel="noopener">' + icone("i-drapeau") + "Signalements et statistiques</a></p>" +
-      "<p>Réservé à l'équipe : le mot de passe est demandé. Adresse directe : <code>paladines.pages.dev/equipe</code></p>" +
-      "<p>Les questions à trancher, les sources de données possibles et la feuille de route sont dans <code>docs/IDEES.md</code>. La liste des lieux de Lille, leurs sources et ce qui reste à vérifier par téléphone sont dans <code>docs/LIEUX-LILLE.md</code>.</p>" +
-      "</article>"
-    );
-  }
-
-  /* ---------- Carte (Leaflet) ---------- */
-  function afficherCarte() {
-    document.body.classList.remove("avec-panneau");
-    etat.panneau = null;
-    etat.panneauCle = "";
-    document.getElementById("vue").hidden = true;
-    const zone = document.getElementById("vue-carte");
-    zone.hidden = false;
-    const msg = zone.querySelector(".carte-msg");
-    if (!window.L) {
-      msg.textContent = t("carteIndispo");
-      msg.hidden = false;
-      return;
-    }
-    if (!etat.carte) creerCarte();
-    rendreBarreCarte();
-    majMarqueurs();
-    majMoiSurCarte(false);
-    majMsgCarte();
-    setTimeout(() => {
-      etat.carte.invalidateSize();
-      cadrerCarte();
-    }, 0);
-  }
-
-  /* ---------- Sur ordinateur : la carte à côté de la liste ----------
-   * Écran large : les listes (besoin, catégorie, recherche, près de moi, femmes, gardés) et la fiche
-   * d'un lieu montrent leurs lieux sur la carte, à droite. Mêmes filtres que la liste. */
-  const BUREAU = window.matchMedia ? window.matchMedia("(min-width: 1024px)") : { matches: false };
-
-  function majPanneau() {
-    const h = vueCourante();
-    if (h.vue === "carte" || h.vue === "guide") return;
-    const zone = document.getElementById("vue-carte");
-    const base = BUREAU.matches && window.L ? lieuxDeLaVue(h) : null;
-    document.body.classList.toggle("avec-panneau", !!base);
-    if (!base) {
-      etat.panneau = null;
-      etat.panneauCle = "";
-      zone.hidden = true;
-      return;
-    }
-    const lieux = h.vue === "lieu" ? base : preparer(base, h.vue === "proche").map((x) => x.l);
-    etat.panneau = new Set(lieux.map((l) => l.id));
-    zone.hidden = false;
-    if (!etat.carte) creerCarte();
-    const cle = h.vue + h.param + "|" + lieux.map((l) => l.id).join(",");
-    const nouvelle = cle !== etat.panneauCle;
-    if (nouvelle) {
-      etat.panneauCle = cle;
-      fermerFicheCarte();
-      // Fiche d'un lieu : son repère est mis en avant
-      etat.ficheCarte = h.vue === "lieu" ? h.param : null;
-    }
-    majMarqueurs();
-    majMoiSurCarte(false);
-    if (!nouvelle) return;
-    setTimeout(() => {
-      etat.carte.invalidateSize();
-      const pts = lieux.map(pointCarte).filter(Boolean).map((p) => [p.lat, p.lng]);
-      if (pts.length === 1) etat.carte.setView(pts[0], 16);
-      else if (pts.length) etat.carte.fitBounds(pts, { padding: [48, 48], maxZoom: 16 });
-    }, 0);
-  }
-
-  function creerCarte() {
-    const ref = etat.position || D.ville;
-    const carte = L.map("carte", { zoomControl: false }).setView([ref.lat, ref.lng], D.ville.zoom);
-    L.control.zoom({ position: "bottomright" }).addTo(carte);
-    carte.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
-    ajouterFond(carte);
-    carte.on("click", fermerFicheCarte);
-    // Pendant le guidage, déplacer la carte arrête de suivre la marche (bouton pour recentrer)
-    carte.on("dragstart", () => {
-      if (!etat.guide) return;
-      etat.guide.suivre = false;
-      rendreGuide();
-    });
-    etat.carte = carte;
-    etat.coucheLieux = L.layerGroup().addTo(carte);
-    etat.coucheEq = L.layerGroup().addTo(carte);
+    return prochain;
   }
 
   /* Fond de carte : OpenFreeMap « Positron » (gratuit, sans clé ni limite, données OpenStreetMap).
@@ -1252,6 +587,7 @@
   const STYLE_CARTE = "https://tiles.openfreemap.org/styles/positron";
   const ATTRIB_OSM = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
   let promesseMaplibre = null;
+
 
   function chargerScript(src) {
     return new Promise((ok, ko) => {
@@ -1350,51 +686,6 @@
     fond.addTo(carte);
   }
 
-  // Au premier affichage : montrer tous les lieux (ou la personne si sa position est connue)
-  function cadrerCarte() {
-    if (etat.carteCadree || !etat.carte) return;
-    if (etat.position) {
-      etat.carte.setView([etat.position.lat, etat.position.lng], 15);
-      etat.carteCadree = true;
-      return;
-    }
-    const pts = D.lieux.filter(aCoord).map((l) => [l.lat, l.lng]);
-    if (pts.length >= 2) {
-      etat.carte.fitBounds(pts, { padding: [40, 40], maxZoom: 15 });
-      etat.carteCadree = true;
-    }
-  }
-
-  // Un seul message à la fois sur la carte, du plus utile au moins utile
-  function majMsgCarte() {
-    const msg = document.querySelector("#vue-carte .carte-msg");
-    if (!msg) return;
-    let txt = "";
-    const sansPosition = D.lieux.filter((l) => !l.adresseMasquee && adresseGeo(l) && !aCoord(l)).length;
-    if (!D.lieux.some(aCoord)) txt = t("carteSansPositions");
-    else if (etat.fondEnErreur) txt = t(dansUnCadre() ? "fondApercu" : "fondIndispo");
-    else if (sansPosition && !etat.msgPartielVu) txt = t("positionsPartielles", { n: sansPosition });
-    msg.textContent = txt;
-    msg.hidden = !txt;
-  }
-
-  function rendreBarreCarte() {
-    const barre = document.getElementById("barre-carte");
-    const cats = [{ id: "toutes" }].concat(D.familles);
-    barre.innerHTML =
-      '<button type="button" class="puce puce--ouvert" data-action="carte-ouvert" aria-pressed="' + etat.carteOuvert + '">' + esc(t("f_ouvert")) + "</button>" +
-      '<button type="button" class="puce puce--femmes" data-action="carte-femmes" aria-pressed="' + !!etat.carteFemmes + '">' + icone("i-coeur") + esc(t("carteFemmes")) + "</button>" +
-      [["t", "i-wc", "eq_puceToilettes"], ["e", "i-goutte", "eq_puceEau"], ["s", "i-bouclier", "eq_puceSurs"]].map((x) =>
-        '<button type="button" class="puce puce--eq" data-action="carte-eq" data-valeur="' + x[0] + '" aria-pressed="' + etat.carteEq[x[0]] + '">' + icone(x[1]) + esc(t(x[2])) + "</button>"
-      ).join("") +
-      cats.map((c) =>
-        '<button type="button" class="puce" data-action="carte-cat" data-valeur="' + c.id + '" aria-pressed="' + (etat.carteCat === c.id) + '">' +
-        (c.icone ? icone(c.icone) : "") + esc(c.id === "toutes" ? t("carteToutes") : nomFamille(c)) + "</button>"
-      ).join("");
-    document.getElementById("btn-localiser").setAttribute("aria-label", t("centrerSurMoi"));
-    document.getElementById("btn-localiser").title = t("centrerSurMoi");
-  }
-
   // Où montrer un lieu sur la carte : à sa position, ou, pour une adresse protégée, au lieu
   // public où l'on peut demander à y aller (jamais à sa vraie adresse)
   function pointCarte(l) {
@@ -1419,59 +710,6 @@
         p.dy = Math.round(Math.sin(angle) * 22);
       });
     });
-  }
-
-  function majMarqueurs() {
-    if (!etat.coucheLieux) return;
-    const maintenant = new Date();
-    etat.coucheLieux.clearLayers();
-    majMsgCarte();
-    majTelCarte();
-    cadrerCarte();
-    const points = [];
-    D.lieux
-      .filter((l) => etat.guide || (etat.panneau ? etat.panneau.has(l.id) : etat.carteCat === "toutes" || dansFamille(l, famille(etat.carteCat))))
-      .forEach((l) => {
-        const pt = pointCarte(l);
-        const s = statut(l, maintenant);
-        if (!pt) return;
-        // Pendant le guidage : seulement le lieu où l'on va
-        if (etat.guide ? l.id !== etat.guide.id || pt.acces : !etat.panneau && ((etat.carteOuvert && s.ouvert !== true) || (etat.carteFemmes && !pourFemmes(l)))) return;
-        points.push({ l: l, s: s, acces: pt.acces, lat: pt.lat, lng: pt.lng, dx: 0, dy: 0 });
-      });
-    ecarter(points);
-    points.forEach((p) => {
-      const cat = categorie(p.l.cat);
-      const ic = L.divIcon({
-        className: "marqueur-boite",
-        html: '<span class="marqueur' + (p.s.ouvert === true ? "" : " marqueur--ferme") + (p.acces ? " marqueur--protege" : "") + (etat.ficheCarte === p.l.id ? " marqueur--choisi" : "") + '" data-id="' + p.l.id + '" style="--c:' + cat.couleur + '">' + icone(cat.icone) + "</span>",
-        iconSize: [38, 38],
-        iconAnchor: [19 - p.dx, 19 - p.dy]
-      });
-      L.marker([p.lat, p.lng], { icon: ic, title: p.l.nom, alt: p.l.nom, interactive: !etat.guide })
-        .on("click", () => ouvrirFicheCarte(p.l, p.acces))
-        .addTo(etat.coucheLieux);
-    });
-    majEquip();
-  }
-
-  // Les services sans adresse (115, équipe mobile…) se joignent de partout : un bouton sur la carte les rappelle
-  function majTelCarte() {
-    const btn = document.getElementById("btn-tel-carte");
-    const boite = document.getElementById("carte-tel");
-    if (!btn || !boite) return;
-    const liste = D.lieux.filter((l) => !l.adresse && !l.adresseMasquee && l.tel && (etat.carteCat === "toutes" || dansFamille(l, famille(etat.carteCat))) && (!etat.carteFemmes || pourFemmes(l)));
-    const ouvert = !!etat.telCarteOuvert && liste.length > 0;
-    btn.hidden = !liste.length;
-    btn.querySelector("span").textContent = t("parTelephone", { n: liste.length });
-    btn.setAttribute("aria-expanded", String(ouvert));
-    boite.hidden = !ouvert;
-    boite.innerHTML =
-      '<p class="carte-tel-titre">' + esc(t("parTelephoneTitre")) + "</p>" +
-      liste.map((l) =>
-        '<div class="carte-tel-ligne"><a class="carte-tel-nom" href="#lieu-' + l.id + '">' + esc(l.nom) + "</a>" +
-        '<a class="btn btn--mini btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + '<span dir="ltr">' + esc(l.tel) + "</span></a></div>"
-      ).join("");
   }
 
   function lienItineraire(l) {
@@ -1499,6 +737,7 @@
    * Identifiants : « eqt3 » (toilettes n° 3), « eqe12 » (eau), « eqs0 » (lieu sûr). */
   const EQ = window.PALADINES_EQUIP || { t: [], e: [], s: [] };
   const TYPES_EQ = { t: "toilettes", e: "eau" };
+
 
   function equip(id) {
     const m = /^eq([tes])(\d+)$/.exec(id || "");
@@ -1531,138 +770,6 @@
     if (!etat.position) return liste.slice(0, n);
     return liste.map((x) => ({ x: x, d: distanceM(etat.position, x) })).sort((a, b) => a.d - b.d).slice(0, n).map((y) => y.x);
   }
-
-  function majEquip() {
-    if (!etat.coucheEq) return;
-    etat.coucheEq.clearLayers();
-    const montrer = [];
-    if (etat.guide) {
-      const x = equip(etat.guide.id);
-      if (x) montrer.push(x);
-    } else {
-      Object.keys(etat.carteEq).forEach((g) => { if (etat.carteEq[g]) montrer.push(...listeEquip(g)); });
-    }
-    montrer.forEach((x) => {
-      const ic = L.divIcon({
-        className: "marqueur-boite",
-        html: '<span class="marqueur-eq marqueur-eq--' + x.type + (etat.ficheCarte === x.id ? " marqueur--choisi" : "") + '" data-id="' + x.id + '">' + icone(ICONE_EQ[x.type]) + "</span>",
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
-      });
-      L.marker([x.lat, x.lng], { icon: ic, title: x.nom, alt: x.nom, interactive: !etat.guide })
-        .on("click", () => ouvrirFicheEquip(x))
-        .addTo(etat.coucheEq);
-    });
-  }
-
-  function ouvrirFicheEquip(x) {
-    const boite = document.getElementById("carte-fiche");
-    const details = [];
-    if (x.groupe === "t") {
-      details.push(t(x.payant ? "eq_payantes" : "eq_gratuites"));
-      if (x.fauteuil) details.push(t("eq_fauteuil"));
-    } else if (x.groupe === "e") details.push(t("eq_eauGratuite"));
-    etat.ficheCarte = x.id;
-    boite.style.removeProperty("--c");
-    boite.innerHTML =
-      '<div class="cf-tete"><span class="pastille">' + icone(ICONE_EQ[x.type]) + "</span>" +
-      '<div class="cf-titre">' + (x.nom !== t("eq_" + x.type) ? '<p class="cf-cat">' + esc(t("eq_" + x.type)) + "</p>" : "") + '<h2 class="cf-nom">' + esc(x.nom) + "</h2></div>" +
-      '<button type="button" class="cf-fermer" data-action="fermer-fiche-carte" aria-label="' + esc(t("fermer")) + '">' + SVG_FERMER + "</button></div>" +
-      (x.type === "urgences" ? '<p class="statut statut--ouvert">' + esc(t("h24")) + "</p>" : "") +
-      (details.length ? '<p class="lieu-meta">' + esc(details.join(" · ")) + "</p>" : "") +
-      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, x))) + "</p>" : "") +
-      '<p class="cf-source">' + esc(t("eq_source")) + "</p>" +
-      '<div class="cf-actions">' +
-      '<a class="btn btn--itin" href="#guide-' + x.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" +
-      (x.tel ? '<a class="btn btn--appel" href="' + telLien(x.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
-      "</div>";
-    boite.hidden = false;
-    document.getElementById("vue-carte").classList.add("fiche-ouverte");
-    etat.telCarteOuvert = false;
-    majTelCarte();
-    majMarqueurChoisi();
-  }
-
-  /* ---------- « Je ne me sens pas en sécurité » ---------- */
-  function vueAide() {
-    const surs = lieuxSursProches(3);
-    const sms = "sms:114?&body=" + encodeURIComponent(t("aideSmsTexte"));
-    return (
-      htmlRetour() +
-      '<header class="tete tete--urg"><span class="pastille pastille--grande">' + icone("i-bouclier") + "</span>" +
-      "<div><h1>" + esc(t("aideTitre")) + '</h1><p class="sous-titre">' + esc(t("aideIntro")) + "</p></div></header>" +
-      '<ol class="aide-etapes">' +
-      '<li class="aide-etape"><h2>' + esc(t("aideDanger")) + "</h2>" +
-      '<a class="btn btn--appel btn--grand" href="' + telLien("17") + '">' + icone("i-tel") + esc(t("aideAppeler17")) + "</a></li>" +
-      '<li class="aide-etape"><h2>' + esc(t("aideParler")) + "</h2><p>" + esc(t("aideSmsExplique")) + "</p>" +
-      '<a class="btn btn--grand" href="' + esc(sms) + '">' + icone("i-sms") + esc(t("aideSms114")) + "</a></li>" +
-      '<li class="aide-etape"><h2>' + esc(t("aideLieuSur")) + "</h2><p>" + esc(t("aideLieuSurExplique")) + "</p>" +
-      (surs.length
-        ? '<ul class="aide-surs">' + surs.map((x) =>
-            '<li><span class="pastille">' + icone(ICONE_EQ[x.type]) + '</span><span class="aide-sur-txt"><strong>' + esc(x.nom) + "</strong>" +
-            "<small>" + esc(t("eq_" + x.type)) + (etat.position ? " · " + esc(formatDistance(distanceM(etat.position, x))) : "") + "</small></span>" +
-            '<a class="btn btn--itin btn--mini" href="#guide-' + x.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a></li>"
-          ).join("") + "</ul>"
-        : "") +
-      (etat.position ? "" : '<button type="button" class="btn btn--doux" data-action="proche-aide">' + icone("i-position") + esc(t("aidePlusProche")) + "</button>") +
-      "</li>" +
-      '<li class="aide-etape"><h2>' + esc(t("aideCommerce")) + "</h2><p>" + esc(t("aideCommerceExplique")) + "</p>" +
-      '<a class="btn btn--appel" href="' + telLien("3237") + '">' + icone("i-tel") + esc(t("aidePharmacie")) + ' <span dir="ltr">3237</span></a></li>' +
-      '<li class="aide-etape"><h2>' + esc(t("aideEcoute")) + "</h2><p>" + esc(t("urg_3919")) + "</p>" +
-      '<a class="btn btn--appel" href="' + telLien("3919") + '">' + icone("i-tel") + esc(t("appeler")) + ' <span dir="ltr">3919</span></a></li>' +
-      "</ol>" +
-      '<p class="rappel">' + icone("i-sortie") + esc(t("aideQuitter")) + "</p>"
-    );
-  }
-
-  /* ---------- Fiche d'un lieu sur la carte ----------
-   * Toucher un repère ouvre une carte simple en bas de l'écran : nom, ouvert ou non,
-   * distance, et trois boutons (Y aller, Appeler, Fiche). Toucher la carte la referme. */
-  function ouvrirFicheCarte(l, acces) {
-    const boite = document.getElementById("carte-fiche");
-    const s = statut(l, new Date());
-    const cat = categorie(l.cat);
-    const ici = acces || l;
-    const allerA = acces ? acces.id : l.id;
-    etat.ficheCarte = l.id;
-    boite.style.setProperty("--c", cat.couleur);
-    boite.innerHTML =
-      '<div class="cf-tete"><span class="pastille">' + icone(cat.icone) + "</span>" +
-      '<div class="cf-titre"><p class="cf-cat">' + esc(t("cat_" + l.cat)) + '</p><h2 class="cf-nom">' + esc(l.nom) + "</h2></div>" +
-      '<button type="button" class="cf-fermer" data-action="fermer-fiche-carte" aria-label="' + esc(t("fermer")) + '">' + SVG_FERMER + "</button></div>" +
-      '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
-      (etat.position ? '<p class="lieu-meta">' + icone("i-pied") + esc(formatDistance(distanceM(etat.position, ici))) + "</p>" : "") +
-      badgeFemmes(l) +
-      (acces ? '<p class="popup-protege">' + icone("i-bouclier") + esc(t("accesProtege", { lieu: acces.nom })) + "</p>" : "") +
-      '<div class="cf-actions">' +
-      '<a class="btn btn--itin" href="#guide-' + allerA + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" +
-      (l.tel ? '<a class="btn btn--appel" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
-      '<a class="btn btn--doux" href="#lieu-' + l.id + '">' + esc(t("voirFiche")) + "</a>" +
-      "</div>";
-    boite.hidden = false;
-    document.getElementById("vue-carte").classList.add("fiche-ouverte");
-    etat.telCarteOuvert = false;
-    majTelCarte();
-    majMarqueurChoisi();
-  }
-
-  function fermerFicheCarte() {
-    const boite = document.getElementById("carte-fiche");
-    if (!boite || boite.hidden) return;
-    boite.hidden = true;
-    etat.ficheCarte = null;
-    document.getElementById("vue-carte").classList.remove("fiche-ouverte");
-    majMarqueurChoisi();
-  }
-
-  function majMarqueurChoisi() {
-    document.querySelectorAll(".marqueur--choisi").forEach((m) => m.classList.remove("marqueur--choisi"));
-    if (!etat.ficheCarte) return;
-    const m = document.querySelector('.carte [data-id="' + etat.ficheCarte + '"]');
-    if (m) m.classList.add("marqueur--choisi");
-  }
-
-  const SVG_FERMER = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
 
   /* ---------- Guidage à pied, comme une appli GPS, sans internet ----------
    * Le chemin est calculé sur le téléphone (js/chemins.js) avec le plan des rues de Lille
@@ -1989,147 +1096,6 @@
     document.getElementById("btn-localiser").classList.toggle("btn-localiser--visible", !g.suivre);
   }
 
-  /* ---------- Mon carnet : rendez-vous, numéros utiles, notes ----------
-   * Gardé seulement sur ce téléphone (localStorage), jamais envoyé. Peut s'effacer tout seul
-   * à l'appui sur « Quitter » (case dans le carnet). */
-  function carnet() {
-    const c = stock.lire("carnet", null) || {};
-    return { rdv: Array.isArray(c.rdv) ? c.rdv : [], numeros: Array.isArray(c.numeros) ? c.numeros : [], note: typeof c.note === "string" ? c.note : "" };
-  }
-
-  function isoJour(d) {
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-  }
-
-  function triRdv(a, b) {
-    return (a.date + (a.heure || "")).localeCompare(b.date + (b.heure || ""));
-  }
-
-  function htmlRdv(r) {
-    return (
-      '<li class="carnet-ligne"><span class="carnet-quand">' + esc(formatDate(r.date)) + (r.heure ? ' · <span dir="ltr">' + esc(formatHeure(r.heure)) + "</span>" : "") + "</span>" +
-      '<span class="carnet-txt" dir="auto">' + esc(r.texte) + "</span>" +
-      '<button type="button" class="carnet-suppr" data-action="carnet-suppr" data-type="rdv" data-id="' + esc(r.id) + '" aria-label="' + esc(t("supprimer")) + '">' + SVG_FERMER + "</button></li>"
-    );
-  }
-
-  function vueCarnet() {
-    const c = carnet();
-    const auj = isoJour(new Date());
-    const avenir = c.rdv.filter((r) => r.date >= auj).sort(triRdv);
-    const passes = c.rdv.filter((r) => r.date < auj).sort(triRdv).reverse();
-    return (
-      htmlRetour() +
-      '<header class="tete"><span class="pastille pastille--grande">' + icone("i-papier") + "</span>" +
-      "<div><h1>" + esc(t("carnetTitre")) + '</h1><p class="sous-titre">' + esc(t("carnetSous")) + "</p></div></header>" +
-      '<section class="section carnet"><h2>' + icone("i-horloge") + esc(t("rdvTitre")) + "</h2>" +
-      (avenir.length ? '<ul class="carnet-liste">' + avenir.map(htmlRdv).join("") + "</ul>" : '<p class="aide">' + esc(t("rdvVide")) + "</p>") +
-      '<form class="form-carnet" data-type="rdv">' +
-      '<div class="carnet-champs"><label>' + esc(t("rdvDate")) + '<input type="date" name="date" required min="' + auj + '" value="' + auj + '"></label>' +
-      "<label>" + esc(t("rdvHeure")) + '<input type="time" name="heure"></label></div>' +
-      "<label>" + esc(t("rdvQuoi")) + '<input name="texte" dir="auto" required maxlength="120" placeholder="' + esc(t("rdvQuoiExemple")) + '"></label>' +
-      '<button type="submit" class="btn">' + esc(t("ajouter")) + "</button></form>" +
-      (passes.length ? '<details class="carnet-passes"><summary>' + esc(t("rdvPasses", { n: passes.length })) + '</summary><ul class="carnet-liste">' + passes.map(htmlRdv).join("") + "</ul></details>" : "") +
-      "</section>" +
-      '<section class="section carnet"><h2>' + icone("i-tel") + esc(t("numerosTitre")) + "</h2>" +
-      (c.numeros.length
-        ? '<ul class="carnet-liste">' + c.numeros.map((n) =>
-            '<li class="carnet-ligne"><span class="carnet-txt"><strong dir="auto">' + esc(n.nom) + '</strong><br><span dir="ltr">' + esc(n.tel) + "</span></span>" +
-            '<a class="btn btn--appel btn--mini" href="' + telLien(n.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" +
-            '<button type="button" class="carnet-suppr" data-action="carnet-suppr" data-type="numeros" data-id="' + esc(n.id) + '" aria-label="' + esc(t("supprimer")) + '">' + SVG_FERMER + "</button></li>"
-          ).join("") + "</ul>"
-        : '<p class="aide">' + esc(t("numerosVide")) + "</p>") +
-      '<form class="form-carnet" data-type="numeros">' +
-      "<label>" + esc(t("numNom")) + '<input name="nom" dir="auto" required maxlength="60" placeholder="' + esc(t("numNomExemple")) + '"></label>' +
-      "<label>" + esc(t("numTel")) + '<input name="tel" type="tel" required maxlength="25" dir="ltr"></label>' +
-      '<button type="submit" class="btn">' + esc(t("ajouter")) + "</button></form></section>" +
-      '<section class="section carnet"><h2>' + icone("i-papier") + esc(t("notesTitre")) + "</h2>" +
-      '<label class="aide" for="carnet-note">' + esc(t("notesAide")) + "</label>" +
-      '<textarea id="carnet-note" class="carnet-note" dir="auto" maxlength="3000" rows="6">' + esc(c.note) + "</textarea></section>" +
-      '<section class="section carnet"><h2>' + icone("i-bouclier") + esc(t("discretionTitre")) + "</h2>" +
-      '<button type="button" class="puce carnet-option" data-action="carnet-quitter" aria-pressed="' + !!stock.lire("carnetQuitter", false) + '">' + esc(t("carnetQuitter")) + "</button>" +
-      '<div class="effacer"><button type="button" class="btn btn--doux" data-action="carnet-effacer">' + esc(t("carnetEffacer")) + "</button>" +
-      '<div class="effacer-confirmer" hidden><button type="button" class="btn btn--danger" data-action="carnet-effacer-oui">' + esc(t("confirmerEffacer")) + '</button><button type="button" class="btn btn--doux" data-action="effacer-non">' + esc(t("annuler")) + "</button></div></div>" +
-      "</section>"
-    );
-  }
-
-  function ecrireCarnet(c) {
-    stock.ecrire("carnet", c);
-  }
-
-  // Sur l'accueil : le prochain rendez-vous d'aujourd'hui ou de demain
-  function htmlRappelRdv() {
-    const auj = new Date();
-    const demain = new Date(auj.getTime() + 864e5);
-    const r = carnet().rdv.filter((x) => x.date === isoJour(auj) || x.date === isoJour(demain)).sort(triRdv)[0];
-    if (!r) return "";
-    const cle = (r.date === isoJour(auj) ? "rdvAujourdhui" : "rdvDemain") + (r.heure ? "" : "SansHeure");
-    return '<a class="rappel rappel-rdv" href="#carnet">' + icone("i-horloge") + "<span>" + esc(t(cle, { h: r.heure ? formatHeure(r.heure) : "", texte: "\u0001" })).replace("\u0001", "<bdi>" + esc(r.texte) + "</bdi>") + "</span>" + icone("i-chevron", "chevron") + "</a>";
-  }
-
-  /* ---------- Lecture facile : écouter la page ---------- */
-  function texteDeLaPage() {
-    const vue = document.getElementById("vue");
-    const copie = vue.cloneNode(true);
-    copie.querySelectorAll("button, form, nav, svg, .liens-bas, .badge-fictif, .sources, .signaler, .retour, details:not([open]) > :not(summary)").forEach((x) => x.remove());
-    // innerText a besoin d'un élément affiché pour garder les retours à la ligne entre les blocs
-    copie.removeAttribute("id");
-    copie.style.cssText = "position:absolute;left:-10000px;top:0;width:" + vue.clientWidth + "px";
-    copie.setAttribute("aria-hidden", "true");
-    document.body.appendChild(copie);
-    const texte = copie.innerText;
-    copie.remove();
-    return texte.replace(/[ \t]+\n/g, "\n").replace(/\n{2,}/g, "\n").trim().slice(0, 3000);
-  }
-
-  function majBoutonLirePage() {
-    const b = document.getElementById("btn-lire-page");
-    if (!b) return;
-    const v = vueCourante().vue;
-    b.hidden = !etat.facile || !voixDispo() || v === "carte" || v === "guide";
-    b.querySelector("span").textContent = b.getAttribute("aria-pressed") === "true" ? t("arreter") : t("lirePage");
-  }
-
-  /* ---------- Lecture à voix haute ---------- */
-  // Le téléphone a-t-il une voix pour cette langue ? (souvent pas pour le pachto ou le tigrinya)
-  function voixDispo() {
-    if (!("speechSynthesis" in window)) return false;
-    const voix = speechSynthesis.getVoices();
-    if (!voix.length) return true; // liste pas encore chargée : on suppose que oui
-    const code = VOIX[etat.langue].slice(0, 2).toLowerCase();
-    return voix.some((v) => String(v.lang).toLowerCase().indexOf(code) === 0);
-  }
-
-  function lire(texte, bouton) {
-    if (!("speechSynthesis" in window)) return;
-    const enCours = bouton.getAttribute("aria-pressed") === "true";
-    speechSynthesis.cancel();
-    document.querySelectorAll('[data-action^="ecouter"][aria-pressed="true"]').forEach((b) => majBoutonLecture(b, false));
-    if (enCours) return;
-    const u = new SpeechSynthesisUtterance(texte);
-    u.lang = VOIX[etat.langue];
-    u.rate = 0.92;
-    u.onend = u.onerror = () => majBoutonLecture(bouton, false);
-    speechSynthesis.speak(u);
-    majBoutonLecture(bouton, true);
-  }
-
-  function majBoutonLecture(b, actif) {
-    b.setAttribute("aria-pressed", String(actif));
-    b.querySelector("span").textContent = actif ? t("arreter") : t(b.dataset.libelle || "ecouter");
-  }
-
-  function texteLieu(l) {
-    const s = statut(l, new Date());
-    const parties = [l.nom, s.texte];
-    if (!l.adresseMasquee && l.adresse) parties.push(l.adresse);
-    if (l.horaires && l.horaires !== "24/7") parties.push(t("horaires") + " " + t("aujourdhui") + " : " + texteHorairesJour(l, JOURS[new Date().getDay()]));
-    parties.push(t("surPlace") + " : " + l.services.join(", "));
-    parties.push(l.conditions);
-    if (l.tel) parties.push(t("appeler") + " : " + l.tel.split(" ").join(", "));
-    return parties.join(". ");
-  }
 
   /* ---------- Actions ---------- */
   function copier(texte, bouton) {
@@ -2163,239 +1129,6 @@
     } else {
       location.href = "sms:?&body=" + encodeURIComponent(texte + url);
     }
-  }
-
-  function basculerFavori(id, bouton) {
-    const i = etat.favoris.indexOf(id);
-    if (i === -1) etat.favoris.push(id);
-    else etat.favoris.splice(i, 1);
-    stock.ecrire("favoris", etat.favoris);
-    const fav = i === -1;
-    bouton.setAttribute("aria-pressed", String(fav));
-    bouton.innerHTML = icone(fav ? "i-etoile-pleine" : "i-etoile") + "<span>" + esc(fav ? t("garde") : t("garder")) + "</span>";
-  }
-
-  function quitter() {
-    if (stock.lire("carnetQuitter", false)) stock.ecrire("carnet", null);
-    try {
-      sessionStorage.clear();
-    } catch (e) {
-      /* rien */
-    }
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
-    location.replace(URL_SORTIE);
-  }
-
-  function surClic(e) {
-    const el = e.target.closest("[data-action]");
-    if (!el) return;
-    const action = el.dataset.action;
-    const id = el.dataset.id;
-    switch (action) {
-      case "retour":
-        if (etat.navInterne) {
-          e.preventDefault();
-          history.back();
-        }
-        break;
-      case "filtre": {
-        const f = el.dataset.filtre;
-        if (etat.filtres.has(f)) etat.filtres.delete(f);
-        else etat.filtres.add(f);
-        el.setAttribute("aria-pressed", String(etat.filtres.has(f)));
-        const nb = document.querySelector("#vue .nb-filtres");
-        if (nb) {
-          const n = CRITERES.filter((x) => etat.filtres.has(x)).length;
-          nb.textContent = n ? " (" + n + ")" : "";
-        }
-        majResultats();
-        break;
-      }
-      case "proche":
-        // « Près de moi » : active ou coupe le tri par distance ; demande le GPS si besoin
-        if (etat.position && etat.triDistance) {
-          etat.triDistance = false;
-          etat.positionMessage = null;
-          rafraichir();
-        } else if (etat.position) {
-          etat.triDistance = true;
-          rafraichir();
-        } else {
-          demanderPosition();
-        }
-        break;
-      case "garder":
-        basculerFavori(id, el);
-        break;
-      case "partager":
-        partager(lieu(id));
-        break;
-      case "ecouter":
-        lire(texteLieu(lieu(id)), el);
-        break;
-      case "ecouter-fiche": {
-        const f = t("fiches").find((x) => x.id === id);
-        lire(f.titre + ". " + f.points.join(" "), el);
-        break;
-      }
-      case "copier":
-        copier(el.dataset.texte, el);
-        break;
-      case "langue":
-        changerLangue(el.dataset.valeur);
-        break;
-      case "facile":
-        etat.facile = el.dataset.valeur === "1";
-        stock.ecrire("facile", etat.facile);
-        appliquerReglages();
-        rafraichir();
-        break;
-      case "lire-page":
-        lire(texteDeLaPage(), el);
-        majBoutonLirePage();
-        break;
-      case "carnet-suppr": {
-        const c = carnet();
-        c[el.dataset.type] = c[el.dataset.type].filter((x) => x.id !== el.dataset.id);
-        ecrireCarnet(c);
-        rafraichir();
-        break;
-      }
-      case "carnet-quitter": {
-        const oui = el.getAttribute("aria-pressed") !== "true";
-        stock.ecrire("carnetQuitter", oui);
-        el.setAttribute("aria-pressed", String(oui));
-        break;
-      }
-      case "carnet-effacer":
-        el.closest(".effacer").querySelector(".effacer-confirmer").hidden = false;
-        break;
-      case "carnet-effacer-oui":
-        stock.ecrire("carnet", null);
-        rafraichir();
-        break;
-      case "taille":
-        etat.taille = Number(el.dataset.valeur);
-        stock.ecrire("taille", etat.taille);
-        appliquerReglages();
-        rafraichir();
-        break;
-      case "installer":
-        if (etat.installation) {
-          etat.installation.prompt();
-          etat.installation.userChoice.then(() => {
-            etat.installation = null;
-            rafraichir();
-          });
-        }
-        break;
-      case "installer-plus-tard":
-        stock.ecrire("installMasque", true);
-        el.closest(".installer-bandeau").remove();
-        break;
-      case "effacer":
-        el.hidden = true;
-        el.parentElement.querySelector(".effacer-confirmer").hidden = false;
-        break;
-      case "effacer-non": {
-        const boite = el.closest(".effacer");
-        boite.querySelector(".effacer-confirmer").hidden = true;
-        boite.querySelector('[data-action="effacer"]').hidden = false;
-        break;
-      }
-      case "effacer-oui": {
-        stock.toutEffacer();
-        etat.favoris = [];
-        const boite = el.closest(".effacer");
-        boite.querySelector(".effacer-confirmer").hidden = true;
-        boite.querySelector(".ok").hidden = false;
-        break;
-      }
-      case "carte-eq":
-        etat.carteEq[el.dataset.valeur] = !etat.carteEq[el.dataset.valeur];
-        rendreBarreCarte();
-        majEquip();
-        break;
-      case "proche-aide":
-        demanderPosition();
-        break;
-      case "avis":
-        donnerAvis(id, el.dataset.valeur);
-        el.closest(".avis-lieu").innerHTML = "<p>" + icone("i-check") + esc(t("avisMerci")) + "</p>";
-        break;
-      case "fermer-fiche-carte":
-        fermerFicheCarte();
-        break;
-      case "guide-arreter":
-        arreterGuide();
-        if (etat.navInterne) history.back();
-        else location.hash = "#carte";
-        break;
-      case "guide-voix":
-        if (!etat.guide) break;
-        etat.guide.voix = !etat.guide.voix;
-        stock.ecrire("guideVoix", etat.guide.voix);
-        if (!etat.guide.voix && "speechSynthesis" in window) speechSynthesis.cancel();
-        etat.guide.annonces = {};
-        rendreGuide();
-        break;
-      case "guide-reessayer": {
-        const id = etat.guide && etat.guide.id;
-        arreterGuide();
-        if (id) demarrerGuide(id);
-        break;
-      }
-      case "carte-cat":
-        etat.carteCat = el.dataset.valeur;
-        rendreBarreCarte();
-        majMarqueurs();
-        break;
-      case "carte-ouvert":
-        etat.carteOuvert = !etat.carteOuvert;
-        rendreBarreCarte();
-        majMarqueurs();
-        break;
-      case "carte-femmes":
-        etat.carteFemmes = !etat.carteFemmes;
-        rendreBarreCarte();
-        majMarqueurs();
-        break;
-      case "localiser":
-        if (etat.guide) {
-          etat.guide.suivre = true;
-          etat.guide.suivreApres = 0;
-          if (etat.position) etat.carte.setView([etat.position.lat, etat.position.lng], Math.max(etat.carte.getZoom(), 17));
-          rendreGuide();
-        } else if (etat.position && etat.position.source === "gps") majMoiSurCarte(true);
-        else demanderPosition();
-        break;
-        break;
-      case "tel-carte":
-        etat.telCarteOuvert = !etat.telCarteOuvert;
-        majTelCarte();
-        break;
-      case "masquer-msg-carte":
-        etat.msgPartielVu = true;
-        majMsgCarte();
-        break;
-      case "sauter":
-        e.preventDefault();
-        document.getElementById("vue").focus();
-        break;
-      default:
-        break;
-    }
-  }
-
-  function majResultats() {
-    const zone = document.getElementById("resultats");
-    if (!zone) return;
-    const h = vueCourante();
-    if (h.vue === "cat") zone.innerHTML = htmlListe(preparer(D.lieux.filter((l) => dansCat(l, h.param))), false);
-    else if (h.vue === "proche") zone.innerHTML = htmlListe(preparer(D.lieux, true), true);
-    else if (h.vue === "rubrique") zone.innerHTML = htmlListe(preparer(lieuxDeLaVue(h)), true);
-    else if (h.vue === "recherche") zone.innerHTML = htmlResultatsRecherche();
-    majPanneau();
   }
 
   /* ---------- Signalements ----------
@@ -2441,24 +1174,1474 @@
     envoiEnCours = false;
   }
 
+
+  /* ---------- Compteur de visites ----------
+   * Au plus une fois par jour et par téléphone, avec internet : /api/visite ajoute 1 au
+   * compteur du mois. Rien n'est envoyé sur la personne ; seule la date du jour reste ici. */
+  function compterVisite() {
+    if (!/^https?:$/.test(location.protocol) || navigator.onLine === false) return;
+    const d = new Date();
+    const jour = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    if (stock.lire("visite", "") === jour) return;
+    fetch("/api/visite", { method: "POST", cache: "no-store", referrerPolicy: "no-referrer", keepalive: true })
+      .then((rep) => { if (rep.ok) stock.ecrire("visite", jour); })
+      .catch(() => { /* pas compté, ce n'est pas grave */ });
+  }
+
+  function estIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  // Dans l'aperçu (page intégrée dans une autre), l'installation et le QR code n'ont pas de sens
+  function dansUnCadre() {
+    try {
+      return window.self !== window.top;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function estInstallee() {
+    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  }
+
+  function urlSite() {
+    return location.href.split("#")[0].split("?")[0].replace(/index\.html$/, "");
+  }
+
+  function dessinerQrSite() {
+    const zone = document.getElementById("qr-site");
+    if (!zone) return;
+    const dessiner = () => {
+      const qr = window.qrcode(0, "M");
+      qr.addData(urlSite());
+      qr.make();
+      zone.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    };
+    if (window.qrcode) return dessiner();
+    const sc = document.createElement("script");
+    sc.src = "vendor/qrcode/qrcode.js";
+    sc.onload = dessiner;
+    document.head.appendChild(sc);
+  }
+
+  /* ---------- Lecture à voix haute ---------- */
+  // Le téléphone a-t-il une voix pour cette langue ? (souvent pas pour le pachto ou le tigrinya)
+  function voixDispo() {
+    if (!("speechSynthesis" in window)) return false;
+    const voix = speechSynthesis.getVoices();
+    if (!voix.length) return true; // liste pas encore chargée : on suppose que oui
+    const code = VOIX[etat.langue].slice(0, 2).toLowerCase();
+    return voix.some((v) => String(v.lang).toLowerCase().indexOf(code) === 0);
+  }
+
+  const SVG_FERMER = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+
+  /* =====================================================================
+   * 3. Écrans
+   * ===================================================================== */
+
+  // Ce qu'un lieu offre aux femmes : { niveau: "reserve" | "creneau" | "specialise", texte }
+  function pourFemmes(l) {
+    if (l.femmes) return l.femmes;
+    return l.criteres && l.criteres.femmes ? { niveau: "reserve", texte: "" } : null;
+  }
+
+  function badgeFemmes(l) {
+    const f = pourFemmes(l);
+    return f && f.niveau !== "specialise" ? '<span class="badge-femmes">' + esc(t("badge_" + f.niveau)) + "</span>" : "";
+  }
+
+  // Un lieu n'apparaît sur la carte et n'a de distance que si sa position est connue et publique
+  function aCoord(l) {
+    return !l.adresseMasquee && typeof l.lat === "number" && typeof l.lng === "number";
+  }
+
+  // Les grandes catégories de l'accueil : un nom court (celui du besoin quand il n'y en a qu'un)
+  function nomFamille(f) {
+    return f.cats.length === 1 ? t("cat_" + f.cats[0]) : t("fam_" + f.id);
+  }
+  function lienFamille(f) {
+    return f.cats.length === 1 ? "#cat-" + f.cats[0] : "#rubrique-" + f.id;
+  }
+
+  function nbOuverts(lieux, maintenant) {
+    return lieux.filter((l) => statut(l, maintenant).ouvert === true).length;
+  }
+
+  // « 3 ouverts », « Appeler avant » (horaires inconnus) ou « Fermé », en court et en long
+  function resumeOuverts(lieux, maintenant) {
+    const n = nbOuverts(lieux, maintenant);
+    const inconnus = n === 0 && lieux.some((l) => statut(l, maintenant).ouvert === null);
+    return {
+      n: n,
+      classe: n ? "ouvert" : inconnus ? "inconnu" : "ferme",
+      court: n === 0 ? t(inconnus ? "nbInconnu" : "nbOuvert0") : n === 1 ? t("nbOuvert1") : t("nbOuvertN", { n: n }),
+      long: n === 0 ? t(inconnus ? "ouvertsInconnus" : "ouverts0") : n === 1 ? t("ouverts1") : t("ouvertsN", { n: n })
+    };
+  }
+
+  /* ---------- Morceaux communs ---------- */
+
+  // Le bandeau bleu nuit, avec le plan des rues de Lille en filigrane (img/bandeau-lille.jpg)
+  function bandeau(contenu, classe) {
+    return '<header class="bande ' + (classe || "") + '"><div class="bande-in">' + contenu + "</div></header>";
+  }
+
+  function marque() {
+    return '<a class="marque" href="#accueil"><svg class="marque-logo" viewBox="8 2 48 60" aria-hidden="true"><use href="#logo"></use></svg><span>Paladines</span></a>';
+  }
+
+  function retour(texte) {
+    return '<a class="retour" href="#accueil" data-action="retour">' + icone("i-retour") + "<span>" + esc(texte || t("retour")) + "</span></a>";
+  }
+
+  // En-tête d'une page : retour (ou la marque), pictogramme, titre, sous-titre, puis ce qu'on veut
+  function bandeauPage(o) {
+    return bandeau(
+      (o.marque ? '<div class="bande-haut">' + marque() + "</div>" : retour(o.retour)) +
+      '<div class="page-tete">' +
+      (o.icone ? '<span class="page-ic' + (o.iconeClasse ? " " + o.iconeClasse : "") + '">' + icone(o.icone) + "</span>" : "") +
+      "<div><h1>" + esc(o.titre) + "</h1>" + (o.sous ? '<p class="page-sous">' + esc(o.sous) + "</p>" : "") + "</div></div>" +
+      (o.apres || ""),
+      "bande--page " + (o.classe || "")
+    );
+  }
+
+  // Sur ordinateur, les listes et les fiches ont la carte de leurs lieux à droite
+  function colonnes(contenu) {
+    return '<div class="colonnes"><div class="col-principale">' + contenu + '</div><div class="col-carte" id="emplacement-carte"></div></div>';
+  }
+
+  function htmlRecherche() {
+    return (
+      '<form class="recherche" role="search" data-recherche>' +
+      '<label class="visuellement-cache" for="q">' + esc(t("rechTitre")) + "</label>" + icone("i-loupe") +
+      '<input id="q" name="q" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" maxlength="60" placeholder="' + esc(t("rechExemple")) + '" value="' + esc(etat.recherche) + '">' +
+      '<button type="submit" class="visuellement-cache">' + esc(t("rechBouton")) + "</button></form>"
+    );
+  }
+
+  /* ---------- Accueil ---------- */
+  function vueAccueil() {
+    const maintenant = new Date();
+    let date = "";
+    try {
+      date = new Intl.DateTimeFormat(LOCALES[etat.langue], { weekday: "long", day: "numeric", month: "long" }).format(maintenant);
+    } catch (e) { /* pas de date, ce n'est pas grave */ }
+    const nbLille = nbOuverts(D.lieux, maintenant);
+
+    const haut =
+      '<div class="bande-haut">' + marque() +
+      '<button type="button" class="rond-verre" data-action="menu-langue" aria-haspopup="true" aria-expanded="false" aria-label="' + esc(t("langue")) + '">' + icone("i-globe") + "</button></div>" +
+      (date ? '<p class="bande-date">' + esc(date) + "</p>" : "") +
+      '<h1 class="bande-titre"><span>' + esc(t("bonjour")) + "</span> " + esc(t("besoin")) + "</h1>" +
+      htmlRecherche() +
+      '<a class="proche" href="#proche"><span class="proche-ic">' + icone("i-position") + "</span>" +
+      '<span class="proche-txt"><strong>' + esc(t("procheCta")) + "</strong><small>" + esc(t(nbLille === 0 ? "liveLille0" : nbLille === 1 ? "liveLille1" : "liveLilleN", { n: nbLille })) + "</small></span>" +
+      icone("i-chevron", "chevron") + "</a>";
+
+    const femmes = resumeOuverts(D.lieux.filter(pourFemmes), maintenant);
+    const tuiles = D.familles.map((f) => {
+      const r = resumeOuverts(D.lieux.filter((l) => dansFamille(l, f)), maintenant);
+      return (
+        '<li><a class="tuile" href="' + lienFamille(f) + '" aria-label="' + esc(nomFamille(f) + " : " + r.long) + '">' +
+        '<span class="tuile-ic">' + icone(f.icone) + "</span>" +
+        '<span class="tuile-nom">' + esc(nomFamille(f)) + "</span>" +
+        '<span class="tuile-nb tuile-nb--' + r.classe + '" aria-hidden="true">' + esc(r.court) + "</span></a></li>"
+      );
+    }).join("");
+
+    return (
+      bandeau(haut, "bande--accueil") +
+      '<div class="feuille">' +
+      htmlBandeauInstallation() +
+      '<div class="accueil-grille">' +
+      '<a class="carte-femmes" href="#pourvous"><span class="carte-femmes-ic">' + icone("i-coeur") + "</span>" +
+      '<span class="carte-femmes-txt"><span class="etiquette">' + esc(t("femmesTitre")) + "</span><strong>" + esc(femmes.long) + "</strong><small>" + esc(t("femmesSous")) + "</small></span>" +
+      icone("i-chevron", "chevron") + "</a>" +
+      '<section class="besoins" aria-labelledby="h-besoins"><h2 id="h-besoins" class="visuellement-cache">' + esc(t("jeCherche")) + "</h2>" +
+      '<ul class="grille">' + tuiles + "</ul>" +
+      '<a class="lien-toutes" href="#rubrique-toutes">' + esc(t("fam_toutes")) + icone("i-chevron", "chevron") + "</a></section>" +
+      "</div>" +
+      htmlMoment(maintenant) +
+      htmlLive(maintenant) +
+      '<p class="note-bas">' + esc(t("prototype")) + "<br>" + esc(t("donneesDu", { date: formatDate(D.majDonnees) })) + "</p>" +
+      "</div>"
+    );
+  }
+
+  /* ---------- « En ce moment » : les infos utiles maintenant, en cartes qui défilent ----------
+   * Météo de Lille (Open-Meteo, gardée 3 h), périodes de l'année (plan hiver…), lieux ouverts ou qui
+   * ouvrent bientôt pour dormir, manger, se laver, lieux réservés aux femmes, réouvertures, la nuit.
+   * Les cartes défilent seules (une barre se remplit sous la carte en cours) ; un doigt, la souris
+   * ou le clavier les arrêtent ; on peut les faire glisser. Rien ne bouge si « réduire les animations ». */
+  function infosDuMoment(maintenant) {
+    const infos = [];
+    const h = maintenant.getHours();
+    const appeler115 = t("appeler") + " 115";
+
+    const alerte = infoMeteo(maintenant);
+    if (alerte) {
+      const froid = alerte.lien === "tel:115"; // gel ou froid : appeler le 115 ; chaleur : se mettre au frais
+      infos.push({
+        type: alerte.type === "alerte" ? (froid ? "froid" : "chaleur") : "pluie",
+        eti: t("imEtiMeteo"),
+        icone: alerte.type !== "alerte" ? "i-pluie" : froid ? "i-flocon" : "i-soleil",
+        texte: alerte.texte,
+        lien: alerte.lien,
+        action: alerte.lien === "tel:115" ? appeler115 : t("voirLieux")
+      });
+    } else if (etat.meteo) {
+      const m = etat.meteo;
+      const auj = isoJour(maintenant);
+      const i = m.jours.indexOf(auj);
+      if (i !== -1 && typeof m.max[i] === "number") {
+        const nuit = h < 6 ? m.min[i] : m.min[i + 1];
+        infos.push({
+          type: "meteo",
+          eti: t("imEtiMeteo"),
+          icone: "i-soleil",
+          texte: t("im_meteo", { max: Math.round(m.max[i]), min: Math.round(typeof nuit === "number" ? nuit : m.min[i]) })
+        });
+      }
+    }
+
+    (D.infos || []).filter((x) => dansPeriode(x, maintenant)).forEach((x) => {
+      infos.push({
+        type: x.type === "alerte" ? "hiver" : "info",
+        eti: t("imEtiInfo"),
+        icone: x.type === "alerte" ? "i-flocon" : "i-info",
+        texte: x.texte[etat.langue] || x.texte.fr,
+        lien: x.lien,
+        action: x.lien === "tel:115" ? appeler115 : t("voirLieux")
+      });
+    });
+
+    // Les lieux : le plus proche d'abord si la position est connue
+    const proche = (a, b) => (etat.position && aCoord(a.l) && aCoord(b.l) ? distanceM(etat.position, a.l) - distanceM(etat.position, b.l) : 0);
+    const candidats = (filtre) => D.lieux.filter(filtre).map((l) => ({ l: l, mo: momentLieu(l, maintenant) })).filter((x) => x.mo);
+    const ouvertDabord = (liste) => liste.filter((x) => x.mo.ouvert).sort(proche)[0];
+    const bientot = (liste, max) => liste.filter((x) => !x.mo.ouvert && x.mo.dans <= max).sort((a, b) => a.mo.dans - b.mo.dans)[0];
+    const carteLieu = (type, eti, ic, cle, x, heure) => ({ type: type, eti: eti, icone: ic, texte: t(cle, { nom: x.l.nom, h: formatHeure(heure) }), lien: "#lieu-" + x.l.id, action: t("voirFiche") });
+
+    const dormir = candidats((l) => dansCat(l, "dormir"));
+    const dOuvert = ouvertDabord(dormir);
+    const dSoir = bientot(dormir, 600);
+    if (dOuvert) infos.push(carteLieu("dormir", t("imEtiMaintenant"), "i-lune", "im_dormirOuvert", dOuvert, dOuvert.mo.fin));
+    else if (dSoir) infos.push(carteLieu("dormir", t("imEtiSoir"), "i-lune", "im_dormirSoir", dSoir, dSoir.mo.debut));
+
+    const manger = candidats((l) => dansCat(l, "manger"));
+    const mOuvert = ouvertDabord(manger);
+    const mBientot = bientot(manger, 180);
+    if (mOuvert) infos.push(carteLieu("manger", t("imEtiMaintenant"), "i-bol", "im_mangerOuvert", mOuvert, mOuvert.mo.fin));
+    else if (mBientot) infos.push(carteLieu("manger", t("imEtiBientot"), "i-bol", "im_mangerBientot", mBientot, mBientot.mo.debut));
+
+    const laver = D.lieux.filter((l) => dansCat(l, "hygiene") && statut(l, maintenant).ouvert === true).length;
+    if (laver) infos.push({ type: "laver", eti: t("imEtiMaintenant"), icone: "i-goutte", texte: t(laver === 1 ? "im_laver1" : "im_laver", { n: laver }), lien: "#cat-hygiene", action: t("voirLieux") });
+
+    const femmes = ouvertDabord(candidats((l) => { const f = pourFemmes(l); return f && f.niveau !== "specialise"; }));
+    if (femmes) infos.push(carteLieu("femmes", t("femmesTitre"), "i-coeur", "im_femmes", femmes, femmes.mo.fin));
+
+    // La nuit : combien de lieux restent ouverts
+    if (h >= 21 || h < 7) {
+      const n = D.lieux.filter((l) => (l.adresse || l.adresseMasquee) && statut(l, maintenant).ouvert === true).length;
+      if (n) infos.push({ type: "nuit", eti: t("imEtiSoir"), icone: "i-lune", texte: t("im_nuit", { n: n }), lien: "#proche", action: t("voirLieux") });
+    }
+
+    // Réouvertures dans les 7 jours (par ex. les Restos du Cœur à la campagne d'hiver)
+    const dans7 = isoJour(new Date(maintenant.getTime() + 7 * 864e5));
+    const rouvrent = D.lieux.filter((l) => l.fermeTemp && l.fermeTemp.jusqu && fermeEnCeMoment(l) && l.fermeTemp.jusqu < dans7)
+      .sort((a, b) => (a.fermeTemp.jusqu < b.fermeTemp.jusqu ? -1 : 1));
+    if (rouvrent.length) {
+      const premier = rouvrent[0];
+      const memes = rouvrent.filter((l) => l.fermeTemp.jusqu === premier.fermeTemp.jusqu && (l.structure || l.nom) === (premier.structure || premier.nom));
+      const lendemain = new Date(premier.fermeTemp.jusqu + "T12:00:00");
+      lendemain.setDate(lendemain.getDate() + 1);
+      infos.push({
+        type: "rouvre",
+        eti: t("imEtiBientot"),
+        icone: "i-check",
+        texte: t("im_rouvre", { nom: memes.length > 1 && premier.structure ? premier.structure : premier.nom, date: formatJour(lendemain) }),
+        lien: memes.length > 1 ? "#cat-" + premier.cat : "#lieu-" + premier.id,
+        action: memes.length > 1 ? t("voirLieux") : t("voirFiche")
+      });
+    }
+    return infos;
+  }
+
+  function isoJour(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function formatJour(d) {
+    try {
+      return new Intl.DateTimeFormat(LOCALES[etat.langue], { weekday: "long", day: "numeric", month: "long" }).format(d);
+    } catch (e) {
+      return isoJour(d);
+    }
+  }
+
+  function htmlMoment(maintenant) {
+    const infos = infosDuMoment(maintenant);
+    if (!infos.length) return "";
+    const n = infos.length;
+    const cartes = infos.map((x, i) => {
+      const dedans =
+        '<span class="moment-haut"><span class="moment-ic">' + icone(x.icone) + '</span><span class="moment-eti">' + esc(x.eti) + "</span></span>" +
+        '<span class="moment-txt">' + esc(x.texte) + "</span>" +
+        (x.lien ? '<span class="moment-action">' + esc(x.action) + icone("i-chevron", "chevron") + "</span>" : "");
+      return (
+        '<li class="moment-carte moment--' + x.type + '" aria-roledescription="info" aria-label="' + esc(t("im_numero", { i: i + 1, n: n })) + '">' +
+        (x.lien ? '<a class="moment-lien" href="' + esc(x.lien) + '">' + dedans + "</a>" : '<div class="moment-lien">' + dedans + "</div>") +
+        "</li>"
+      );
+    }).join("");
+    return (
+      '<section class="moment" aria-roledescription="carrousel" aria-labelledby="h-moment">' +
+      '<div class="section-tete"><h2 id="h-moment">' + esc(t("enCeMoment")) + "</h2>" +
+      (n > 1 ? '<button type="button" class="moment-pause" data-action="moment-pause" aria-pressed="' + etat.momentPause + '" aria-label="' + esc(t(etat.momentPause ? "imReprendre" : "imPause")) + '">' + icone(etat.momentPause ? "i-lecture" : "i-pause") + "</button>" : "") +
+      "</div>" +
+      '<ul class="moment-piste">' + cartes + "</ul>" +
+      (n > 1 ? '<div class="moment-barres" aria-hidden="true">' + infos.map(() => "<span><i></i></span>").join("") + "</div>" : "") +
+      "</section>"
+    );
+  }
+
+  // Défilement des cartes « En ce moment » : la barre de la carte en cours se remplit, puis carte suivante
+  function animerMoment() {
+    const boite = document.querySelector("#vue .moment");
+    if (!boite) return;
+    const piste = boite.querySelector(".moment-piste");
+    const cartes = Array.from(piste.children);
+    const barres = Array.from(boite.querySelectorAll(".moment-barres > span"));
+    if (cartes.length < 2) return;
+    const calme = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let courant = 0;
+    let retenu = false;
+    let attente = null;
+
+    const decalage = (carte) => {
+      const p = piste.getBoundingClientRect();
+      const r = carte.getBoundingClientRect();
+      const marge = parseFloat(getComputedStyle(piste).paddingInlineStart) || 0;
+      return getComputedStyle(piste).direction === "rtl" ? r.right - (p.right - marge) : r.left - (p.left + marge);
+    };
+    const montrer = (i) => {
+      courant = i;
+      etat.momentIndex = i;
+      barres.forEach((b, k) => {
+        b.className = k < i ? "passe" : k === i ? "actif" : "";
+        // relancer l'animation de la barre en cours
+        const trait = b.firstElementChild;
+        trait.style.animation = "none";
+        void trait.offsetWidth;
+        trait.style.animation = "";
+      });
+      boite.classList.toggle("en-pause", calme || retenu || etat.momentPause);
+    };
+    const aller = (i) => {
+      piste.scrollBy({ left: decalage(cartes[i]), behavior: calme ? "auto" : "smooth" });
+      montrer(i);
+    };
+    const retenir = (oui) => {
+      retenu = oui;
+      boite.classList.toggle("en-pause", calme || retenu || etat.momentPause);
+    };
+
+    // Quand la barre est pleine : carte suivante (la première après la dernière)
+    barres.forEach((b, k) => b.firstElementChild.addEventListener("animationend", () => {
+      if (k === courant && document.body.contains(piste)) aller((courant + 1) % cartes.length);
+    }));
+    // Glisser du doigt : la carte la plus proche du bord devient la carte en cours
+    piste.addEventListener("scroll", () => {
+      clearTimeout(attente);
+      attente = setTimeout(() => {
+        let mieux = 0;
+        cartes.forEach((c, k) => { if (Math.abs(decalage(c)) < Math.abs(decalage(cartes[mieux]))) mieux = k; });
+        if (mieux !== courant) montrer(mieux);
+      }, 120);
+    }, { passive: true });
+    piste.addEventListener("pointerdown", () => retenir(true));
+    piste.addEventListener("pointerup", () => setTimeout(() => retenir(false), 2500));
+    piste.addEventListener("mouseenter", () => retenir(true));
+    piste.addEventListener("mouseleave", () => retenir(false));
+    boite.addEventListener("focusin", () => retenir(true));
+    boite.addEventListener("focusout", () => retenir(false));
+    const depart = Math.min(etat.momentIndex, cartes.length - 1);
+    if (depart) piste.scrollBy({ left: decalage(cartes[depart]), behavior: "auto" });
+    montrer(depart);
+  }
+
+  /* ---------- « Ouvert près de vous » : le grand chiffre et le lieu le plus proche ---------- */
+  function htmlLive(maintenant) {
+    const ouverts = D.lieux.filter((l) => aCoord(l) && statut(l, maintenant).ouvert === true);
+    let corps;
+    if (etat.position) {
+      const tri = ouverts.map((l) => ({ l: l, d: distanceM(etat.position, l) })).sort((a, b) => a.d - b.d);
+      const rayon = tri.some((x) => x.d <= 500) ? 500 : tri.some((x) => x.d <= 1000) ? 1000 : 0;
+      const n = rayon ? tri.filter((x) => x.d <= rayon).length : 0;
+      const plus = tri[0];
+      corps =
+        '<div class="live-chiffre"><span class="live-n">' + n + "</span><p>" +
+        esc(rayon ? t(n === 1 ? "live1MoinsDe" : "liveMoinsDe", { d: rayon === 500 ? "500 m" : "1 km" }) : t("liveLoin")) + "</p></div>" +
+        (plus
+          ? '<div class="live-plus"><p class="etiquette">' + esc(t("livePlusProche")) + "</p>" +
+            '<a class="live-nom" href="#lieu-' + plus.l.id + '">' + esc(plus.l.nom) + "</a>" +
+            '<p class="live-meta"><span dir="ltr">' + esc(distanceCourte(plus.d)) + "</span> · " + esc(statut(plus.l, maintenant).texte) + "</p>" +
+            '<div class="live-boutons"><a class="bouton bouton--blanc" href="#guide-' + plus.l.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" +
+            (plus.l.tel ? '<a class="bouton bouton--vert" href="' + telLien(plus.l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+            "</div></div>"
+          : "");
+    } else {
+      const n = nbOuverts(D.lieux, maintenant);
+      corps =
+        '<div class="live-chiffre"><span class="live-n">' + n + "</span><p>" + esc(t(n === 1 ? "liveMaintenant1" : "liveMaintenantN")) + "</p></div>" +
+        '<div class="live-plus"><p class="live-meta">' + esc(etat.positionMessage ? t(etat.positionMessage, { nom: "" }) : t("liveSansPosition")) + "</p>" +
+        '<div class="live-boutons"><button type="button" class="bouton bouton--blanc" data-action="proche-accueil">' + icone("i-position") + esc(t("liveTrouver")) + "</button>" +
+        '<a class="bouton bouton--verre" href="#proche">' + esc(t("voirTout")) + "</a></div></div>";
+    }
+    return '<section class="live" aria-labelledby="h-live"><p class="etiquette" id="h-live">' + icone("i-position") + esc(t("liveTitre")) + "</p>" + corps + "</section>";
+  }
+
+  /* ---------- Proposer d'installer l'appli ---------- */
+  function htmlInstallation() {
+    if (estInstallee()) return '<p class="ok">' + icone("i-check") + esc(t("installee")) + "</p>";
+    if (etat.installation) return '<button type="button" class="bouton bouton--nuit" data-action="installer">' + icone("i-installer") + esc(t("installer")) + "</button>";
+    return '<p class="aide">' + esc(estIOS() ? t("installerIOS") : t("installerAutre")) + "</p>";
+  }
+
+  function htmlBandeauInstallation() {
+    if (estInstallee() || dansUnCadre() || stock.lire("installMasque", false)) return "";
+    if (!etat.installation && !estIOS()) return "";
+    return (
+      '<section class="carte installer" aria-labelledby="h-installer">' +
+      '<p class="installer-titre" id="h-installer">' + icone("i-installer") + esc(t("installerTitre")) + "</p>" +
+      "<p>" + esc(t("installerBandeau")) + "</p>" +
+      (etat.installation ? "" : '<p class="aide">' + esc(t("installerIOS")) + "</p>") +
+      '<div class="boutons">' +
+      (etat.installation ? '<button type="button" class="bouton bouton--nuit" data-action="installer">' + esc(t("installerCourt")) + "</button>" : "") +
+      '<button type="button" class="bouton bouton--gris" data-action="installer-plus-tard">' + esc(t("installerPlusTard")) + "</button>" +
+      "</div></section>"
+    );
+  }
+
+  /* ---------- Listes de lieux ---------- */
+  function htmlFiltres(o) {
+    const p = etat.position;
+    const actif = !!(p && etat.triDistance);
+    const nbAutres = CRITERES.filter((f) => etat.filtres.has(f)).length;
+    let msg = "";
+    if (etat.positionMessage === "positionEnCours") msg = t("positionEnCours");
+    else if (etat.positionMessage === "gpsGarde" && p) msg = t("gpsGarde", { nom: p.nom || t("positionAffiche") });
+    else if (etat.positionMessage) msg = t(etat.positionMessage);
+    else if (actif) msg = p.source === "gps" ? t("positionOk") + " " + t("positionPrive") : t("positionQR", { nom: p.nom || t("positionAffiche") });
+    return (
+      '<div class="puces">' +
+      '<button type="button" class="puce" data-action="proche" aria-pressed="' + actif + '">' + icone("i-position") + esc(t("presDeMoi")) + "</button>" +
+      (o.ouvert ? '<button type="button" class="puce" data-action="filtre" data-filtre="ouvert" aria-pressed="' + etat.filtres.has("ouvert") + '">' + esc(t("f_ouvert")) + "</button>" : "") +
+      '<button type="button" class="puce" data-action="filtres" aria-expanded="' + etat.filtresOuverts + '" aria-controls="filtres-plus">' + icone("i-reglages") + esc(t("filtres")) +
+      '<span class="nb-filtres">' + (nbAutres ? " " + nbAutres : "") + "</span></button>" +
+      "</div>" +
+      (msg ? '<p class="position-msg" role="status">' + esc(msg) + "</p>" : "")
+    );
+  }
+
+  function htmlFiltresPlus() {
+    return (
+      '<div id="filtres-plus" class="filtres-plus carte"' + (etat.filtresOuverts ? "" : " hidden") + ' role="group" aria-label="' + esc(t("filtres")) + '">' +
+      CRITERES.map((f) => '<button type="button" class="puce puce--claire" data-action="filtre" data-filtre="' + f + '" aria-pressed="' + etat.filtres.has(f) + '">' + esc(t("f_" + f)) + "</button>").join("") +
+      "</div>"
+    );
+  }
+
+  function htmlLigne(x, avecCat, avecFemmes) {
+    const l = x.l;
+    const cat = categorie(l.cat);
+    const f = avecFemmes ? pourFemmes(l) : null;
+    return (
+      '<li class="ligne"><a class="ligne-lien" href="#lieu-' + l.id + '">' +
+      '<span class="ligne-ic">' + icone(cat.icone) + "</span>" +
+      '<span class="ligne-corps">' +
+      (avecCat ? '<span class="ligne-cat">' + esc(t("cat_" + l.cat)) + "</span>" : "") +
+      '<span class="ligne-nom">' + esc(l.nom) + "</span>" + badgeFemmes(l) +
+      (f && f.texte ? '<span class="ligne-femmes">' + esc(f.texte) + "</span>" : "") +
+      '<span class="ligne-meta"><span class="statut statut--' + x.s.classe + '">' + esc(x.s.texte) + "</span>" +
+      (x.d !== null ? '<span class="ligne-dist" dir="ltr">' + esc(distanceCourte(x.d)) + "</span>" : "") +
+      "</span></span>" + icone("i-chevron", "chevron") + "</a>" +
+      (l.tel ? '<a class="ligne-appel" href="' + telLien(l.tel) + '" aria-label="' + esc(t("appeler") + " " + l.nom) + '">' + icone("i-tel") + "</a>" : "") +
+      "</li>"
+    );
+  }
+
+  function htmlListe(prepares, avecCat, avecFemmes) {
+    if (!prepares.length) return '<p class="vide">' + esc(t("aucun")) + "</p>";
+    return (
+      '<p class="compte">' + esc(prepares.length === 1 ? t("nbLieu1") : t("nbLieux", { n: prepares.length })) + " · " + esc(t("aConfirmer")) + "</p>" +
+      '<ul class="liste">' + prepares.map((x) => htmlLigne(x, avecCat, avecFemmes)).join("") + "</ul>"
+    );
+  }
+
+  // Une page de liste : bandeau avec les filtres, puis les lieux (et la carte à droite sur ordinateur)
+  function pageListe(o) {
+    return (
+      bandeauPage({ titre: o.titre, sous: o.sous, icone: o.icone, iconeClasse: o.iconeClasse, retour: o.retour, apres: (o.avantFiltres || "") + htmlFiltres({ ouvert: !o.forcerOuvert }) }) +
+      '<div class="feuille">' +
+      colonnes(htmlFiltresPlus() + (o.avant || "") + '<div id="resultats">' + htmlListe(preparer(o.lieux, o.forcerOuvert), o.avecCat, o.avecFemmes) + "</div>" + (o.apres || "")) +
+      "</div>"
+    );
+  }
+
+  function vueCategorie(id) {
+    const c = categorie(id);
+    if (!c) return vueAccueil();
+    const rappel = id === "dormir" || id === "ecoute" ? '<p class="carte rappel">' + icone("i-tel") + "<span>" + esc(t("rappel_" + id)) + "</span></p>" : "";
+    const eq = id === "hygiene" ? '<a class="carte lien-ligne" href="#carte-toilettes">' + icone("i-wc") + "<span>" + esc(t("eq_voirCarte")) + "</span>" + icone("i-chevron", "chevron") + "</a>" : "";
+    return pageListe({ titre: t("cat_" + id), sous: t("catd_" + id), icone: c.icone, lieux: D.lieux.filter((l) => dansCat(l, id)), avant: rappel + eq });
+  }
+
+  // Une grande catégorie de plusieurs besoins (Matériel, Technologie) ou toutes les catégories
+  function vueRubrique(id) {
+    const f = id === "toutes" ? { id: "toutes", icone: "i-grille", cats: D.categories.map((c) => c.id) } : famille(id);
+    if (!f) return vueAccueil();
+    const raccourcis = '<nav class="puces puces--sous" aria-label="' + esc(t("jeCherche")) + '">' +
+      f.cats.map((c) => '<a class="puce" href="#cat-' + c + '">' + icone(categorie(c).icone) + esc(t("cat_" + c)) + "</a>").join("") + "</nav>";
+    return pageListe({
+      titre: id === "toutes" ? t("fam_toutes") : nomFamille(f),
+      sous: t("famd_" + f.id),
+      icone: f.icone,
+      lieux: id === "toutes" ? D.lieux : D.lieux.filter((l) => dansFamille(l, f)),
+      avecCat: true,
+      avantFiltres: id === "toutes" ? "" : raccourcis
+    });
+  }
+
+  function vueProche() {
+    // Demander la position une seule fois, au moment où la personne en a besoin
+    if (!etat.gpsDemande && !(etat.position && etat.position.source === "gps")) setTimeout(demanderPosition, 0);
+    return pageListe({ titre: t("procheTitre"), sous: t("procheSous"), icone: "i-position", iconeClasse: "page-ic--bleu", lieux: D.lieux, forcerOuvert: true, avecCat: true });
+  }
+
+  function vueFavoris() {
+    const liste = etat.favoris.map(lieu).filter(Boolean);
+    if (!liste.length) {
+      return bandeauPage({ titre: t("favorisTitre"), icone: "i-etoile" }) + '<div class="feuille"><p class="vide">' + esc(t("favorisVide")) + "</p></div>";
+    }
+    return pageListe({ titre: t("favorisTitre"), icone: "i-etoile", lieux: liste, avecCat: true });
+  }
+
+  function vuePourVous() {
+    const niveaux = ["reserve", "creneau", "specialise"];
+    const lieux = (niveau) => D.lieux.filter((l) => { const f = pourFemmes(l); return f && f.niveau === niveau; });
+    const protections = D.lieux.filter((l) => l.protections);
+    const sommaire = '<nav class="puces puces--sous" aria-label="' + esc(t("pvTitre")) + '">' +
+      niveaux.filter((x) => lieux(x).length).map((x) => '<a class="puce" href="#pourvous-' + x + '">' + esc(t("pvCourt_" + x)) + " · " + lieux(x).length + "</a>").join("") +
+      '<a class="puce" href="#pourvous-protections">' + esc(t("pvCourt_protections")) + "</a></nav>";
+    const groupes = niveaux.map((niveau) => {
+      const l = lieux(niveau);
+      return l.length ? '<section class="groupe" id="pv-' + niveau + '"><h2 class="titre-section">' + esc(t("pv_" + niveau)) + "</h2>" + htmlListe(preparer(l), true, true) + "</section>" : "";
+    }).join("");
+    return (
+      bandeauPage({ titre: t("pvTitre"), sous: t("pvSous"), icone: "i-coeur", iconeClasse: "page-ic--blanc", apres: sommaire + htmlFiltres({ ouvert: false }) }) +
+      '<div class="feuille">' +
+      colonnes(
+        htmlFiltresPlus() + groupes +
+        '<section class="groupe" id="pv-protections"><h2 class="titre-section">' + esc(t("pv_protections")) + "</h2>" +
+        '<p class="carte texte">' + esc(t(protections.length ? "pvProtectionsIntro" : "pvProtectionsVide")) + "</p>" +
+        (protections.length ? htmlListe(preparer(protections), true, false) : "") + "</section>"
+      ) +
+      "</div>"
+    );
+  }
+
+  function htmlResultatsRecherche() {
+    if (!etat.recherche.trim()) return '<p class="vide">' + esc(t("rechVide")) + "</p>";
+    const prepares = preparer(chercher(etat.recherche));
+    if (!prepares.length) return '<p class="vide">' + esc(t("rechAucun")) + "</p>";
+    return htmlListe(prepares, true);
+  }
+
+  function vueRecherche() {
+    const familles = '<section class="groupe"><h2 class="titre-section">' + esc(t("rechOu")) + '</h2><nav class="puces puces--claires">' +
+      '<a class="puce" href="#pourvous">' + icone("i-coeur") + esc(t("femmesTitre")) + "</a>" +
+      D.familles.map((f) => '<a class="puce" href="' + lienFamille(f) + '">' + icone(f.icone) + esc(nomFamille(f)) + "</a>").join("") + "</nav></section>";
+    return (
+      bandeauPage({ titre: t("rechBouton"), icone: "i-loupe", apres: htmlRecherche() + htmlFiltres({ ouvert: true }) }) +
+      '<div class="feuille">' + colonnes(htmlFiltresPlus() + '<div id="resultats">' + htmlResultatsRecherche() + "</div>" + familles) + "</div>"
+    );
+  }
+
+  /* ---------- Fiche d'un lieu ---------- */
+  function vueLieu(id) {
+    const l = lieu(id);
+    if (!l) return bandeauPage({ titre: t("introuvable") }) + '<div class="feuille"></div>';
+    const cat = categorie(l.cat);
+    const maintenant = new Date();
+    const s = statut(l, maintenant);
+    const fav = etat.favoris.indexOf(l.id) !== -1;
+    const aujourdhui = JOURS[maintenant.getDay()];
+    const femmes = pourFemmes(l);
+    const acces = l.adresseMasquee && l.acces ? lieu(l.acces) : null;
+    const allerA = l.adresseMasquee ? (acces && aCoord(acces) ? acces.id : null) : l.adresse || aCoord(l) ? l.id : null;
+    const distance = etat.position && aCoord(l) ? distanceM(etat.position, l) : null;
+
+    let horaires;
+    if (l.horaires === "24/7") horaires = "<p>" + esc(t("h24")) + "</p>";
+    else if (!l.horaires) {
+      horaires = "<p>" + esc(t("horairesInconnus")) + "</p>" + (l.horairesTexte ? '<p class="aide">' + esc(t("horairesSource")) + " : " + esc(l.horairesTexte) + "</p>" : "");
+    } else {
+      horaires = '<table class="horaires"><tbody>' + SEMAINE.map((j) =>
+        "<tr" + (j === aujourdhui ? ' class="auj"' : "") + '><th scope="row">' + esc(t("jours")[j]) + (j === aujourdhui ? " · " + esc(t("aujourdhui")) : "") +
+        "</th><td>" + (plages(l, j).length ? plages(l, j).map((x) => esc(formatHeure(x[0]) + " – " + formatHeure(x[1]))).join("<br>") : esc(t("ferme"))) + "</td></tr>"
+      ).join("") + "</tbody></table>";
+    }
+
+    const criteres = CRITERES.filter((c) => l.criteres && l.criteres[c]);
+    const langues = (l.langues || []).map((c) => t("nomsLangues")[c] || c);
+
+    const actions =
+      '<div class="fiche-actions">' +
+      (allerA ? '<a class="bouton bouton--blanc" href="#guide-' + allerA + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" : "") +
+      (l.tel ? '<a class="bouton bouton--vert" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+      "</div>";
+    // Garder et Envoyer : en haut à droite, comme dans une barre d'iPhone
+    const ronds =
+      '<div class="bande-ronds">' +
+      '<button type="button" class="rond-verre" data-action="garder" data-id="' + l.id + '" aria-pressed="' + fav + '" aria-label="' + esc(fav ? t("garde") : t("garder")) + '">' + icone(fav ? "i-etoile-pleine" : "i-etoile") + "</button>" +
+      '<button type="button" class="rond-verre" data-action="partager" data-id="' + l.id + '" aria-label="' + esc(t("partager")) + '">' + icone("i-partager") + "</button>" +
+      "</div>";
+
+    const adresse =
+      '<div class="carte infos-lieu">' +
+      (l.adresseMasquee
+        ? '<div class="info">' + icone("i-bouclier") + "<span>" + esc(t("adresseMasquee")) +
+          (acces ? '<br><span class="aide">' + esc(t("ouDemander")) + ' <a href="#lieu-' + acces.id + '">' + esc(acces.nom) + "</a></span>" : "") + "</span></div>"
+        : !l.adresse
+        ? '<div class="info">' + icone("i-tel") + "<span>" + esc(t("sansAdresse")) + "</span></div>"
+        : '<div class="info">' + icone("i-carte") + '<span><span class="adresse-txt" dir="ltr">' + esc(l.adresse) + "</span>" +
+          (distance !== null ? '<br><span class="aide">' + esc(formatDistance(distance)) + "</span>" : "") + "</span>" +
+          '<button type="button" class="bouton-mini" data-action="copier" data-texte="' + esc(l.adresse) + '">' + esc(t("copier")) + "</button></div>") +
+      (l.tel ? '<div class="info">' + icone("i-tel") + '<a class="lien-tel" dir="ltr" href="' + telLien(l.tel) + '">' + esc(l.tel) + "</a></div>" : "") +
+      "</div>";
+
+    return (
+      bandeau(
+        '<div class="bande-haut">' + retour() + ronds + "</div>" +
+        '<p class="fiche-cat">' + esc(t("cat_" + l.cat)) + " · " + esc(t("fictif")) + "</p>" +
+        '<h1 class="fiche-nom">' + esc(l.nom) + "</h1>" +
+        '<p class="pastille-statut statut--' + s.classe + '"><i aria-hidden="true"></i>' + esc(s.texte) + "</p>" +
+        actions,
+        "bande--page bande--fiche"
+      ) +
+      '<div class="feuille">' +
+      colonnes(
+        (fermeEnCeMoment(l) && l.fermeTemp.texte ? '<p class="carte note note--ferme">' + icone("i-alerte") + '<span lang="fr">' + esc(l.fermeTemp.texte) + "</span></p>" : "") +
+        (l.noteEquipe ? '<p class="carte note">' + icone("i-info") + "<span><strong>" + esc(t("noteEquipe")) + '</strong> <span lang="fr">' + esc(l.noteEquipe) + "</span></span></p>" : "") +
+        adresse +
+        (femmes && femmes.texte ? '<section class="carte bloc-femmes"><h2>' + icone("i-coeur") + esc(t("encartFemmes")) + "</h2>" + badgeFemmes(l) + "<p>" + esc(femmes.texte) + "</p></section>" : "") +
+        '<section class="carte bloc"><h2>' + esc(t("horaires")) + "</h2>" + horaires + "</section>" +
+        '<section class="carte bloc"><h2>' + esc(t("surPlace")) + '</h2><ul class="puces-txt">' + l.services.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul></section>" +
+        (l.conditions ? '<section class="carte bloc"><h2>' + esc(t("conditions")) + "</h2><p>" + esc(l.conditions) + "</p></section>" : "") +
+        (criteres.length ? '<section class="carte bloc"><h2>' + esc(t("bonASavoir")) + '</h2><ul class="criteres">' + criteres.map((c) => "<li>" + icone("i-check") + esc(t("f_" + c)) + "</li>").join("") + "</ul></section>" : "") +
+        (langues.length ? '<section class="carte bloc"><h2>' + esc(t("languesParlees")) + "</h2><p>" + esc(langues.join(", ")) + "</p></section>" : "") +
+        htmlAvis(l) +
+        '<details class="carte signaler"><summary>' + icone("i-drapeau") + esc(t("signaler")) + icone("i-chevron", "chevron") + "</summary>" +
+        htmlFormSignaler(l.id, ["ferme", "horaires", "adresse", "accueil", "autre"]) + "</details>" +
+        '<div class="note-bas note-bas--gauche"><p>' + esc(t("verifie", { date: formatDate(l.verifie) })) + " " + esc(t("appelerAvant")) + "</p>" +
+        (l.sources && l.sources.length ? "<p>" + esc(t("sources")) + " : " + l.sources.map((u) => '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(hote(u)) + "</a>").join(", ") + "</p>" : "") +
+        "</div>"
+      ) +
+      "</div>"
+    );
+  }
+
+  function htmlAvis(l) {
+    if (avisDonne(l.id)) return '<section class="carte avis"><p class="ok">' + icone("i-check") + esc(t("avisMerci")) + "</p></section>";
+    return (
+      '<section class="carte avis"><h2>' + esc(t("avisQuestion")) + "</h2>" +
+      '<div class="boutons">' +
+      '<button type="button" class="bouton bouton--gris" data-action="avis" data-id="' + l.id + '" data-valeur="oui">👍 ' + esc(t("avisOui")) + "</button>" +
+      '<button type="button" class="bouton bouton--gris" data-action="avis" data-id="' + l.id + '" data-valeur="non">👎 ' + esc(t("avisNon")) + "</button>" +
+      "</div></section>"
+    );
+  }
+
+  /* Formulaire « Signaler » : sur chaque fiche (lieu) ou pour toute l'appli (lieu vide) */
+  function htmlFormSignaler(idLieu, raisons) {
+    return (
+      '<form class="form-signaler" data-lieu="' + esc(idLieu) + '"><fieldset><legend>' + esc(t("signalerQuoi")) + "</legend>" +
+      raisons.map((r, i) => '<label class="choix-ligne"><input type="radio" name="raison" value="' + r + '"' + (i === 0 ? " required" : "") + "> " + esc(t("sig_" + r)) + "</label>").join("") +
+      '<label class="champ"><span>' + esc(t("signalerPrecisez")) + '</span><textarea name="message" rows="3" maxlength="500"></textarea></label>' +
+      '<p class="aide">' + esc(t("signalerAnonyme")) + "</p>" +
+      // Champ piège invisible : seuls les robots le remplissent
+      '<input type="text" name="site" class="piege" tabindex="-1" autocomplete="off" aria-hidden="true">' +
+      '</fieldset><button type="submit" class="bouton bouton--nuit">' + esc(t("envoyer")) + "</button>" +
+      '<p class="merci" role="status" hidden></p></form>'
+    );
+  }
+
+  function vueSignaler() {
+    return (
+      bandeauPage({ titre: t("signalerProbleme"), sous: t("signalerIntro"), icone: "i-drapeau" }) +
+      '<div class="feuille feuille--etroite"><div class="carte signaler signaler--page">' + htmlFormSignaler("", ["manque", "bug", "traduction", "autre"]) + "</div></div>"
+    );
+  }
+
+  /* ---------- Urgences et « Je ne me sens pas en sécurité » ---------- */
+  function vueUrgences() {
+    return (
+      bandeauPage({
+        marque: true,
+        titre: t("navUrgences"),
+        sous: t("urgIntro"),
+        apres: '<a class="bouton-securite" href="#aide">' + icone("i-bouclier") + "<span>" + esc(t("aideBouton")) + "</span>" + icone("i-chevron", "chevron") + "</a>"
+      }) +
+      '<div class="feuille feuille--etroite">' +
+      '<ul class="urgences">' + D.urgences.map((u) =>
+        '<li class="carte urgence' + (u.couleur === "urgent" ? " urgence--forte" : "") + '">' +
+        '<a class="urgence-num" dir="ltr" href="' + telLien(u.num) + '">' + u.num + "</a>" +
+        '<p class="urgence-txt">' + esc(t("urg_" + u.id)) + "</p>" +
+        '<span class="urgence-actions">' +
+        (u.sms ? '<a class="rond-action rond-action--gris" href="sms:' + u.num + '" aria-label="' + esc(t("envoyerSms") + " " + u.num) + '">' + icone("i-sms") + "</a>" : "") +
+        '<a class="rond-action" href="' + telLien(u.num) + '" aria-label="' + esc(t("appeler") + " " + u.num) + '">' + icone("i-tel") + "</a></span></li>"
+      ).join("") + "</ul>" +
+      '<p class="carte rappel">' + icone("i-info") + "<span>" + esc(t("urgEnLigne")) + "</span></p>" +
+      "</div>"
+    );
+  }
+
+  function vueAide() {
+    const surs = lieuxSursProches(3);
+    const sms = "sms:114?&body=" + encodeURIComponent(t("aideSmsTexte"));
+    return (
+      bandeauPage({ titre: t("aideTitre"), sous: t("aideIntro"), icone: "i-bouclier", iconeClasse: "page-ic--rouge", retour: t("navUrgences") }) +
+      '<div class="feuille feuille--etroite"><ol class="etapes">' +
+      '<li class="carte etape"><h2>' + esc(t("aideDanger")) + "</h2>" +
+      '<a class="bouton bouton--vert bouton--large" href="' + telLien("17") + '">' + icone("i-tel") + esc(t("aideAppeler17")) + "</a></li>" +
+      '<li class="carte etape"><h2>' + esc(t("aideParler")) + "</h2><p>" + esc(t("aideSmsExplique")) + "</p>" +
+      '<a class="bouton bouton--nuit bouton--large" href="' + esc(sms) + '">' + icone("i-sms") + esc(t("aideSms114")) + "</a></li>" +
+      '<li class="carte etape"><h2>' + esc(t("aideLieuSur")) + "</h2><p>" + esc(t("aideLieuSurExplique")) + "</p>" +
+      (surs.length
+        ? '<ul class="surs">' + surs.map((x) =>
+            '<li><span class="ligne-ic">' + icone(ICONE_EQ[x.type]) + '</span><span class="surs-txt"><strong>' + esc(x.nom) + "</strong>" +
+            "<small>" + esc(t("eq_" + x.type)) + (etat.position ? ' · <span dir="ltr">' + esc(distanceCourte(distanceM(etat.position, x))) + "</span>" : "") + "</small></span>" +
+            '<a class="bouton bouton--bleu bouton--petit" href="#guide-' + x.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a></li>"
+          ).join("") + "</ul>"
+        : "") +
+      (etat.position ? "" : '<button type="button" class="bouton bouton--gris" data-action="proche-aide">' + icone("i-position") + esc(t("aidePlusProche")) + "</button>") +
+      "</li>" +
+      '<li class="carte etape"><h2>' + esc(t("aideCommerce")) + "</h2><p>" + esc(t("aideCommerceExplique")) + "</p>" +
+      '<a class="bouton bouton--vert" href="' + telLien("3237") + '">' + icone("i-tel") + esc(t("aidePharmacie")) + ' <span dir="ltr">3237</span></a></li>' +
+      '<li class="carte etape"><h2>' + esc(t("aideEcoute")) + "</h2><p>" + esc(t("urg_3919")) + "</p>" +
+      '<a class="bouton bouton--vert" href="' + telLien("3919") + '">' + icone("i-tel") + esc(t("appeler")) + ' <span dir="ltr">3919</span></a></li>' +
+      "</ol></div>"
+    );
+  }
+
+  /* ---------- Infos pratiques ---------- */
+  const FICHES = {
+    "115": { ic: "i-lit", tel: ["115"] },
+    proteger: { ic: "i-bouclier", tel: ["3919", "17"], sms: "114" },
+    sante: { ic: "i-croix", cat: "sante" },
+    regles: { ic: "i-goutte", cat: "hygiene" },
+    adresse: { ic: "i-papier", cat: "droits" },
+    papiers: { ic: "i-sac", cat: "bagagerie", lien: "https://www.reconnect.fr", lienTxt: "reconnectLien" },
+    securite: { ic: "i-bouclier", aide: true }
+  };
+
+  function vueInfos(ouvrir) {
+    const actions = (f) => {
+      const x = FICHES[f.id] || {};
+      const liens = (x.tel || []).map((n) => '<a class="bouton bouton--vert bouton--petit" href="' + telLien(n) + '">' + icone("i-tel") + esc(t("appeler")) + ' <span dir="ltr">' + n + "</span></a>")
+        .concat(x.sms ? ['<a class="bouton bouton--gris bouton--petit" href="sms:' + x.sms + '">' + icone("i-sms") + esc(t("envoyerSms")) + ' <span dir="ltr">' + x.sms + "</span></a>"] : [])
+        .concat(x.cat ? ['<a class="bouton bouton--gris bouton--petit" href="#cat-' + x.cat + '">' + icone(categorie(x.cat).icone) + esc(t("cat_" + x.cat)) + "</a>"] : [])
+        .concat(x.lien ? ['<a class="bouton bouton--gris bouton--petit" href="' + esc(x.lien) + '" target="_blank" rel="noopener noreferrer">' + icone("i-papier") + esc(t(x.lienTxt)) + "</a>"] : []);
+      if (x.aide) liens.push('<a class="bouton bouton--rouge bouton--petit" href="#aide">' + icone("i-bouclier") + esc(t("aideBouton")) + "</a>");
+      return liens.length ? '<div class="boutons">' + liens.join("") + "</div>" : "";
+    };
+    const plus = [
+      ["#favoris", "i-etoile", t("favorisTitre")],
+      ["#reglages", "i-globe", t("langue") + " · " + TR[etat.langue].nomLangue],
+      ["#reglages-installer", "i-installer", t("installerCourt")],
+      ["#signaler", "i-drapeau", t("signalerProbleme")],
+      ["#apropos", "i-info", t("apropos")]
+    ];
+    return (
+      bandeauPage({ marque: true, titre: t("infosTitre"), sous: t("infosSous") }) +
+      '<div class="feuille feuille--etroite">' +
+      '<div class="fiches">' + t("fiches").map((f) =>
+        '<details class="carte fiche" id="fiche-' + f.id + '"' + (f.id === ouvrir ? " open" : "") + ">" +
+        '<summary><span class="ligne-ic">' + icone((FICHES[f.id] || {}).ic || "i-info") + "</span>" +
+        '<span class="fiche-tete"><span class="fiche-titre">' + esc(f.titre) + '</span><span class="fiche-resume">' + esc(f.points[0]) + "</span></span>" +
+        icone("i-chevron", "chevron") + "</summary>" +
+        '<ul class="puces-txt">' + f.points.slice(1).map((p) => "<li>" + esc(p) + "</li>").join("") + "</ul>" + actions(f) +
+        "</details>"
+      ).join("") + "</div>" +
+      '<h2 class="titre-section">' + esc(t("plus")) + "</h2>" +
+      '<nav class="carte liens">' + plus.map((p) => '<a href="' + p[0] + '">' + icone(p[1]) + "<span>" + esc(p[2]) + "</span>" + icone("i-chevron", "chevron") + "</a>").join("") + "</nav>" +
+      "</div>"
+    );
+  }
+
+  /* ---------- Réglages ---------- */
+  function htmlOuvrirTelephone() {
+    if (dansUnCadre() || !/^https?:$/.test(location.protocol)) return "";
+    return (
+      '<section class="carte bloc"><h2>' + esc(t("ouvrirTelephone")) + "</h2>" +
+      '<div class="qr-telephone"><div class="qr" id="qr-site" aria-hidden="true"></div>' +
+      "<p>" + esc(t("ouvrirTelephoneAide")) + '<br><strong class="lien-site">' + esc(urlSite()) + "</strong></p></div></section>"
+    );
+  }
+
+  function vueReglages() {
+    return (
+      bandeauPage({ titre: t("reglages"), icone: "i-reglages" }) +
+      '<div class="feuille feuille--etroite">' +
+      '<section class="bloc-nu"><h2 class="titre-section">' + esc(t("langue")) + '</h2><div class="carte langues">' +
+      LANGUES.map((l) => '<button type="button" class="langue" data-action="langue" data-valeur="' + l + '" lang="' + l + '"' + (DROITE_A_GAUCHE.indexOf(l) !== -1 ? ' dir="rtl"' : "") + ' aria-pressed="' + (etat.langue === l) + '">' +
+        "<span>" + esc(TR[l].nomLangue) + "</span>" + (etat.langue === l ? icone("i-check") : "") + "</button>").join("") +
+      "</div></section>" +
+      '<section class="carte bloc" id="installer"><h2>' + esc(t("installer")) + '</h2><p class="aide">' + esc(t("installerAide")) + "</p>" + htmlInstallation() + "</section>" +
+      htmlOuvrirTelephone() +
+      '<section class="carte bloc"><h2>' + esc(t("effacer")) + '</h2><p class="aide">' + esc(t("effacerAide")) + "</p>" +
+      '<div class="effacer"><button type="button" class="bouton bouton--gris bouton--danger" data-action="effacer">' + esc(t("effacerBouton")) + "</button>" +
+      '<div class="effacer-confirmer boutons" hidden><button type="button" class="bouton bouton--rouge" data-action="effacer-oui">' + esc(t("confirmerEffacer")) + '</button><button type="button" class="bouton bouton--gris" data-action="effacer-non">' + esc(t("annuler")) + "</button></div>" +
+      '<p class="ok" role="status" hidden>' + icone("i-check") + esc(t("effacerOk")) + "</p></div></section>" +
+      "</div>"
+    );
+  }
+
+  /* ---------- À propos ---------- */
+  function vueApropos() {
+    return (
+      bandeauPage({ titre: "À propos de Paladines", icone: "i-info" }) +
+      '<div class="feuille feuille--etroite"><article class="carte texte apropos" lang="fr" dir="ltr">' +
+      "<p><strong>Paladines est faite pour les femmes à la rue à Lille</strong> : trouver vite un lieu ouvert et sûr près d'elles, repérer les lieux réservés aux femmes, les créneaux rien que pour elles, la santé des femmes et l'écoute en cas de violences.</p>" +
+      "<p>C'est un prototype, fait pour en discuter. Les 213 lieux sont de vrais lieux de Lille, Lomme et Hellemmes, relevés sur internet et sur les sites officiels : ils doivent encore être confirmés par téléphone avant un vrai lancement. Les numéros d'urgence sont nationaux.</p>" +
+      "<h2>Le principe</h2>" +
+      "<p>Une femme scanne un QR code (affiche, carte remise par une maraude) et arrive ici, sans compte et sans rien installer. Elle voit tout de suite les lieux ouverts près d'elle, les infos du moment (froid, plan hiver…), et peut être guidée à pied jusqu'au lieu, même sans internet. Sa position ne quitte jamais son téléphone.</p>" +
+      "<h2>Outils</h2>" +
+      '<div class="boutons"><a class="bouton bouton--nuit" href="affiche.html">' + icone("i-qr") + "Créer une affiche avec QR code</a>" +
+      '<a class="bouton bouton--gris" href="pro.html">' + icone("i-info") + "Guide pour les professionnelles</a>" +
+      '<a class="bouton bouton--gris" href="/equipe" target="_blank" rel="noopener">' + icone("i-drapeau") + "Espace de l'équipe</a></div>" +
+      "<p class=\"aide\">Espace de l'équipe : signalements, corrections des lieux, statistiques (mot de passe demandé). Les questions à trancher et la feuille de route sont dans <code>docs/IDEES.md</code> ; la liste des lieux et leurs sources dans <code>docs/LIEUX-LILLE.md</code>.</p>" +
+      "</article></div>"
+    );
+  }
+
+  /* =====================================================================
+   * 4. Carte
+   * Onglet Carte : la carte en plein écran, des filtres en haut, un panneau en bas (à gauche sur
+   * ordinateur) avec la recherche, les catégories et les lieux ; un lieu touché s'ouvre dans ce panneau.
+   * Sur ordinateur, la même carte se place à droite des listes et des fiches (majPanneau).
+   * ===================================================================== */
+  function creerCarte() {
+    const ref = etat.position || D.ville;
+    const carte = L.map("carte", { zoomControl: false }).setView([ref.lat, ref.lng], D.ville.zoom);
+    L.control.zoom({ position: "bottomright" }).addTo(carte);
+    carte.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
+    ajouterFond(carte);
+    carte.on("click", () => {
+      if (!etat.guide) fermerFicheCarte();
+    });
+    // Pendant le guidage, déplacer la carte arrête de suivre la marche (bouton pour recentrer)
+    carte.on("dragstart", () => {
+      if (!etat.guide) return;
+      etat.guide.suivre = false;
+      rendreGuide();
+    });
+    etat.carte = carte;
+    etat.coucheLieux = L.layerGroup().addTo(carte);
+    etat.coucheEq = L.layerGroup().addTo(carte);
+  }
+
+  function afficherCarte() {
+    rangerCarte();
+    etat.panneau = null;
+    etat.panneauCle = "";
+    document.body.classList.remove("avec-panneau");
+    document.getElementById("vue").hidden = true;
+    const zone = document.getElementById("vue-carte");
+    zone.hidden = false;
+    const msg = zone.querySelector(".carte-msg");
+    if (!window.L) {
+      msg.textContent = t("carteIndispo");
+      msg.hidden = false;
+      return;
+    }
+    if (!etat.carte) creerCarte();
+    rendreHautCarte();
+    rendrePanneauCarte();
+    majMarqueurs();
+    majMoiSurCarte(false);
+    setTimeout(() => {
+      etat.carte.invalidateSize();
+      cadrerCarte();
+    }, 0);
+  }
+
+  // Remettre la carte à sa place, hors de l'écran qui va être redessiné
+  function rangerCarte() {
+    const zone = document.getElementById("vue-carte");
+    if (zone.parentElement !== document.body) document.body.insertBefore(zone, document.querySelector(".onglets"));
+  }
+
+  // Ce que cachent le panneau et les boutons : pour cadrer la carte sur la partie visible
+  function margesCarte() {
+    const p = document.getElementById("panneau-carte");
+    const c = document.getElementById("carte").getBoundingClientRect();
+    const r = p && !etat.panneau && p.offsetParent ? p.getBoundingClientRect() : null;
+    if (r && r.width > c.width * 0.6) return { haut: 70, bas: Math.max(40, c.bottom - r.top + 12), gauche: 30, droite: 30 };
+    if (r) return { haut: 40, bas: 40, gauche: r.right - c.left + 24, droite: 40 };
+    return { haut: 40, bas: 40, gauche: 40, droite: 40 };
+  }
+
+  function cadrerCarte() {
+    if (etat.carteCadree || !etat.carte) return;
+    if (etat.position) {
+      centrerSur([etat.position.lat, etat.position.lng], 15);
+      etat.carteCadree = true;
+      return;
+    }
+    const pts = D.lieux.filter(aCoord).map((l) => [l.lat, l.lng]);
+    if (pts.length >= 2) {
+      const m = margesCarte();
+      etat.carte.fitBounds(pts, { paddingTopLeft: [m.gauche, m.haut], paddingBottomRight: [m.droite, m.bas], maxZoom: 15 });
+      etat.carteCadree = true;
+    }
+  }
+
+  // Centrer un point dans la partie visible de la carte (au-dessus ou à côté du panneau)
+  function centrerSur(ll, zoom) {
+    const carte = etat.carte;
+    const z = zoom || Math.max(carte.getZoom(), 15);
+    const m = margesCarte();
+    const decal = L.point((m.gauche - m.droite) / 2, (m.haut - m.bas) / 2);
+    carte.setView(carte.unproject(carte.project(ll, z).subtract(decal), z), z);
+  }
+
+  function majMsgCarte() {
+    const msg = document.querySelector("#vue-carte .carte-msg");
+    if (!msg) return;
+    let txt = "";
+    if (!D.lieux.some(aCoord)) txt = t("carteSansPositions");
+    else if (etat.fondEnErreur) txt = t(dansUnCadre() ? "fondApercu" : "fondIndispo");
+    msg.textContent = txt;
+    msg.hidden = !txt;
+  }
+
+  // Les lieux montrés : ceux de la liste (ordinateur), ou ceux qui passent les filtres de la carte
+  function lieuxCarte() {
+    if (etat.panneau) return D.lieux.filter((l) => etat.panneau.has(l.id));
+    const maintenant = new Date();
+    const f = etat.carteCat === "toutes" ? null : famille(etat.carteCat);
+    const texte = etat.carteTexte.trim() ? new Set(chercher(etat.carteTexte).map((l) => l.id)) : null;
+    return D.lieux.filter((l) =>
+      (!f || dansFamille(l, f)) &&
+      (!etat.carteOuvert || statut(l, maintenant).ouvert === true) &&
+      (!etat.carteFemmes || pourFemmes(l)) &&
+      (!texte || texte.has(l.id))
+    );
+  }
+
+  function majMarqueurs() {
+    if (!etat.coucheLieux) return;
+    const maintenant = new Date();
+    etat.coucheLieux.clearLayers();
+    majMsgCarte();
+    const points = [];
+    (etat.guide ? [lieu(etat.guide.id)].filter(Boolean) : lieuxCarte()).forEach((l) => {
+      const pt = pointCarte(l);
+      // Pendant le guidage : seulement le lieu où l'on va (jamais une adresse protégée)
+      if (!pt || (etat.guide && pt.acces)) return;
+      points.push({ l: l, s: statut(l, maintenant), acces: pt.acces, lat: pt.lat, lng: pt.lng, dx: 0, dy: 0 });
+    });
+    ecarter(points);
+    points.forEach((p) => {
+      const cat = categorie(p.l.cat);
+      const ic = L.divIcon({
+        className: "marqueur-boite",
+        html: '<span class="marqueur' + (p.s.ouvert === true ? "" : " marqueur--ferme") + (p.acces ? " marqueur--protege" : "") + (etat.ficheCarte === p.l.id ? " marqueur--choisi" : "") + '" data-id="' + p.l.id + '">' + icone(cat.icone) + "</span>",
+        iconSize: [36, 36],
+        iconAnchor: [18 - p.dx, 18 - p.dy]
+      });
+      L.marker([p.lat, p.lng], { icon: ic, title: p.l.nom, alt: p.l.nom, interactive: !etat.guide, keyboard: !etat.guide })
+        .on("click", () => ouvrirFicheCarte(p.l))
+        .addTo(etat.coucheLieux);
+    });
+    majEquip();
+  }
+
+  function majEquip() {
+    if (!etat.coucheEq) return;
+    etat.coucheEq.clearLayers();
+    const montrer = [];
+    if (etat.guide) {
+      const x = equip(etat.guide.id);
+      if (x) montrer.push(x);
+    } else if (!etat.panneau) {
+      Object.keys(etat.carteEq).forEach((g) => { if (etat.carteEq[g]) montrer.push(...listeEquip(g)); });
+    }
+    montrer.forEach((x) => {
+      const ic = L.divIcon({
+        className: "marqueur-boite",
+        html: '<span class="marqueur-eq marqueur-eq--' + x.type + (etat.ficheCarte === x.id ? " marqueur--choisi" : "") + '" data-id="' + x.id + '">' + icone(ICONE_EQ[x.type]) + "</span>",
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+      L.marker([x.lat, x.lng], { icon: ic, title: x.nom, alt: x.nom, interactive: !etat.guide })
+        .on("click", () => ouvrirFicheCarte(x))
+        .addTo(etat.coucheEq);
+    });
+  }
+
+  function majMarqueurChoisi() {
+    document.querySelectorAll(".marqueur--choisi").forEach((m) => m.classList.remove("marqueur--choisi"));
+    if (!etat.ficheCarte) return;
+    const m = document.querySelector('#carte [data-id="' + etat.ficheCarte + '"]');
+    if (m) m.classList.add("marqueur--choisi");
+  }
+
+  /* ---------- Les filtres en haut de la carte ---------- */
+  function rendreHautCarte() {
+    const haut = document.getElementById("carte-haut");
+    haut.innerHTML =
+      '<div class="carte-puces">' +
+      '<button type="button" class="puce-carte" data-action="carte-ouvert" aria-pressed="' + etat.carteOuvert + '">' + icone("i-horloge") + esc(t("f_ouvert")) + "</button>" +
+      '<button type="button" class="puce-carte" data-action="carte-femmes" aria-pressed="' + etat.carteFemmes + '">' + icone("i-coeur") + esc(t("carteFemmes")) + "</button></div>" +
+      '<div class="carte-ronds">' +
+      '<button type="button" id="btn-localiser" class="rond-carte rond-carte--bleu" data-action="localiser" aria-label="' + esc(t("centrerSurMoi")) + '" title="' + esc(t("centrerSurMoi")) + '">' + icone("i-position") + "</button>" +
+      '<button type="button" class="rond-carte" data-action="calques" aria-expanded="' + etat.calquesOuverts + '" aria-controls="menu-calques" aria-label="' + esc(t("calquesTitre")) + '" title="' + esc(t("calquesTitre")) + '">' + icone("i-calques") + "</button>" +
+      '<div id="menu-calques" class="menu-calques"' + (etat.calquesOuverts ? "" : " hidden") + '><p class="menu-titre">' + esc(t("calquesTitre")) + "</p>" +
+      [["t", "i-wc", "eq_puceToilettes"], ["e", "i-goutte", "eq_puceEau"], ["s", "i-bouclier", "eq_puceSurs"]].map((x) =>
+        '<button type="button" class="calque" data-action="carte-eq" data-valeur="' + x[0] + '" aria-pressed="' + etat.carteEq[x[0]] + '">' + icone(x[1]) + "<span>" + esc(t(x[2])) + "</span>" + icone("i-check", "coche") + "</button>"
+      ).join("") +
+      "</div></div>";
+  }
+
+  /* ---------- Le panneau : recherche, catégories, lieux, ou le lieu touché ---------- */
+  function htmlPoignee() {
+    return '<button type="button" class="poignee" data-action="panneau-basculer" aria-expanded="' + etat.panneauOuvert + '" aria-label="' + esc(t(etat.panneauOuvert ? "panneauReduire" : "panneauAgrandir")) + '"><span></span></button>';
+  }
+
+  function htmlListeCarte() {
+    const maintenant = new Date();
+    const liste = lieuxCarte().filter(aCoord)
+      .map((l) => ({ l: l, s: statut(l, maintenant), d: etat.position ? distanceM(etat.position, l) : null }))
+      .sort((a, b) => (a.d !== null && b.d !== null ? a.d - b.d : rangStatut(a.s) - rangStatut(b.s) || a.l.nom.localeCompare(b.l.nom, "fr")));
+    if (!liste.length) return '<li class="vide">' + esc(t("aucun")) + "</li>";
+    return liste.slice(0, 40).map((x) =>
+      '<li><button type="button" class="pc-ligne" data-action="carte-lieu" data-id="' + x.l.id + '">' +
+      '<span class="ligne-ic">' + icone(categorie(x.l.cat).icone) + "</span>" +
+      '<span class="ligne-corps"><span class="ligne-nom">' + esc(x.l.nom) + "</span>" +
+      '<span class="ligne-meta"><span class="statut statut--' + x.s.classe + '">' + esc(x.s.texte) + "</span>" +
+      (x.d !== null ? '<span class="ligne-dist" dir="ltr">' + esc(distanceCourte(x.d)) + "</span>" : "") + "</span></span></button></li>"
+    ).join("");
+  }
+
+  function htmlFicheLieuCarte(l) {
+    const s = statut(l, new Date());
+    const acces = l.adresseMasquee && l.acces ? lieu(l.acces) : null;
+    const ici = acces || l;
+    return (
+      '<div class="pl-tete"><span class="ligne-ic">' + icone(categorie(l.cat).icone) + "</span>" +
+      '<div class="pl-titre"><p class="ligne-cat">' + esc(t("cat_" + l.cat)) + "</p><h2>" + esc(l.nom) + "</h2></div>" +
+      '<button type="button" class="pl-fermer" data-action="fermer-fiche-carte" aria-label="' + esc(t("fermer")) + '">' + SVG_FERMER + "</button></div>" +
+      '<p class="statut statut--' + s.classe + '">' + esc(s.texte) + "</p>" +
+      (etat.position && aCoord(ici) ? '<p class="aide">' + esc(formatDistance(distanceM(etat.position, ici))) + "</p>" : "") +
+      badgeFemmes(l) +
+      (acces ? '<p class="aide">' + esc(t("accesProtege", { lieu: acces.nom })) + "</p>" : "") +
+      '<div class="pl-actions">' +
+      (acces || l.adresse ? '<a class="bouton bouton--bleu" href="#guide-' + ici.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" : "") +
+      (l.tel ? '<a class="bouton bouton--vert" href="' + telLien(l.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+      '<a class="bouton bouton--gris" href="#lieu-' + l.id + '">' + esc(t("voirFiche")) + "</a></div>"
+    );
+  }
+
+  function htmlFicheEquip(x) {
+    const details = [];
+    if (x.groupe === "t") {
+      details.push(t(x.payant ? "eq_payantes" : "eq_gratuites"));
+      if (x.fauteuil) details.push(t("eq_fauteuil"));
+    } else if (x.groupe === "e") details.push(t("eq_eauGratuite"));
+    return (
+      '<div class="pl-tete"><span class="ligne-ic">' + icone(ICONE_EQ[x.type]) + "</span>" +
+      '<div class="pl-titre">' + (x.nom !== t("eq_" + x.type) ? '<p class="ligne-cat">' + esc(t("eq_" + x.type)) + "</p>" : "") + "<h2>" + esc(x.nom) + "</h2></div>" +
+      '<button type="button" class="pl-fermer" data-action="fermer-fiche-carte" aria-label="' + esc(t("fermer")) + '">' + SVG_FERMER + "</button></div>" +
+      (x.type === "urgences" ? '<p class="statut statut--ouvert">' + esc(t("h24")) + "</p>" : "") +
+      (details.length ? '<p class="aide">' + esc(details.join(" · ")) + "</p>" : "") +
+      (etat.position ? '<p class="aide">' + esc(formatDistance(distanceM(etat.position, x))) + "</p>" : "") +
+      '<p class="aide">' + esc(t("eq_source")) + "</p>" +
+      '<div class="pl-actions"><a class="bouton bouton--bleu" href="#guide-' + x.id + '">' + icone("i-itineraire") + esc(t("yAller")) + "</a>" +
+      (x.tel ? '<a class="bouton bouton--vert" href="' + telLien(x.tel) + '">' + icone("i-tel") + esc(t("appeler")) + "</a>" : "") +
+      "</div>"
+    );
+  }
+
+  function rendrePanneauCarte() {
+    const p = document.getElementById("panneau-carte");
+    if (!p) return;
+    p.dataset.ouvert = String(etat.panneauOuvert);
+    const sel = etat.ficheCarte;
+    const x = sel ? equip(sel) : null;
+    const l = sel && !x ? lieu(sel) : null;
+    p.classList.toggle("panneau-carte--lieu", !!(x || l));
+    if (x || l) {
+      p.innerHTML = htmlPoignee() + (x ? htmlFicheEquip(x) : htmlFicheLieuCarte(l));
+      return;
+    }
+    p.innerHTML =
+      htmlPoignee() +
+      '<div class="pc-cherche">' + icone("i-loupe") +
+      '<label class="visuellement-cache" for="q-carte">' + esc(t("carteChercher")) + "</label>" +
+      '<input id="q-carte" type="search" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" maxlength="60" placeholder="' + esc(t("carteChercher")) + '" value="' + esc(etat.carteTexte) + '"></div>' +
+      '<div class="pc-cats" role="group" aria-label="' + esc(t("jeCherche")) + '">' +
+      D.familles.map((f) =>
+        '<button type="button" class="pc-cat" data-action="carte-cat" data-valeur="' + f.id + '" aria-pressed="' + (etat.carteCat === f.id) + '">' +
+        '<span class="pc-cat-ic">' + icone(f.icone) + "</span><span>" + esc(nomFamille(f)) + "</span></button>"
+      ).join("") + "</div>" +
+      '<h2 class="pc-titre">' + esc(etat.position ? t("liveTitre") : t("carteLieux")) + "</h2>" +
+      '<ul class="pc-liste" id="pc-liste">' + htmlListeCarte() + "</ul>";
+  }
+
+  function majListeCarte() {
+    const ul = document.getElementById("pc-liste");
+    if (ul) ul.innerHTML = htmlListeCarte();
+  }
+
+  function ouvrirFicheCarte(x) {
+    // Ordinateur, carte à côté d'une liste : ouvrir la fiche du lieu
+    if (etat.panneau) {
+      if (!equip(x.id)) location.hash = "#lieu-" + x.id;
+      return;
+    }
+    etat.ficheCarte = x.id;
+    rendrePanneauCarte();
+    majMarqueurChoisi();
+    const pt = equip(x.id) ? { lat: x.lat, lng: x.lng } : pointCarte(x);
+    if (pt) centrerSur([pt.lat, pt.lng]);
+  }
+
+  function fermerFicheCarte() {
+    if (!etat.ficheCarte) return;
+    etat.ficheCarte = null;
+    if (!document.getElementById("vue-carte").hidden && !etat.panneau) rendrePanneauCarte();
+    majMarqueurChoisi();
+  }
+
+  /* ---------- Ordinateur : la carte à droite des listes et des fiches ---------- */
+  function lieuxDeLaVue(h) {
+    switch (h.vue) {
+      case "cat": return D.lieux.filter((l) => dansCat(l, h.param));
+      case "rubrique": {
+        const f = famille(h.param);
+        return h.param === "toutes" ? D.lieux : f ? D.lieux.filter((l) => dansFamille(l, f)) : null;
+      }
+      case "recherche": return chercher(etat.recherche);
+      case "proche": return D.lieux;
+      case "pourvous": return D.lieux.filter((l) => pourFemmes(l) || l.protections);
+      case "favoris": return etat.favoris.map(lieu).filter(Boolean);
+      case "lieu": {
+        const l = lieu(h.param);
+        return l ? [l] : null;
+      }
+      default: return null;
+    }
+  }
+
+  function majPanneau() {
+    const h = vueCourante();
+    if (h.vue === "carte" || h.vue === "guide") return;
+    const zone = document.getElementById("vue-carte");
+    const emplacement = document.getElementById("emplacement-carte");
+    const base = BUREAU.matches && window.L && emplacement ? lieuxDeLaVue(h) : null;
+    document.body.classList.toggle("avec-panneau", !!base);
+    if (!base) {
+      etat.panneau = null;
+      etat.panneauCle = "";
+      rangerCarte();
+      zone.hidden = true;
+      return;
+    }
+    const lieux = h.vue === "lieu" ? base : preparer(base, h.vue === "proche").map((x) => x.l);
+    etat.panneau = new Set(lieux.map((l) => l.id));
+    if (zone.parentElement !== emplacement) emplacement.appendChild(zone);
+    zone.hidden = false;
+    if (!etat.carte) creerCarte();
+    const cle = h.vue + h.param + "|" + lieux.map((l) => l.id).join(",");
+    const nouvelle = cle !== etat.panneauCle;
+    if (nouvelle) {
+      etat.panneauCle = cle;
+      etat.ficheCarte = h.vue === "lieu" ? h.param : null; // la fiche d'un lieu : son repère est mis en avant
+    }
+    majMarqueurs();
+    majMoiSurCarte(false);
+    setTimeout(() => {
+      etat.carte.invalidateSize();
+      if (!nouvelle) return;
+      const pts = lieux.map(pointCarte).filter(Boolean).map((p) => [p.lat, p.lng]);
+      if (pts.length === 1) etat.carte.setView(pts[0], 16);
+      else if (pts.length) etat.carte.fitBounds(pts, { padding: [40, 40], maxZoom: 16 });
+    }, 0);
+  }
+
+  /* =====================================================================
+   * 5. Actions, routeur, démarrage
+   * ===================================================================== */
+  function basculerFavori(id, bouton) {
+    const i = etat.favoris.indexOf(id);
+    if (i === -1) etat.favoris.push(id);
+    else etat.favoris.splice(i, 1);
+    stock.ecrire("favoris", etat.favoris);
+    const fav = i === -1;
+    bouton.setAttribute("aria-pressed", String(fav));
+    bouton.setAttribute("aria-label", fav ? t("garde") : t("garder"));
+    bouton.innerHTML = icone(fav ? "i-etoile-pleine" : "i-etoile");
+  }
+
+  function basculerFiltre(f) {
+    if (etat.filtres.has(f)) etat.filtres.delete(f);
+    else etat.filtres.add(f);
+    document.querySelectorAll('#vue [data-action="filtre"][data-filtre="' + f + '"]').forEach((b) => b.setAttribute("aria-pressed", String(etat.filtres.has(f))));
+    const nb = document.querySelector("#vue .nb-filtres");
+    if (nb) {
+      const n = CRITERES.filter((x) => etat.filtres.has(x)).length;
+      nb.textContent = n ? " " + n : "";
+    }
+    majResultats();
+  }
+
+  function surClic(e) {
+    const el = e.target.closest("[data-action]");
+    if (!el) return;
+    const action = el.dataset.action;
+    const id = el.dataset.id;
+    switch (action) {
+      case "retour":
+        if (etat.navInterne) {
+          e.preventDefault();
+          history.back();
+        }
+        break;
+      case "sauter":
+        e.preventDefault();
+        document.getElementById("vue").focus();
+        break;
+      case "menu-langue": {
+        const menu = document.getElementById("menu-langue");
+        if (menu.hidden) {
+          e.stopPropagation();
+          ouvrirMenuLangue(el);
+        } else fermerMenus();
+        break;
+      }
+      case "langue":
+        changerLangue(el.dataset.valeur);
+        break;
+      case "filtre":
+        basculerFiltre(el.dataset.filtre);
+        break;
+      case "filtres": {
+        etat.filtresOuverts = !etat.filtresOuverts;
+        el.setAttribute("aria-expanded", String(etat.filtresOuverts));
+        const plus = document.getElementById("filtres-plus");
+        if (plus) plus.hidden = !etat.filtresOuverts;
+        break;
+      }
+      case "proche":
+        // « Près de moi » : active ou coupe le tri par distance ; demande le GPS si besoin
+        if (etat.position && etat.triDistance) {
+          etat.triDistance = false;
+          etat.positionMessage = null;
+          rafraichir();
+        } else if (etat.position) {
+          etat.triDistance = true;
+          rafraichir();
+        } else demanderPosition();
+        break;
+      case "proche-accueil":
+      case "proche-aide":
+        demanderPosition();
+        break;
+      case "garder":
+        basculerFavori(id, el);
+        break;
+      case "partager":
+        partager(lieu(id));
+        break;
+      case "copier":
+        copier(el.dataset.texte, el);
+        break;
+      case "avis":
+        donnerAvis(id, el.dataset.valeur);
+        el.closest(".avis").innerHTML = '<p class="ok">' + icone("i-check") + esc(t("avisMerci")) + "</p>";
+        break;
+      case "installer":
+        if (etat.installation) {
+          etat.installation.prompt();
+          etat.installation.userChoice.then(() => {
+            etat.installation = null;
+            rafraichir();
+          });
+        }
+        break;
+      case "installer-plus-tard":
+        stock.ecrire("installMasque", true);
+        el.closest(".installer").remove();
+        break;
+      case "effacer":
+        el.hidden = true;
+        el.parentElement.querySelector(".effacer-confirmer").hidden = false;
+        break;
+      case "effacer-non": {
+        const boite = el.closest(".effacer");
+        boite.querySelector(".effacer-confirmer").hidden = true;
+        boite.querySelector('[data-action="effacer"]').hidden = false;
+        break;
+      }
+      case "effacer-oui": {
+        stock.toutEffacer();
+        etat.favoris = [];
+        const boite = el.closest(".effacer");
+        boite.querySelector(".effacer-confirmer").hidden = true;
+        boite.querySelector(".ok").hidden = false;
+        break;
+      }
+      case "moment-pause": {
+        etat.momentPause = !etat.momentPause;
+        el.setAttribute("aria-pressed", String(etat.momentPause));
+        el.setAttribute("aria-label", t(etat.momentPause ? "imReprendre" : "imPause"));
+        el.innerHTML = icone(etat.momentPause ? "i-lecture" : "i-pause");
+        el.closest(".moment").classList.toggle("en-pause", etat.momentPause);
+        break;
+      }
+      // Carte
+      case "carte-cat":
+        etat.carteCat = etat.carteCat === el.dataset.valeur ? "toutes" : el.dataset.valeur;
+        document.querySelectorAll('#panneau-carte [data-action="carte-cat"]').forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.valeur === etat.carteCat)));
+        majMarqueurs();
+        majListeCarte();
+        break;
+      case "carte-ouvert":
+        etat.carteOuvert = !etat.carteOuvert;
+        el.setAttribute("aria-pressed", String(etat.carteOuvert));
+        majMarqueurs();
+        majListeCarte();
+        break;
+      case "carte-femmes":
+        etat.carteFemmes = !etat.carteFemmes;
+        el.setAttribute("aria-pressed", String(etat.carteFemmes));
+        majMarqueurs();
+        majListeCarte();
+        break;
+      case "calques":
+        etat.calquesOuverts = !etat.calquesOuverts;
+        el.setAttribute("aria-expanded", String(etat.calquesOuverts));
+        document.getElementById("menu-calques").hidden = !etat.calquesOuverts;
+        if (etat.calquesOuverts) e.stopPropagation();
+        break;
+      case "carte-eq":
+        etat.carteEq[el.dataset.valeur] = !etat.carteEq[el.dataset.valeur];
+        el.setAttribute("aria-pressed", String(etat.carteEq[el.dataset.valeur]));
+        majEquip();
+        break;
+      case "carte-lieu": {
+        const l = lieu(id);
+        if (l) ouvrirFicheCarte(l);
+        break;
+      }
+      case "fermer-fiche-carte":
+        fermerFicheCarte();
+        break;
+      case "panneau-basculer":
+        if (ignorerClicPoignee) {
+          ignorerClicPoignee = false;
+          break;
+        }
+        basculerPanneau(!etat.panneauOuvert);
+        break;
+      case "localiser":
+        if (etat.guide) {
+          etat.guide.suivre = true;
+          etat.guide.suivreApres = 0;
+          if (etat.position) etat.carte.setView([etat.position.lat, etat.position.lng], Math.max(etat.carte.getZoom(), 17));
+          rendreGuide();
+        } else if (etat.position && etat.position.source === "gps") centrerSur([etat.position.lat, etat.position.lng]);
+        else demanderPosition();
+        break;
+      case "guide-arreter":
+        arreterGuide();
+        if (etat.navInterne) history.back();
+        else location.hash = "#carte";
+        break;
+      case "guide-voix":
+        if (!etat.guide) break;
+        etat.guide.voix = !etat.guide.voix;
+        stock.ecrire("guideVoix", etat.guide.voix);
+        if (!etat.guide.voix && "speechSynthesis" in window) speechSynthesis.cancel();
+        etat.guide.annonces = {};
+        rendreGuide();
+        break;
+      case "guide-reessayer": {
+        const g = etat.guide && etat.guide.id;
+        arreterGuide();
+        if (g) demarrerGuide(g);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  // Le panneau de la carte : déplié (la liste) ou replié (recherche et catégories)
+  let ignorerClicPoignee = false;
+  function basculerPanneau(ouvert) {
+    etat.panneauOuvert = ouvert;
+    const p = document.getElementById("panneau-carte");
+    p.dataset.ouvert = String(ouvert);
+    const poignee = p.querySelector(".poignee");
+    if (poignee) {
+      poignee.setAttribute("aria-expanded", String(ouvert));
+      poignee.setAttribute("aria-label", t(ouvert ? "panneauReduire" : "panneauAgrandir"));
+    }
+  }
+
+  function surSaisie(e) {
+    const cible = e.target;
+    if (cible.id === "q" && vueCourante().vue !== "recherche") {
+      // Comme sur iPhone : dès qu'on tape, la page de recherche s'ouvre et garde le clavier
+      etat.recherche = cible.value.slice(0, 60);
+      etat.focusRecherche = true;
+      location.hash = "#recherche";
+      return;
+    }
+    if (cible.id === "q") {
+      clearTimeout(surSaisie.minuterie);
+      surSaisie.minuterie = setTimeout(() => {
+        etat.recherche = cible.value.trim().slice(0, 60);
+        majResultats();
+      }, 200);
+      return;
+    }
+    if (cible.id === "q-carte") {
+      clearTimeout(surSaisie.minuterie);
+      surSaisie.minuterie = setTimeout(() => {
+        etat.carteTexte = cible.value.slice(0, 60);
+        majMarqueurs();
+        majListeCarte();
+      }, 200);
+    }
+  }
+
   async function surEnvoi(e) {
     const form = e.target;
     if (form.hasAttribute && form.hasAttribute("data-recherche")) {
       e.preventDefault();
       etat.recherche = form.elements.q.value.trim().slice(0, 60);
-      if (vueCourante().vue === "recherche") majResultats();
-      else location.hash = "#recherche";
-      return;
-    }
-    if (form.classList && form.classList.contains("form-carnet")) {
-      e.preventDefault();
-      const c = carnet();
-      const f = form.elements;
-      const id = Date.now().toString(36);
-      if (form.dataset.type === "rdv") c.rdv.push({ id: id, date: f.date.value, heure: f.heure.value, texte: f.texte.value.trim().slice(0, 120) });
-      else c.numeros.push({ id: id, nom: f.nom.value.trim().slice(0, 60), tel: f.tel.value.trim().slice(0, 25) });
-      ecrireCarnet(c);
-      rafraichir();
+      if (vueCourante().vue === "recherche") {
+        majResultats();
+        form.elements.q.blur();
+      } else location.hash = "#recherche";
       return;
     }
     if (!form.classList || !form.classList.contains("form-signaler")) return;
@@ -2475,10 +2658,8 @@
     };
     champs.disabled = true;
     bouton.disabled = true;
-
-    let resultat = navigator.onLine === false ? "attente" : await posterSignalement(s);
+    const resultat = navigator.onLine === false ? "attente" : await posterSignalement(s);
     if (resultat === "attente") mettreEnAttente(s);
-
     if (resultat === "refuse") {
       msg.classList.add("merci--erreur");
       msg.textContent = t("signalerErreur");
@@ -2492,30 +2673,50 @@
     msg.hidden = false;
   }
 
-  /* ---------- Compteur de visites ----------
-   * Au plus une fois par jour et par téléphone, avec internet : /api/visite ajoute 1 au
-   * compteur du mois. Rien n'est envoyé sur la personne ; seule la date du jour reste ici. */
-  function compterVisite() {
-    if (!/^https?:$/.test(location.protocol) || navigator.onLine === false) return;
-    const d = new Date();
-    const jour = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
-    if (stock.lire("visite", "") === jour) return;
-    fetch("/api/visite", { method: "POST", cache: "no-store", referrerPolicy: "no-referrer", keepalive: true })
-      .then((rep) => { if (rep.ok) stock.ecrire("visite", jour); })
-      .catch(() => { /* pas compté, ce n'est pas grave */ });
-  }
-
-  /* ---------- Langue, réglages, chrome ---------- */
+  /* ---------- Langue ---------- */
   function changerLangue(l) {
     if (LANGUES.indexOf(l) === -1) return;
     etat.langue = l;
     stock.ecrire("langue", l);
-    fermerMenuLangue();
+    fermerMenus();
     appliquerReglages();
     rafraichir();
     if (etat.carte && !document.getElementById("vue-carte").hidden) {
-      rendreBarreCarte();
+      rendreHautCarte();
+      rendrePanneauCarte();
       majMarqueurs();
+    }
+  }
+
+  function remplirMenuLangue() {
+    document.getElementById("menu-langue").innerHTML =
+      '<p class="menu-titre">' + esc(t("langue")) + "</p>" +
+      LANGUES.map((l) =>
+        '<button type="button" role="menuitemradio" lang="' + l + '"' + (DROITE_A_GAUCHE.indexOf(l) !== -1 ? ' dir="rtl"' : "") +
+        ' data-action="langue" data-valeur="' + l + '" aria-checked="' + (etat.langue === l) + '"><span>' + esc(TR[l].nomLangue) + "</span>" + (etat.langue === l ? icone("i-check") : "") + "</button>"
+      ).join("");
+  }
+
+  function ouvrirMenuLangue(declencheur) {
+    const menu = document.getElementById("menu-langue");
+    menu.hidden = false;
+    declencheur.setAttribute("aria-expanded", "true");
+    const actif = menu.querySelector('[aria-checked="true"]');
+    if (actif) actif.focus();
+  }
+
+  function fermerMenus() {
+    const menu = document.getElementById("menu-langue");
+    if (menu && !menu.hidden) {
+      menu.hidden = true;
+      document.querySelectorAll('[data-action="menu-langue"]').forEach((b) => b.setAttribute("aria-expanded", "false"));
+    }
+    const calques = document.getElementById("menu-calques");
+    if (calques && !calques.hidden) {
+      calques.hidden = true;
+      etat.calquesOuverts = false;
+      const b = document.querySelector('[data-action="calques"]');
+      if (b) b.setAttribute("aria-expanded", "false");
     }
   }
 
@@ -2523,11 +2724,6 @@
     const html = document.documentElement;
     html.lang = etat.langue;
     html.dir = DROITE_A_GAUCHE.indexOf(etat.langue) !== -1 ? "rtl" : "ltr";
-    remplirMenuLangue();
-    html.style.fontSize = Math.round([100, 115, 132][etat.taille] * (etat.facile ? 1.1 : 1)) + "%";
-    html.toggleAttribute("data-facile", !!etat.facile);
-    // Un seul style (css/app.css), clair ou sombre selon le téléphone
-    html.setAttribute("data-theme", "paladines");
     document.querySelectorAll("[data-t]").forEach((el) => {
       el.textContent = t(el.dataset.t);
     });
@@ -2535,35 +2731,20 @@
       el.setAttribute("aria-label", t(el.dataset.tLabel));
       el.title = t(el.dataset.tLabel);
     });
-    document.getElementById("code-langue").textContent = etat.langue.toUpperCase();
-    document.querySelectorAll("#menu-langue [data-valeur]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.valeur === etat.langue)));
-  }
-
-  function remplirMenuLangue() {
-    const menu = document.getElementById("menu-langue");
-    if (menu.childElementCount !== LANGUES.length) {
-      menu.innerHTML = LANGUES.map((l) =>
-        '<button type="button" role="menuitemradio" lang="' + l + '"' + (DROITE_A_GAUCHE.indexOf(l) !== -1 ? ' dir="rtl"' : "") +
-        ' data-action="langue" data-valeur="' + l + '" aria-checked="false">' + esc(TR[l].nomLangue) + "</button>"
-      ).join("");
-    }
-  }
-
-  function ouvrirMenuLangue() {
-    document.getElementById("menu-langue").hidden = false;
-    document.getElementById("btn-langue").setAttribute("aria-expanded", "true");
-    const actif = document.querySelector('#menu-langue [aria-checked="true"]');
-    if (actif) actif.focus();
-  }
-
-  function fermerMenuLangue() {
-    document.getElementById("menu-langue").hidden = true;
-    document.getElementById("btn-langue").setAttribute("aria-expanded", "false");
+    document.querySelectorAll(".code-langue").forEach((el) => {
+      el.textContent = etat.langue.toUpperCase();
+    });
+    remplirMenuLangue();
   }
 
   function majNav(vue) {
-    const correspond = { accueil: "accueil", cat: "accueil", rubrique: "accueil", recherche: "accueil", proche: "accueil", pourvous: "accueil", lieu: null, carte: "carte", guide: "carte", urgences: "urgences", aide: "urgences", carnet: "favoris", infos: "infos", favoris: "favoris" };
-    const actif = correspond[vue];
+    const correspond = {
+      accueil: "accueil", cat: "accueil", rubrique: "accueil", recherche: "accueil", proche: "accueil", pourvous: "accueil",
+      carte: "carte", guide: "carte",
+      urgences: "urgences", aide: "urgences",
+      infos: "infos", favoris: "infos", reglages: "infos", signaler: "infos", apropos: "infos"
+    };
+    const actif = correspond[vue] || null;
     document.querySelectorAll(".onglets a").forEach((a) => {
       if (a.dataset.onglet === actif) a.setAttribute("aria-current", "page");
       else a.removeAttribute("aria-current");
@@ -2574,8 +2755,13 @@
     document.getElementById("bandeau-horsligne").hidden = navigator.onLine !== false;
   }
 
-  function estInstallee() {
-    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  function majResultats() {
+    const h = vueCourante();
+    const zone = document.getElementById("resultats");
+    if (zone && h.vue === "recherche") zone.innerHTML = htmlResultatsRecherche();
+    else if (zone && ["cat", "rubrique", "proche", "favoris"].indexOf(h.vue) !== -1) zone.innerHTML = htmlListe(preparer(lieuxDeLaVue(h), h.vue === "proche"), h.vue !== "cat");
+    else return rafraichir();
+    majPanneau();
   }
 
   /* ---------- Routeur ---------- */
@@ -2587,20 +2773,16 @@
 
   function route(options) {
     const opts = options || {};
-    if (!opts.rafraichir && "speechSynthesis" in window) {
-      speechSynthesis.cancel();
-      const b = document.getElementById("btn-lire-page");
-      if (b) b.setAttribute("aria-pressed", "false");
-    }
     const h = vueCourante();
     const main = document.getElementById("vue");
     majNav(h.vue);
+    fermerMenus();
 
     if (h.vue === "carte" || h.vue === "guide") {
-      majBoutonLirePage();
+      document.body.classList.add("sur-carte");
       if (h.vue === "carte") {
         arreterGuide();
-        // « #carte-toilettes » : la carte avec les toilettes et l'eau potable
+        // « #carte-toilettes » : la carte avec les toilettes et l'eau potable ; « #carte-surs » : les lieux sûrs
         if (h.param === "toilettes") etat.carteEq.t = etat.carteEq.e = true;
         if (h.param === "surs") etat.carteEq.s = true;
       }
@@ -2608,9 +2790,11 @@
       if (h.vue === "guide" && etat.carte) demarrerGuide(h.param);
       return;
     }
+    document.body.classList.remove("sur-carte");
     arreterGuide();
     fermerFicheCarte();
-    if (!BUREAU.matches) document.getElementById("vue-carte").hidden = true;
+    rangerCarte();
+    document.getElementById("vue-carte").hidden = true;
     main.hidden = false;
 
     let html;
@@ -2619,22 +2803,21 @@
       case "rubrique": html = vueRubrique(h.param); break;
       case "recherche": html = vueRecherche(); break;
       case "proche": html = vueProche(); break;
+      case "pourvous": html = vuePourVous(); break;
+      case "favoris": html = vueFavoris(); break;
       case "lieu": html = vueLieu(h.param); break;
       case "urgences": html = vueUrgences(); break;
-      case "infos": html = vueInfos(h.param); break;
-      case "favoris": html = vueFavoris(); break;
-      case "reglages": html = vueReglages(); break;
-      case "apropos": html = vueApropos(); break;
-      case "signaler": html = vueSignaler(); break;
-      case "pourvous": html = vuePourVous(h.param); break;
       case "aide": html = vueAide(); break;
-      case "carnet": html = vueCarnet(); break;
+      case "infos": html = vueInfos(h.param); break;
+      case "reglages": html = vueReglages(); break;
+      case "signaler": html = vueSignaler(); break;
+      case "apropos": html = vueApropos(); break;
       default: html = vueAccueil();
     }
     const afficher = () => {
       main.innerHTML = html;
       main.dataset.vue = h.vue;
-      majBoutonLirePage();
+      if (h.vue === "accueil" || h.vue === "") animerMoment();
       if (h.vue === "reglages") dessinerQrSite();
       majPanneau();
       if (etat.focusRecherche) {
@@ -2646,11 +2829,10 @@
           return;
         }
       }
-
       if (opts.rafraichir) return;
-      const fiche = h.vue === "infos" && h.param ? document.getElementById("fiche-" + h.param)
-        : h.vue === "pourvous" && h.param ? document.getElementById("pv-" + h.param) : null;
-      if (fiche) fiche.scrollIntoView();
+      const ancre = !h.param ? null : h.vue === "pourvous" ? "pv-" + h.param : h.vue === "infos" ? "fiche-" + h.param : h.vue === "reglages" ? h.param : null;
+      const cible = ancre && document.getElementById(ancre);
+      if (cible) cible.scrollIntoView();
       else window.scrollTo(0, 0);
       if (etat.navInterne) {
         const titre = main.querySelector("h1");
@@ -2667,15 +2849,18 @@
     else afficher();
   }
 
-  // Re-dessine la vue courante sans remonter en haut (après un réglage, la position…)
+  // Re-dessine l'écran sans remonter en haut (après un réglage, la position…)
   function rafraichir() {
-    if (["carte", "guide"].indexOf(vueCourante().vue) !== -1) return;
+    const v = vueCourante().vue;
+    if (v === "carte" || v === "guide") {
+      if (!etat.guide && !etat.ficheCarte) majListeCarte();
+      return;
+    }
     route({ rafraichir: true });
   }
 
   /* ---------- Démarrage ---------- */
   function demarrer() {
-    // L'appli remet chaque page en haut elle-même (pas de reprise du défilement au rechargement)
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     chargerMeteo();
     lirePositionQR();
@@ -2689,65 +2874,37 @@
       route();
     });
     document.addEventListener("click", surClic);
-    let minuterieNote = null;
-    let minuterieRecherche = null;
-    document.addEventListener("input", (e) => {
-      if (e.target.id === "q" && vueCourante().vue !== "recherche") {
-        // Comme sur iPhone : dès qu'on tape, la page de recherche s'ouvre et garde le clavier
-        etat.recherche = e.target.value.slice(0, 60);
-        etat.focusRecherche = true;
-        location.hash = "#recherche";
-        return;
-      }
-      if (e.target.id === "q") {
-        clearTimeout(minuterieRecherche);
-        minuterieRecherche = setTimeout(() => {
-          etat.recherche = e.target.value.trim().slice(0, 60);
-          majResultats();
-        }, 200);
-        return;
-      }
-      if (e.target.id !== "carnet-note") return;
-      clearTimeout(minuterieNote);
-      const texte = e.target.value;
-      minuterieNote = setTimeout(() => {
-        const c = carnet();
-        c.note = texte;
-        ecrireCarnet(c);
-      }, 400);
-    });
+    document.addEventListener("input", surSaisie);
     document.addEventListener("submit", surEnvoi);
-    if (BUREAU.addEventListener) BUREAU.addEventListener("change", majPanneau);
-
-    document.getElementById("btn-quitter").addEventListener("click", quitter);
-    let dernierEchap = 0;
+    // Fermer les menus en touchant ailleurs
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#menu-langue, [data-action='menu-langue'], #menu-calques, [data-action='calques']")) fermerMenus();
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
-      if (!document.getElementById("carte-fiche").hidden) {
-        fermerFicheCarte();
-        return;
+      const menu = document.getElementById("menu-langue");
+      if (!menu.hidden || etat.calquesOuverts) return fermerMenus();
+      if (etat.ficheCarte && !document.getElementById("vue-carte").hidden) fermerFicheCarte();
+    });
+    // Panneau de la carte : glisser la poignée vers le haut ou le bas
+    let depart = null;
+    document.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("#panneau-carte .poignee")) depart = e.clientY;
+    });
+    document.addEventListener("pointerup", (e) => {
+      if (depart === null) return;
+      const dy = e.clientY - depart;
+      depart = null;
+      if (Math.abs(dy) > 24) {
+        ignorerClicPoignee = true;
+        basculerPanneau(dy < 0);
       }
-      if (!document.getElementById("menu-langue").hidden) {
-        fermerMenuLangue();
-        document.getElementById("btn-langue").focus();
-        return;
-      }
-      const now = Date.now();
-      if (now - dernierEchap < 800) quitter();
-      dernierEchap = now;
     });
+    document.addEventListener("focusin", (e) => {
+      if (e.target.id === "q-carte" && !BUREAU.matches) basculerPanneau(true);
+    });
+    if (BUREAU.addEventListener) BUREAU.addEventListener("change", () => route({ rafraichir: true }));
 
-    document.getElementById("btn-langue").addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (document.getElementById("menu-langue").hidden) ouvrirMenuLangue();
-      else fermerMenuLangue();
-    });
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest("#menu-langue") && !e.target.closest("#btn-langue")) fermerMenuLangue();
-    });
-
-    // Les voix du téléphone arrivent après le chargement : montrer ou cacher « Écouter »
-    if ("speechSynthesis" in window && speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", () => { majBoutonLirePage(); rafraichir(); });
     window.addEventListener("online", majHorsLigne);
     window.addEventListener("offline", majHorsLigne);
     majHorsLigne();
@@ -2770,11 +2927,18 @@
       if (vueCourante().vue === "reglages") rafraichir();
     });
 
-    // Rafraîchir les statuts « ouvert / fermé » chaque minute
+    // « Ouvert », « ferme bientôt » : à jour chaque minute (l'accueil toutes les 5 minutes)
+    let minutes = 0;
     setInterval(() => {
+      minutes++;
       const v = vueCourante().vue;
-      if (["accueil", "cat", "rubrique", "proche", "favoris"].indexOf(v) !== -1 && !document.activeElement.closest("#vue .filtres")) rafraichir();
-      if (v === "carte" || v === "guide") majMarqueurs();
+      const occupe = document.activeElement && document.activeElement.closest("#vue form, #vue .filtres-plus, #vue details[open]");
+      if (["cat", "rubrique", "proche", "favoris", "lieu", "pourvous"].indexOf(v) !== -1 && !occupe) rafraichir();
+      if (v === "accueil" && minutes % 5 === 0 && !occupe) rafraichir();
+      if (v === "carte" && !etat.guide) {
+        majMarqueurs();
+        if (!etat.ficheCarte) majListeCarte();
+      }
     }, 60000);
 
     if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {

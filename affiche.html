@@ -9,7 +9,13 @@
 <link rel="stylesheet" href="css/app.css">
 <style>
   /* Noms des couleurs de l'ancienne feuille, ramenés à ceux de css/app.css */
-  :root { --encre: var(--texte); --encre-douce: var(--texte-2); --surface: var(--carte); --trait: var(--separateur); --papier: var(--fond); --f-titre: var(--police-titre); --sur-nuit: var(--accent-texte); }
+  :root { --encre: var(--texte); --encre-douce: var(--texte-2); --surface: var(--carte); --trait: var(--separateur); --papier: var(--fond); --f-titre: var(--police-titre); --sur-nuit: #fff; }
+  /* En-tête et boutons de cette page outil (l'appli a les siens) */
+  .entete { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 0 var(--gouttiere); background: var(--nuit); color: #fff; }
+  .entete .marque-nom { font-weight: 600; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 20px; border: 0; border-radius: 999px; background: var(--nuit); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+  .btn--doux { background: var(--gris-plein); color: var(--nuit); }
+  .btn--mini { min-height: 44px; padding: 0 16px; font-size: 0.9375rem; }
   /* Page outil pour l'équipe : formulaire à gauche, aperçu de l'affiche à droite (empilés sur téléphone). */
   .outil {
     max-width: 68rem;

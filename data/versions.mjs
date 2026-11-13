@@ -8,6 +8,20 @@
  */
 export const VERSIONS = [
   {
+    v: 31,
+    date: "2026-11-13",
+    titre: "Nouvelle appli, refaite de zéro",
+    nouveautes: [
+      "Chaque écran commence par un bandeau bleu nuit avec le plan des rues de Lille, puis des cartes blanches simples.",
+      "Accueil : la recherche, « Ouvert maintenant, près de moi », « Pour les femmes » en grand et les besoins en icônes.",
+      "« En ce moment » : les infos utiles défilent seules en cartes (froid ou chaleur, plan hiver, où dormir ce soir, repas, douches, lieux pour les femmes, réouvertures), avec une barre qui montre la carte en cours ; on peut les arrêter ou les faire glisser.",
+      "« Ouvert près de vous » : combien de lieux sont ouverts autour de vous, et le plus proche avec Y aller et Appeler.",
+      "Onglet Carte comme l'app Plans : la carte en plein écran et un panneau avec la recherche, les catégories et les lieux.",
+      "Sur ordinateur : menu en haut à droite et carte à droite des listes et des fiches.",
+      "Retirés à la demande de l'équipe : le bouton « Quitter », le carnet et la lecture facile."
+    ]
+  },
+  {
     v: 30,
     date: "2026-11-12",
     titre: "Appli refaite de zéro : style Apple, simple et clair",
