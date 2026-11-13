@@ -436,7 +436,7 @@ function debut(titre, sous, pictogramme, classeIc) {
     '<meta name="theme-color" content="#0b1b36">' +
     '<link rel="icon" href="/icons/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icons/icon-180.png">' +
     '<link rel="stylesheet" href="/css/app.css"><style>' + CSS + "</style></head>" +
-    '<body class="equipe"><div class="teinte-haut" aria-hidden="true"></div><div class="fond-page" aria-hidden="true"></div>' + SPRITE +
+    '<body class="equipe"><div class="teinte-haut" aria-hidden="true"></div><div class="teinte-bas" aria-hidden="true"></div><div class="fond-page" aria-hidden="true"></div>' + SPRITE +
     '<header class="bande bande--page"><div class="bande-in">' +
     '<div class="bande-haut"><a class="marque" href="/equipe"><svg class="marque-logo" viewBox="8 2 48 60" aria-hidden="true"><use href="#logo"></use></svg><span>Paladines · équipe</span></a></div>' +
     '<div class="page-tete"><span class="page-ic' + (classeIc ? " " + classeIc : "") + '">' + pictogramme + "</span>" +

@@ -36,7 +36,7 @@
   --r-petit: 14px;
   --gouttiere: 16px;
   --onglets-h: 64px;
-  /* Les onglets, plus bas dans l'appli installée (sur la barre du bas de l'iPhone, comme dans les applis d'Apple) */
+  /* Écart entre les onglets et le bas de l'écran (plus petit dans l'appli installée, comme dans les applis d'Apple) */
   --onglets-bas: max(10px, env(safe-area-inset-bottom, 0px) - 12px);
   --ombre: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 20px -14px rgb(11 27 54 / 0.28);
   --ombre-flottante: 0 2px 6px rgb(0 0 0 / 0.08), 0 16px 36px -14px rgb(11 27 54 / 0.45);
@@ -53,17 +53,17 @@
 *::after {
   box-sizing: border-box;
 }
-/* Fond de la page : gris clair, comme la feuille (il se voit sous les pages courtes, autour de la
- * barre de Safari en bas de l'écran) */
 html {
   min-height: 100%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   background: var(--fond);
 }
-/* Onglet Carte : la couleur du plan (en bleu nuit, une bande bleue se voyait sous la carte) */
-html:has(> body.sur-carte) {
-  background: #f2f3f0;
+/* Appli et page de l'équipe : fond bleu nuit. Safari 26 (iPhone, Mac) ne lit plus theme-color et
+ * colore la zone de l'heure avec le fond de la page : en gris, il y faisait une bande blanche floue.
+ * Ce fond ne se voit nulle part ailleurs (.fond-page le couvre, .teinte-bas colore le bas). */
+html:has(.teinte-haut) {
+  background: var(--nuit);
 }
 body {
   margin: 0;
@@ -77,11 +77,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
-/* La zone de la barre d'état : bleu nuit, sans flou. Safari 26 (iPhone, Mac) ne lit plus theme-color :
- * il prend la couleur d'un élément fixe, opaque, sans flou, collé en haut, de 6 px de haut au moins ;
- * sinon il y montrait le haut de la page flouté. Dans Safari, env(safe-area-inset-top) vaut 0 : d'où
- * les 12 px ; dans l'appli installée, l'élément couvre toute la barre d'état. Un vrai élément
- * (index.html), pas un ::before. */
+/* La zone de l'heure : bleu nuit uni, partout (carte comprise). Safari prend aussi la couleur d'un
+ * élément fixe, opaque, sans flou, collé en haut, de 6 px au moins : celui-ci (12 px, car
+ * env(safe-area-inset-top) vaut 0 dans Safari ; toute la barre d'état dans l'appli installée).
+ * Un vrai élément (index.html), pas un ::before. */
 .teinte-haut {
   position: fixed;
   z-index: 60;
@@ -92,13 +91,24 @@ body {
   background: var(--nuit);
   pointer-events: none;
 }
-/* Sur la carte, dans Safari : la couleur du plan (l'appli installée garde le bleu nuit, sous l'heure en blanc) */
-body.sur-carte .teinte-haut {
+/* Le bas de l'écran, autour de la barre de Safari : gris clair, couleur du plan sur la carte (avec le
+ * fond bleu nuit, une bande bleue s'y voyait). Inutile dans l'appli installée et sur ordinateur. */
+.teinte-bas {
+  position: fixed;
+  z-index: 39;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: var(--fond);
+  pointer-events: none;
+}
+body.sur-carte .teinte-bas {
   background: #f2f3f0;
 }
-@media (display-mode: standalone) {
-  body.sur-carte .teinte-haut {
-    background: var(--nuit);
+@media (display-mode: standalone), (min-width: 1024px) {
+  .teinte-bas {
+    display: none;
   }
 }
 /* Quand la page rebondit (iPhone) : bleu nuit au-dessus du bandeau, gris clair sous la feuille */
@@ -110,6 +120,7 @@ body.sur-carte .teinte-haut {
 }
 @media print {
   .teinte-haut,
+  .teinte-bas,
   .fond-page {
     display: none;
   }
@@ -669,6 +680,7 @@ button {
   min-height: 40vh;
   margin-top: -28px;
   padding: 20px var(--gouttiere) calc(var(--onglets-h) + 44px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--onglets-h) + 44px + env(safe-area-inset-bottom, 0px) + 100lvh - 100svh);
   border-radius: 30px 30px 0 0;
   background: var(--fond);
 }
@@ -1772,7 +1784,11 @@ textarea {
   position: fixed;
   z-index: 40;
   left: 50%;
-  bottom: var(--onglets-bas);
+  /* Placés depuis le haut, à la hauteur qu'ils ont quand la barre de Safari est dépliée (100svh) : la même
+   * place sur les 4 onglets. Placés depuis le bas, ils descendaient quand Safari repliait sa barre en
+   * faisant défiler une page, mais pas sur la carte, qui ne défile pas. */
+  bottom: var(--onglets-bas); /* navigateurs sans svh */
+  top: calc(100svh - var(--onglets-bas) - var(--onglets-h));
   display: flex;
   width: min(100% - 28px, 26rem);
   height: var(--onglets-h);
@@ -2039,7 +2055,8 @@ textarea {
   z-index: 600;
   left: 8px;
   right: 8px;
-  bottom: calc(var(--onglets-bas) + var(--onglets-h) + 6px);
+  bottom: calc(var(--onglets-bas) + var(--onglets-h) + 6px); /* navigateurs sans svh */
+  bottom: calc(100% - 100svh + var(--onglets-bas) + var(--onglets-h) + 6px); /* juste au-dessus des onglets */
   display: flex;
   flex-direction: column;
   gap: 10px;
