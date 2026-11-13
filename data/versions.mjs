@@ -20,8 +20,8 @@ export const VERSIONS = [
       "Retirés à la demande de l'équipe : le bouton « Quitter », le carnet et la lecture facile.",
       "Nouveau logo pour l'appli et pour la page de l'équipe : la lanterne bleu nuit sur fond blanc.",
       "La page de l'équipe a le même style que l'appli : bandeau bleu nuit, cartes blanches, onglets en bas.",
-      "iPhone : le bleu nuit monte jusqu'en haut de l'écran, sans bande floue ni blanche, et plus de bande bleue sous la carte.",
-      "Les onglets restent exactement à la même place sur les 4 onglets, carte comprise.",
+      "iPhone : le plan du bandeau monte jusqu'en haut de la page, sans bande ni flou, et plus de bande bleue sous la carte.",
+      "Les onglets sont en bas de l'écran ; la carte ne fait plus redéplier la barre de Safari, ils y sont donc à la même place que sur les autres onglets.",
       "Après une mise à jour, l'appli se recharge seule à l'ouverture : plus besoin de l'ouvrir deux fois."
     ]
   },

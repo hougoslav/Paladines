@@ -8,6 +8,14 @@
  */
 (function () {
   "use strict";
+  // Appli installée sur iPhone : la zone de l'heure devient bleu nuit quand la feuille claire passe dessous
+  const bande = document.querySelector(".bande");
+  const teinte = document.querySelector(".teinte-haut");
+  if (bande && teinte) {
+    window.addEventListener("scroll", () => {
+      document.body.classList.toggle("defile", bande.getBoundingClientRect().bottom < teinte.offsetHeight + 8);
+    }, { passive: true });
+  }
   const D = window.PALADINES_DATA;
   if (!D) return;
   const T = (window.PALADINES_I18N || {}).fr || {};
