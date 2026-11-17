@@ -8,6 +8,20 @@
  */
 export const VERSIONS = [
   {
+    v: 32,
+    date: "2026-11-17",
+    titre: "Plus lisible et plus facile à toucher",
+    nouveautes: [
+      "Les textes suivent partout les mêmes tailles, comme sur iPhone ; les petits textes gris sont un peu plus grands.",
+      "Tous les boutons, les numéros de téléphone et les repères de la carte se touchent facilement du doigt (44 px au moins).",
+      "Les textes clairs sur les cartes bleues de « En ce moment » et « Pour les femmes » sont mieux lisibles.",
+      "« Appeler le 115 » dans « En ce moment » est maintenant vert, comme tous les boutons « Appeler ».",
+      "Un bouton réagit dès qu'on le touche, pas seulement quand on lève le doigt.",
+      "Si le téléphone demande moins d'animations ou moins de transparence, l'appli le respecte partout (plus de fondu entre les écrans, menus et boutons sans effet de verre).",
+      "Sur ordinateur : le menu en haut est plus lisible (« Urgences » surtout) et la carte ne disparaît plus en passant d'une liste à une autre page."
+    ]
+  },
+  {
     v: 31,
     date: "2026-11-13",
     titre: "Nouvelle appli, refaite de zéro",

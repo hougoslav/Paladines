@@ -477,7 +477,7 @@ const CSS = `
 .equipe .feuille h2{margin:10px 4px 0;font-family:var(--police-titre);font-size:1.25rem;font-weight:700;letter-spacing:-.02em}
 .equipe .feuille>p{padding-inline:4px}
 .equipe .carte{padding:16px}
-.discret{color:var(--texte-2);font-size:.875rem}
+.discret{color:var(--texte-2);font-size:.9375rem}
 .cartes{display:flex;flex-direction:column;gap:10px}
 .cartes>li{display:flex;flex-direction:column;gap:8px;padding:16px;border-radius:var(--r);background:var(--carte);box-shadow:var(--ombre)}
 .equipe .statut{color:var(--vert-texte)}
@@ -521,7 +521,7 @@ summary{min-height:44px;padding:10px 0;cursor:pointer}
 .liste-lieux>li{padding-block:6px}
 summary.lieu-titre{font-weight:600}
 .badges{display:inline-flex;flex-wrap:wrap;gap:4px;margin-inline-start:6px;vertical-align:middle}
-.badge{padding:1px 8px;border-radius:999px;background:var(--nuit);color:#fff;font-size:.75rem;font-weight:700}
+.badge{padding:1px 8px;border-radius:999px;background:var(--nuit);color:#fff;font-size:.8125rem;font-weight:700}
 .badge--ferme{background:var(--rouge)}
 .ok-msg{color:var(--vert-texte);font-weight:700}
 .onglets a{position:relative}

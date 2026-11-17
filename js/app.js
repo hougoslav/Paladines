@@ -1489,7 +1489,9 @@
       const dedans =
         '<span class="moment-haut"><span class="moment-ic">' + icone(x.icone) + '</span><span class="moment-eti">' + esc(x.eti) + "</span></span>" +
         '<span class="moment-txt">' + esc(x.texte) + "</span>" +
-        (x.lien ? '<span class="moment-action">' + esc(x.action) + icone("i-chevron", "chevron") + "</span>" : "");
+        (x.lien ? (/^tel:/.test(x.lien)
+          ? '<span class="moment-action moment-action--appel">' + icone("i-tel") + esc(x.action) + "</span>" // « Appeler » toujours vert
+          : '<span class="moment-action">' + esc(x.action) + icone("i-chevron", "chevron") + "</span>") : "");
       return (
         '<li class="moment-carte moment--' + x.type + '" aria-roledescription="info" aria-label="' + esc(t("im_numero", { i: i + 1, n: n })) + '">' +
         (x.lien ? '<a class="moment-lien" href="' + esc(x.lien) + '">' + dedans + "</a>" : '<div class="moment-lien">' + dedans + "</div>") +
@@ -2765,6 +2767,8 @@
       default: html = vueAccueil();
     }
     const afficher = () => {
+      // Le fondu peut arriver après un autre rendu qui a déjà remis la carte dans la page : la ressortir d'abord
+      rangerCarte();
       main.innerHTML = html;
       main.dataset.vue = h.vue;
       if (h.vue === "accueil" || h.vue === "") animerMoment();
@@ -2826,6 +2830,8 @@
       route();
     });
     document.addEventListener("click", surClic);
+    // Sans écouteur de toucher, Safari (iPhone) n'applique pas :active : pas de retour quand on touche un bouton
+    document.addEventListener("touchstart", () => {}, { passive: true });
     document.addEventListener("input", surSaisie);
     document.addEventListener("submit", surEnvoi);
     // Fermer les menus en touchant ailleurs
