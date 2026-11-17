@@ -5,136 +5,133 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Paladines</title>
-<meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b1b36">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <!--
   Guide pour les professionnelles (travailleuses sociales, maraudes, accueils de jour, soignantes) :
   présenter Paladines aux femmes accompagnées. Page à part, en français, imprimable (A4).
   Adresse neutre (/pro.html) : rien de sensible dans l'historique d'un téléphone partagé.
-  Même style que l'appli : elle charge css/app.css (bandeau bleu nuit, feuille grise, cartes blanches).
 -->
-<link rel="stylesheet" href="css/app.css">
 <style>
-  /* Pas d'onglets sur cette page */
-  .pro .feuille { padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px)); }
-  /* Les lignes ne sont pas des liens */
-  .pro .ligne-lien:hover, .pro .ligne-lien:active { background: none; }
-  .pro .qr canvas { display: block; width: 100%; height: auto; }
-  .pro .qr-telephone > div:last-child { flex: 1 1 14rem; }
-  .pro .qr-telephone p + p { margin-top: 6px; }
-  .pro .criteres { gap: 12px; }
-  .pro .criteres li { align-items: flex-start; }
-  .pro .criteres .ic { margin-top: 2px; }
-  .pro ol.puces-txt { gap: 10px; padding-inline-start: calc(16px + 1.4em); list-style: decimal; }
+  :root {
+    --fond: #0b1b36;
+    --carte: #14284a;
+    --jaune: #ffc400;
+    --vert: #2e7d32;
+    --rouge: #d32f2f;
+    --texte: #fff;
+    --doux: #c3cddd;
+    --bord: rgb(255 255 255 / 0.12);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--fond); }
+  body {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    color: var(--texte);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { display: flex; gap: 14px; align-items: center; margin-bottom: 8px; }
+  header img { width: 52px; height: 52px; border-radius: 12px; }
+  h1 { margin: 0; font-size: 1.75rem; line-height: 1.2; letter-spacing: -0.02em; }
+  .sous { margin: 4px 0 0; color: var(--doux); }
+  h2 { margin: 32px 0 10px; font-size: 1.25rem; color: var(--jaune); }
+  p, li { margin: 0 0 8px; }
+  ul, ol { padding-left: 1.3em; }
+  a { color: var(--jaune); }
+  .bloc {
+    padding: 16px 18px;
+    border: 1px solid var(--bord);
+    border-radius: 18px;
+    background: var(--carte);
+  }
+  .grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 10px; padding: 0; list-style: none; }
+  .grille li { margin: 0; padding: 12px 14px; border: 1px solid var(--bord); border-radius: 14px; background: var(--carte); }
+  .grille strong { display: block; }
+  .qr { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+  .qr canvas, .qr img { width: 150px; height: 150px; padding: 8px; border-radius: 12px; background: #fff; }
+  .adresse { font-size: 1.25rem; font-weight: 700; }
+  .boutons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .bouton {
+    display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px;
+    border-radius: 999px; background: var(--jaune); color: var(--fond); font-weight: 700; text-decoration: none;
+  }
+  .bouton--doux { background: transparent; border: 1px solid var(--bord); color: var(--texte); }
+  .attention { border-color: rgb(211 47 47 / 0.6); background: rgb(211 47 47 / 0.12); }
+  .discret { color: var(--doux); font-size: 0.9375rem; }
   @media print {
-    html, html:has(.teinte-haut) { background: #fff; }
-    body { font-size: 11pt; }
-    .bande { padding: 0 0 12px; background: none; color: var(--nuit); }
-    .bande-haut, .retour, .boutons, .pas-imprime { display: none; }
-    .page-sous { color: var(--texte-2); }
-    .page-ic { background: var(--tuile); box-shadow: none; color: var(--nuit); }
-    .feuille { margin: 0; padding: 0; border-radius: 0; background: #fff; gap: 10px; }
-    .carte, .liste { box-shadow: none; border: 1px solid #c8ccd4; }
-    .titre-section { break-after: avoid; }
-    .carte, .ligne { break-inside: avoid; }
+    :root { --fond: #fff; --carte: #fff; --texte: #111; --doux: #444; --jaune: #0b1b36; --bord: #bbb; color-scheme: light; }
+    body { font-size: 11.5pt; padding: 0; }
+    .boutons, .pas-imprime { display: none; }
+    h2 { break-after: avoid; }
+    .bloc, .grille li { break-inside: avoid; }
   }
 </style>
 </head>
-<body class="pro">
-<div class="teinte-haut" aria-hidden="true"></div>
-<div class="teinte-bas" aria-hidden="true"></div>
-<div class="fond-page" aria-hidden="true"></div>
-<svg xmlns="http://www.w3.org/2000/svg" class="sprite" aria-hidden="true">
-  <defs>
-    <symbol id="logo" viewBox="8 2 48 60"><path fill-rule="evenodd" d="M28 7A4 4 0 1 1 36 7A4 4 0 1 1 28 7ZM30.4 7A1.6 1.6 0 1 0 33.6 7A1.6 1.6 0 1 0 30.4 7ZM13.4 24A1.4 1.4 0 0 1 12 22.6L12 21.94A1.6 1.6 0 0 1 12.82 20.54L30.05 10.89A4 4 0 0 1 33.95 10.89L51.18 20.54A1.6 1.6 0 0 1 52 21.94L52 22.6A1.4 1.4 0 0 1 50.6 24ZM16.15 30.03A2.5 2.5 0 0 1 18.6 27L45.4 27A2.5 2.5 0 0 1 47.85 30.03L44.02 47.77A6 6 0 0 1 38.16 52.5L25.84 52.5A6 6 0 0 1 19.98 47.77ZM22 58A2.5 2.5 0 0 1 24.5 55.5L39.5 55.5A2.5 2.5 0 0 1 42 58A2.5 2.5 0 0 1 39.5 60.5L24.5 60.5A2.5 2.5 0 0 1 22 58ZM33.88 29.64C34.26 33.44 36.77 36.1 36.77 41.04C36.77 45.75 34.34 49.02 31.6 49.02C28.86 49.02 26.43 45.75 26.43 41.04C26.43 38 28.56 36.1 30.46 34.2C31.98 32.68 33.27 31.54 33.88 29.64Z"/></symbol>
-    <symbol id="i-retour" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
-    <symbol id="i-papier" viewBox="0 0 24 24"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8Z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h5"/></symbol>
-    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><path d="M13.5 13.5h3v3h-3ZM17.5 17.5h3v3h-3ZM13.5 20.5h.5M20.5 13.5h.5"/></symbol>
-    <symbol id="i-maison" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7M5.5 9.5V20h13V9.5M10 20v-5.5h4V20"/></symbol>
-    <symbol id="i-position" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22"/></symbol>
-    <symbol id="i-coeur" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20Z"/></symbol>
-    <symbol id="i-pied" viewBox="0 0 24 24"><circle cx="13.5" cy="4.5" r="1.8"/><path d="M12.5 8.5 11 14.5l-2.5 6.5M11 14.5l3 3v3.5M12.5 8.5l3.5 3.5M12.5 8.5l-3.5 2.5-1 3"/></symbol>
-    <symbol id="i-wc" viewBox="0 0 24 24"><path d="M7 3.5v.01M17 3.5v.01M5 8h4l-.5 7h-3zM7 15v5M15 8h4l1.5 7h-7zM16 15v5M18 15v5"/></symbol>
-    <symbol id="i-bouclier" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 7.9 7.5 9.5 4.3-1.6 7.5-4.9 7.5-9.5V6Z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
-    <symbol id="i-flocon" viewBox="0 0 24 24"><path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.2 4.2 12 7l2.8-2.8M9.2 19.8 12 17l2.8 2.8M4.6 11l3.8 1-1 3.8M19.4 13l-3.8-1 1-3.8"/></symbol>
-    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8h.01"/></symbol>
-    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
-    <symbol id="i-alerte" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19Z"/><path d="M12 10v4.5M12 17.2h.01"/></symbol>
-    <symbol id="i-drapeau" viewBox="0 0 24 24"><path d="M5 21V4M5 4.5h12l-2.5 4 2.5 4H5"/></symbol>
-  </defs>
-</svg>
-
-<header class="bande bande--page">
-  <div class="bande-in">
-    <div class="bande-haut">
-      <a class="marque" href="./"><svg class="marque-logo" viewBox="8 2 48 60" aria-hidden="true"><use href="#logo"></use></svg><span>Paladines</span></a>
-    </div>
-    <div class="page-tete">
-      <span class="page-ic"><svg class="ic" aria-hidden="true"><use href="#i-papier"></use></svg></span>
-      <div>
-        <h1>Guide pour les professionnelles</h1>
-        <p class="page-sous">Pour présenter Paladines aux femmes que vous accompagnez, à Lille.</p>
-      </div>
-    </div>
+<body>
+<header>
+  <img src="icons/icon-192.png" alt="">
+  <div>
+    <h1>Paladines : guide pour les professionnelles</h1>
+    <p class="sous">Pour présenter l'appli aux femmes que vous accompagnez, à Lille.</p>
   </div>
 </header>
 
-<main class="feuille feuille--etroite">
-  <h2 class="titre-section">En une phrase</h2>
-  <p class="carte texte">Paladines montre aux femmes à la rue <strong>les lieux ouverts maintenant, près d'elles</strong> : dormir, manger, se laver, se soigner, se poser, être écoutée en cas de violences. Gratuite, sans compte, elle marche aussi <strong>sans internet</strong> une fois ouverte.</p>
+<h2>En une phrase</h2>
+<p class="bloc">Paladines montre aux femmes à la rue <strong>les lieux ouverts maintenant, près d'elles</strong> : dormir, manger, se laver, se soigner, se poser, être écoutée en cas de violences. Gratuite, sans compte, elle marche aussi <strong>sans internet</strong> une fois ouverte.</p>
 
-  <h2 class="titre-section">Comment la donner</h2>
-  <div class="carte texte qr-telephone">
-    <div class="qr"><canvas id="qr" width="300" height="300" role="img" aria-label="QR code vers paladines.pages.dev"></canvas></div>
-    <div>
-      <p class="adresse-txt" dir="ltr">paladines.pages.dev</p>
-      <p>Faites scanner ce QR code avec l'appareil photo, ou tapez l'adresse.</p>
-      <p class="aide">Proposez de l'ajouter à l'écran d'accueil (Réglages de l'appli → « Installer »). Elle s'ouvre alors comme une appli, même sans réseau.</p>
-    </div>
+<h2>Comment la donner</h2>
+<div class="bloc qr">
+  <canvas id="qr" width="150" height="150" aria-label="QR code vers paladines.pages.dev"></canvas>
+  <div>
+    <p class="adresse">paladines.pages.dev</p>
+    <p>Faites scanner ce QR code avec l'appareil photo, ou tapez l'adresse.</p>
+    <p class="discret">Proposez de l'ajouter à l'écran d'accueil (Réglages de l'appli → « Installer »). Elle s'ouvre alors comme une appli, même sans réseau.</p>
   </div>
-  <div class="boutons">
-    <a class="bouton" href="affiche.html"><svg class="ic" aria-hidden="true"><use href="#i-qr"></use></svg>Imprimer des affiches avec QR code</a>
-    <a class="bouton bouton--gris" href="./" target="_blank" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-maison"></use></svg>Ouvrir l'appli</a>
-    <button class="bouton bouton--gris" type="button" onclick="print()"><svg class="ic" aria-hidden="true"><use href="#i-papier"></use></svg>Imprimer ce guide</button>
-  </div>
+</div>
+<div class="boutons">
+  <a class="bouton" href="affiche.html">Imprimer des affiches avec QR code</a>
+  <a class="bouton bouton--doux" href="./" target="_blank" rel="noopener">Ouvrir l'appli</a>
+  <button class="bouton bouton--doux" type="button" onclick="print()">Imprimer ce guide</button>
+</div>
 
-  <h2 class="titre-section">Ce qu'elle trouve dedans</h2>
-  <ul class="liste">
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-position"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">Ouvert maintenant, près de moi</span><span class="ligne-femmes">Plus de 200 lieux de Lille, triés par distance, avec « ouvert », « ferme bientôt » ou « fermé ».</span></span></span></li>
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-coeur"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">Pour les femmes</span><span class="ligne-femmes">Lieux réservés, créneaux femmes, santé, protections périodiques.</span></span></span></li>
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-pied"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">Guidage à pied</span><span class="ligne-femmes">Comme une appli GPS, flèche et rue à prendre, même sans réseau.</span></span></span></li>
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-wc"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">Toilettes et eau potable</span><span class="ligne-femmes">Sur la carte, avec le chemin pour y aller.</span></span></span></li>
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-bouclier"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">« Je ne me sens pas en sécurité »</span><span class="ligne-femmes"><span dir="ltr">17</span>, SMS au <span dir="ltr">114</span> déjà écrit, lieu sûr le plus proche, <span dir="ltr">3919</span>.</span></span></span></li>
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-flocon"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">En ce moment</span><span class="ligne-femmes">Alerte froid ou chaleur, plan hiver, où dormir ce soir, repas et douches ouverts : des cartes qui défilent sur l'accueil.</span></span></span></li>
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-info"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">Infos pratiques</span><span class="ligne-femmes">115, droits, adresse pour le courrier, papiers (coffre-fort Reconnect), santé gratuite.</span></span></span></li>
-    <li class="ligne"><span class="ligne-lien"><span class="ligne-ic"><svg class="ic" aria-hidden="true"><use href="#i-globe"></use></svg></span><span class="ligne-corps"><span class="ligne-nom">9 langues</span><span class="ligne-femmes">Français, anglais, arabe, espagnol, roumain, ukrainien, dari, pachto, tigrinya.</span></span></span></li>
+<h2>Ce qu'elle trouve dedans</h2>
+<ul class="grille">
+  <li><strong>Ouvert maintenant, près de moi</strong>Plus de 200 lieux de Lille, triés par distance, avec « ouvert », « ferme bientôt » ou « fermé ».</li>
+  <li><strong>Pour les femmes</strong>Lieux réservés, créneaux femmes, santé, protections périodiques.</li>
+  <li><strong>Guidage à pied</strong>Comme une appli GPS, flèche et rue à prendre, <em>même sans réseau</em>.</li>
+  <li><strong>Toilettes et eau potable</strong>Sur la carte, avec le chemin pour y aller.</li>
+  <li><strong>« Je ne me sens pas en sécurité »</strong>17, SMS au 114 déjà écrit, lieu sûr le plus proche, 3919.</li>
+  <li><strong>En ce moment</strong>Alerte froid ou chaleur, plan hiver, où dormir ce soir, repas et douches ouverts : des cartes qui défilent sur l'accueil.</li>
+  <li><strong>Infos pratiques</strong>115, droits, adresse pour le courrier, papiers (coffre-fort Reconnect), santé gratuite.</li>
+  <li><strong>9 langues</strong>Français, anglais, arabe, espagnol, roumain, ukrainien, dari, pachto, tigrinya.</li>
+</ul>
+
+<h2>Sécurité et discrétion</h2>
+<div class="bloc">
+  <ul>
+    <li>Aucun compte, aucun nom demandé. Sa position <strong>ne quitte jamais son téléphone</strong>.</li>
+    <li>Le nom « Paladines » et les adresses de pages ne disent rien de sensible.</li>
+    <li>Les adresses des hébergements protégés ne sont jamais montrées : l'appli guide vers un lieu public où demander.</li>
+    <li>« Effacer mes données » (Infos → Langue et réglages) retire du téléphone les lieux gardés et les réglages.</li>
   </ul>
+</div>
 
-  <h2 class="titre-section">Sécurité et discrétion</h2>
-  <div class="carte texte">
-    <ul class="criteres">
-      <li><svg class="ic" aria-hidden="true"><use href="#i-check"></use></svg><span>Aucun compte, aucun nom demandé. Sa position <strong>ne quitte jamais son téléphone</strong>.</span></li>
-      <li><svg class="ic" aria-hidden="true"><use href="#i-check"></use></svg><span>Le nom « Paladines » et les adresses de pages ne disent rien de sensible.</span></li>
-      <li><svg class="ic" aria-hidden="true"><use href="#i-check"></use></svg><span>Les adresses des hébergements protégés ne sont jamais montrées : l'appli guide vers un lieu public où demander.</span></li>
-      <li><svg class="ic" aria-hidden="true"><use href="#i-check"></use></svg><span>« Effacer mes données » (Infos → Langue et réglages) retire du téléphone les lieux gardés et les réglages.</span></li>
-    </ul>
-  </div>
+<h2>Bon à dire en la présentant</h2>
+<ol class="bloc">
+  <li>« Appuyez sur <em>Ouvert maintenant, près de moi</em> et acceptez la position : les lieux les plus proches viennent en premier. »</li>
+  <li>« Sur un lieu, <em>Itinéraire</em> vous guide à pied, même sans internet. »</li>
+  <li>« En danger, touchez l'onglet rouge <em>Urgences</em>, puis <em>Je ne me sens pas en sécurité</em>. »</li>
+  <li>« Sur un lieu, <em>Appeler</em> est toujours le bouton vert. »</li>
+</ol>
 
-  <h2 class="titre-section">Bon à dire en la présentant</h2>
-  <ol class="carte texte puces-txt">
-    <li>« Appuyez sur <em>Ouvert maintenant, près de moi</em> et acceptez la position : les lieux les plus proches viennent en premier. »</li>
-    <li>« Sur un lieu, <em>Itinéraire</em> vous guide à pied, même sans internet. »</li>
-    <li>« En danger, touchez l'onglet rouge <em>Urgences</em>, puis <em>Je ne me sens pas en sécurité</em>. »</li>
-    <li>« Sur un lieu, <em>Appeler</em> est toujours le bouton vert. »</li>
-  </ol>
+<h2>Une info est fausse ? Un lieu manque ?</h2>
+<p class="bloc">Dans l'appli : « Signaler une erreur » sur chaque fiche, ou Infos → « Signaler un problème ». C'est anonyme ; l'équipe corrige en quelques minutes pour tous les téléphones. Les femmes peuvent aussi répondre « Ce lieu vous a aidée ? » sur chaque fiche.</p>
 
-  <h2 class="titre-section">Une info est fausse ? Un lieu manque ?</h2>
-  <p class="carte rappel"><svg class="ic" aria-hidden="true"><use href="#i-drapeau"></use></svg><span>Dans l'appli : « Signaler une erreur » sur chaque fiche, ou Infos → « Signaler un problème ». C'est anonyme ; l'équipe corrige en quelques minutes pour tous les téléphones. Les femmes peuvent aussi répondre « Ce lieu vous a aidée ? » sur chaque fiche.</span></p>
-
-  <p class="carte note note--ferme pas-imprime"><svg class="ic" aria-hidden="true"><use href="#i-alerte"></use></svg><span><strong>Prototype</strong> : les lieux ont été relevés sur internet en octobre et novembre 2026 et sont en cours de vérification par téléphone. Conseillez d'appeler avant de se déplacer quand c'est possible.</span></p>
-</main>
+<p class="bloc attention pas-imprime"><strong>Prototype</strong> : les lieux ont été relevés sur internet en octobre 2026 et sont en cours de vérification par téléphone. Conseillez d'appeler avant de se déplacer quand c'est possible.</p>
 
 <script src="vendor/qrcode/qrcode.js"></script>
 <script>
