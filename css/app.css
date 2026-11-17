@@ -30,7 +30,7 @@
   --bleu: #0a66d8;
   --bleu-texte: #0a5fcc;
   --orange: #a64b00;
-  --sur-nuit-2: rgb(255 255 255 / 0.74);
+  --sur-nuit-2: rgb(255 255 255 / 0.8);
   --verre-nuit: rgb(255 255 255 / 0.12);
   --r: 22px;
   --r-petit: 14px;
@@ -267,7 +267,7 @@ button {
 }
 .aide {
   color: var(--texte-2);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 .ok {
   display: flex;
@@ -280,7 +280,7 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -308,7 +308,7 @@ button {
   border-radius: 999px;
   background: var(--nuit);
   color: #fff;
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   text-align: center;
   text-decoration: none;
@@ -517,7 +517,7 @@ button {
 .bande-titre {
   margin: 4px 0 20px;
   font-family: var(--police-titre);
-  font-size: 2rem;
+  font-size: 2.125rem;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -641,7 +641,7 @@ button {
 }
 .page-tete h1 {
   font-family: var(--police-titre);
-  font-size: 1.875rem;
+  font-size: 1.75rem;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
@@ -723,7 +723,7 @@ button {
   font-size: 0.9375rem;
 }
 .titre-section {
-  margin: 10px 4px 0;
+  margin: 8px 4px 0;
   font-family: var(--police-titre);
   font-size: 1.25rem;
   font-weight: 700;
@@ -849,13 +849,13 @@ button {
 }
 .carte-femmes-txt strong {
   font-family: var(--police-titre);
-  font-size: 1.3125rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 .carte-femmes-txt small {
   color: var(--sur-nuit-2);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 .carte-femmes .chevron {
   opacity: 0.7;
@@ -897,7 +897,7 @@ button {
 }
 .tuile-nom {
   max-width: 100%;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -906,7 +906,7 @@ button {
 .tuile-nb {
   margin-top: -3px;
   color: var(--texte-2);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
 }
 .tuile-nb--ouvert {
@@ -934,7 +934,7 @@ button {
 }
 .section-tete h2 {
   font-family: var(--police-titre);
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
@@ -994,7 +994,7 @@ button {
   background: var(--nuit);
   box-shadow: 0 16px 30px -20px rgb(11 27 54 / 0.9);
 }
-/* Chaque sorte d'info a sa lueur, sur le même bleu nuit */
+/* Chaque sorte d'info a sa lueur, sur le même bleu nuit (assez légère pour garder le texte blanc lisible, AA) */
 .moment-lien::before {
   content: "";
   position: absolute;
@@ -1004,30 +1004,30 @@ button {
 }
 .moment--froid,
 .moment--hiver {
-  --lueur: rgb(90 170 255 / 0.75);
+  --lueur: rgb(90 170 255 / 0.5);
 }
 .moment--chaleur {
-  --lueur: rgb(255 149 0 / 0.75);
+  --lueur: rgb(255 149 0 / 0.5);
 }
 .moment--pluie,
 .moment--meteo {
-  --lueur: rgb(62 140 230 / 0.8);
+  --lueur: rgb(62 140 230 / 0.55);
 }
 .moment--dormir,
 .moment--nuit {
   --lueur: rgb(122 92 230 / 0.7);
 }
 .moment--manger {
-  --lueur: rgb(52 199 89 / 0.55);
+  --lueur: rgb(52 199 89 / 0.45);
 }
 .moment--laver {
-  --lueur: rgb(48 176 199 / 0.7);
+  --lueur: rgb(48 176 199 / 0.5);
 }
 .moment--femmes {
   --lueur: rgb(37 86 196 / 0.95);
 }
 .moment--rouvre {
-  --lueur: rgb(52 199 89 / 0.6);
+  --lueur: rgb(52 199 89 / 0.45);
 }
 .moment-haut {
   display: flex;
@@ -1050,7 +1050,7 @@ button {
 }
 .moment-eti {
   color: var(--sur-nuit-2);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -1071,8 +1071,12 @@ button {
   border-radius: 999px;
   background: rgb(255 255 255 / 0.16);
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.2);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
+}
+.moment-action--appel {
+  background: var(--vert);
+  box-shadow: none;
 }
 .moment-action .chevron {
   opacity: 0.8;
@@ -1091,13 +1095,17 @@ button {
 }
 .moment-barres i {
   display: block;
-  width: 0;
   height: 100%;
   border-radius: 2px;
   background: var(--nuit);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+[dir="rtl"] .moment-barres i {
+  transform-origin: 100% 50%;
 }
 .moment-barres .passe i {
-  width: 100%;
+  transform: none;
 }
 .moment-barres .actif i {
   animation: remplir 6s linear forwards;
@@ -1107,10 +1115,10 @@ button {
 }
 @keyframes remplir {
   from {
-    width: 0;
+    transform: scaleX(0);
   }
   to {
-    width: 100%;
+    transform: none;
   }
 }
 
@@ -1195,7 +1203,7 @@ button {
 }
 .ligne-femmes {
   color: var(--texte-2);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.35;
 }
 .ligne-meta {
@@ -1206,13 +1214,13 @@ button {
 }
 .ligne-dist {
   color: var(--texte-2);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 .statut {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 .statut::before {
@@ -1239,7 +1247,7 @@ button {
   border-radius: 6px;
   background: var(--tuile);
   color: var(--nuit);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
 }
 /* Appeler depuis la liste : un rond vert */
@@ -1266,7 +1274,7 @@ button {
 /* ============ 8. Fiche d'un lieu ============ */
 .fiche-cat {
   color: var(--sur-nuit-2);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 .fiche-nom {
@@ -1359,7 +1367,7 @@ button {
   border-radius: 999px;
   background: var(--tuile);
   color: var(--nuit);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
 }
 .bouton-mini::after {
@@ -1368,6 +1376,10 @@ button {
   inset: -4px 0;
 }
 .lien-tel {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
   font-weight: 600;
   text-decoration: none;
 }
@@ -1384,7 +1396,7 @@ button {
 .avis h2,
 .etape h2 {
   font-family: var(--police-titre);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -1566,11 +1578,14 @@ textarea {
   padding-inline: 16px 14px;
 }
 .urgence-num {
+  display: inline-flex;
+  align-items: center;
   flex: none;
+  min-height: 44px;
   min-width: 4.2ch;
   color: var(--nuit);
   font-family: var(--police-titre);
-  font-size: 1.875rem;
+  font-size: 1.75rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -1681,7 +1696,7 @@ textarea {
 }
 .fiche-resume {
   color: var(--texte-2);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   line-height: 1.35;
 }
 .fiche > summary .chevron {
@@ -1789,7 +1804,7 @@ textarea {
 .apropos h2 {
   margin-top: 6px;
   font-family: var(--police-titre);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
 }
 .apropos code {
   font-size: 0.875em;
@@ -1826,7 +1841,7 @@ textarea {
   font-weight: 600;
   letter-spacing: 0;
   text-decoration: none;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.12s ease;
 }
 .onglets a span {
   max-width: 100%;
@@ -1913,7 +1928,7 @@ textarea {
 }
 .leaflet-container {
   font-family: var(--police);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .carte-haut {
   position: absolute;
@@ -2017,7 +2032,7 @@ textarea {
 .sources-carte {
   padding: 4px 12px 10px;
   color: var(--texte-2);
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 .sources-carte a {
@@ -2059,7 +2074,7 @@ textarea {
   border-radius: var(--r-petit);
   background: rgb(255 255 255 / 0.94);
   box-shadow: var(--ombre-flottante);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 /* Le panneau : verre blanc en bas de l'écran, juste au-dessus des onglets ; petit, pour voir la carte */
 .panneau-carte {
@@ -2133,7 +2148,7 @@ textarea {
   border-radius: 19px;
   background: rgb(11 27 54 / 0.07);
   color: var(--nuit);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -2227,6 +2242,21 @@ textarea {
   color: #fff;
   box-shadow: 0 3px 10px -3px rgb(11 27 54 / 0.6);
   transition: transform 0.15s ease;
+}
+.marqueur,
+.marqueur-eq {
+  position: relative;
+}
+/* Repères de 36 et 30 px : zone à toucher de 44 px autour */
+.marqueur::after,
+.marqueur-eq::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+}
+.marqueur-eq::after {
+  inset: -8px;
 }
 .marqueur .ic {
   width: 1.1rem;
@@ -2466,6 +2496,46 @@ body.en-guide .onglets,
 }
 
 /* ============ 14. Mouvements ============ */
+/* Retour dès qu'on touche (pas au relâchement) : fond pour les lignes, léger rétrécissement pour les boutons */
+.ligne-lien:active,
+.liens a:active,
+.lien-ligne:active,
+.langue:active,
+.calque:active,
+.menu-langue button:active,
+.fiche > summary:active,
+.signaler > summary:active {
+  background: rgb(11 27 54 / 0.06);
+}
+.puce,
+.pc-cat,
+.puce-carte,
+.rond-verre,
+.rond-carte,
+.rond-action,
+.moment-pause,
+.bouton-mini,
+.pl-fermer,
+.ligne-appel .ic {
+  transition: transform 0.12s ease;
+}
+.puce:active,
+.pc-cat:active,
+.puce-carte:active,
+.rond-verre:active,
+.rond-carte:active,
+.rond-action:active,
+.moment-pause:active,
+.bouton-mini:active,
+.pl-fermer:active,
+.onglets a:active,
+.ligne-appel:active .ic,
+.moment-lien:active {
+  transform: scale(0.95);
+}
+.moment-lien {
+  transition: transform 0.15s ease;
+}
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.18s;
@@ -2483,14 +2553,60 @@ body.en-guide .onglets,
   .moment-barres {
     display: none;
   }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  /* Pas de rétrécissement au toucher : le fond qui change suffit */
+  .puce:active,
+  .pc-cat:active,
+  .puce-carte:active,
+  .rond-verre:active,
+  .rond-carte:active,
+  .rond-action:active,
+  .moment-pause:active,
+  .bouton-mini:active,
+  .pl-fermer:active,
+  .onglets a:active,
+  .ligne-appel:active .ic,
+  .moment-lien:active,
+  .bouton:active,
+  .proche:active,
+  .carte-femmes:active,
+  .tuile:active .tuile-ic {
+    transform: none;
+  }
 }
 @media (prefers-reduced-transparency: reduce) {
   .onglets,
   .panneau-carte,
   .menu-langue,
+  .menu-calques,
   .puce-carte,
-  .rond-carte {
+  .rond-carte,
+  .guide-bas,
+  .carte-msg {
     background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  /* Verre sur le bandeau bleu nuit : bleu plein */
+  .puce:not([aria-pressed="true"]):not([aria-expanded="true"]),
+  .rond-verre:not([aria-pressed="true"]),
+  .proche,
+  .pastille-statut,
+  .page-ic:not(.page-ic--bleu):not(.page-ic--blanc):not(.page-ic--rouge),
+  .bouton--verre,
+  .horsligne {
+    background: #283548;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) and (min-width: 1024px) {
+  .onglets {
+    background: var(--nuit);
   }
 }
 
@@ -2509,7 +2625,7 @@ body.en-guide .onglets,
   }
   .fiche-actions .bouton {
     padding: 0 10px;
-    font-size: 1rem;
+    font-size: 0.9375rem;
   }
 }
 
@@ -2521,16 +2637,13 @@ body.en-guide .onglets,
   .grille {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .bande-titre {
-    font-size: 2.5rem;
-  }
 }
 
 /* ============ 17. Ordinateur ============ */
 @media (min-width: 1024px) {
   :root {
     --gouttiere: 32px;
-    --onglets-h: 52px;
+    --onglets-h: 54px;
   }
   /* Les onglets passent en haut à droite, en capsule de verre sombre */
   .onglets {
@@ -2539,11 +2652,11 @@ body.en-guide .onglets,
     left: auto;
     inset-inline-end: 24px;
     width: auto;
-    height: 52px;
+    height: 54px;
     gap: 2px;
     padding: 5px;
     transform: none;
-    background: rgb(11 27 54 / 0.66);
+    background: rgb(11 27 54 / 0.82);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 0 0 1px rgb(255 255 255 / 0.14), 0 12px 30px -12px rgb(0 0 0 / 0.5);
   }
   .onglets a,
@@ -2551,9 +2664,9 @@ body.en-guide .onglets,
     flex: none;
     flex-direction: row;
     gap: 8px;
-    min-height: 42px;
+    min-height: 44px;
     padding: 0 16px;
-    border-radius: 21px;
+    border-radius: 22px;
     color: #fff;
     font-size: 0.9375rem;
   }
@@ -2570,7 +2683,7 @@ body.en-guide .onglets,
     color: var(--nuit);
   }
   .onglets .onglet-urg {
-    color: #ff9a92;
+    color: #ffb4ae;
   }
   .onglets .onglet-urg[aria-current="page"] {
     background: #fff;
@@ -2597,11 +2710,8 @@ body.en-guide .onglets,
   .bande--accueil .bande-in > :not(.bande-haut) {
     max-width: 46rem;
   }
-  .bande-titre {
-    font-size: 3rem;
-  }
   .page-tete h1 {
-    font-size: 2.25rem;
+    font-size: 2.125rem;
   }
   .bande--page .bande-in > :not(.bande-haut):not(.retour) {
     max-width: 52rem;
@@ -2629,7 +2739,7 @@ body.en-guide .onglets,
     padding: 24px;
   }
   .carte-femmes-txt strong {
-    font-size: 1.625rem;
+    font-size: 1.75rem;
   }
   .besoins {
     padding: 18px 12px 6px;
