@@ -849,7 +849,6 @@
 
   /* Page pour l'équipe projet : volontairement en français. */
   const IDEES = [
-    ["Bouton « Quitter » toujours visible", "Un appui ouvre la météo à la place de l'appli (ou Échap deux fois sur ordinateur). Pensé pour les femmes dont le téléphone est surveillé."],
     ["Rien d'alarmant dans l'historique", "Le titre de l'onglet reste « Paladines » et les adresses de pages sont neutres (#cat-ecoute et non « violences »)."],
     ["Adresses confidentielles", "Les centres pour femmes victimes de violences n'apparaissent pas sur la carte. Leur adresse est donnée par téléphone."],
     ["QR codes qui savent où ils sont collés", "Chaque affiche contient sa position. Même si le GPS est refusé, la liste est triée depuis l'affiche. Voir la page « Créer une affiche »."],
@@ -1197,6 +1196,10 @@
   }
 
   function surClic(e) {
+    if (e.target.closest('a[href^="tel:"], a[href^="sms:"]')) {
+      e.preventDefault();
+      return;
+    }
     const el = e.target.closest("[data-action]");
     if (!el) return;
     const action = el.dataset.action;
@@ -1489,7 +1492,6 @@
       if (e.target.dataset && e.target.dataset.change === "repere") choisirRepere(e.target.value);
     });
 
-    document.getElementById("btn-quitter").addEventListener("click", quitter);
     let dernierEchap = 0;
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape") return;
@@ -1498,9 +1500,7 @@
         document.getElementById("btn-langue").focus();
         return;
       }
-      const now = Date.now();
-      if (now - dernierEchap < 800) quitter();
-      dernierEchap = now;
+      dernierEchap = Date.now(); // démo de soutenance : pas de sortie rapide
     });
 
     document.getElementById("btn-langue").addEventListener("click", (e) => {

@@ -1799,3 +1799,10 @@ code {
   border-radius: var(--r);
   background: var(--femmes-fond);
 }
+
+/* Démo de soutenance : les boutons d'appel et de SMS se voient mais ne font rien */
+a[href^="tel:"],
+a[href^="sms:"] {
+  pointer-events: none;
+  cursor: default;
+}

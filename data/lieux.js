@@ -3574,3 +3574,9 @@ window.PALADINES_DATA = {
     { num: "119",  id: "119",  sms: false }
   ]
 };
+
+// Démo de soutenance : 10 lieux seulement, un par besoin (l05 : adresse protégée, jamais montrée)
+(function () {
+  var garder = ["l05", "l08", "l13", "l15", "l25", "l32", "l38", "l39", "l44", "l47"];
+  window.PALADINES_DATA.lieux = window.PALADINES_DATA.lieux.filter(function (l) { return garder.indexOf(l.id) !== -1; });
+})();
